@@ -2,9 +2,6 @@
 .env
 .env.*
 
-# Local-only agent preferences
-CLAUDE.local.md
-
 # Operating system files
 .DS_Store
 Thumbs.db
