@@ -2,7 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { browser } from 'wxt/browser';
 
-import { ScaffoldPage } from '@/ui/ScaffoldPage';
+import { SettingsPanel } from '@/ui/SettingsPanel';
+import '@/ui/settings.css';
 
 const rootElement = document.getElementById('root');
 
@@ -14,6 +15,6 @@ document.documentElement.lang = browser.i18n.getUILanguage();
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ScaffoldPage messageKey="optionsScaffoldMessage" />
+    <SettingsPanel />
   </StrictMode>,
 );

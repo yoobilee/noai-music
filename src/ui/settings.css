@@ -1,0 +1,81 @@
+:root {
+  color: #17212b;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  min-width: 300px;
+}
+
+.settings-panel {
+  box-sizing: border-box;
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+  padding: 20px;
+}
+
+.settings-panel h1,
+.settings-panel p {
+  margin: 0;
+}
+
+.settings-panel h1 {
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.settings-panel__description {
+  color: #455463;
+  line-height: 1.5;
+}
+
+.settings-panel__toggle,
+.settings-panel__mode {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+}
+
+.settings-panel__toggle {
+  font-weight: 700;
+  justify-content: space-between;
+}
+
+.settings-panel fieldset {
+  border: 1px solid #aab6c2;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 14px;
+}
+
+.settings-panel legend {
+  font-weight: 700;
+  padding-inline: 4px;
+}
+
+.settings-panel input {
+  accent-color: #0f766e;
+  block-size: 18px;
+  inline-size: 18px;
+}
+
+.settings-panel input:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 3px;
+}
+
+.settings-panel__state {
+  color: #455463;
+  font-size: 14px;
+}
+
+.settings-panel__error {
+  color: #b42318;
+  font-weight: 700;
+}

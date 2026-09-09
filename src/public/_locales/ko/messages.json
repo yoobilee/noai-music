@@ -5,10 +5,34 @@
   "extDescription": {
     "message": "YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 음악 콘텐츠를 필터링합니다."
   },
-  "popupScaffoldMessage": {
-    "message": "필터 제어 기능은 다음 개발 단계에서 추가합니다."
+  "enabledLabel": {
+    "message": "NoAI 사용"
   },
-  "optionsScaffoldMessage": {
-    "message": "상세 설정은 다음 개발 단계에서 추가합니다."
+  "filterModeLabel": {
+    "message": "필터 방식"
+  },
+  "filterModeHide": {
+    "message": "숨기기"
+  },
+  "filterModeBlur": {
+    "message": "흐리기"
+  },
+  "filterModeMark": {
+    "message": "표시만"
+  },
+  "filterScopeDescription": {
+    "message": "YouTube의 공식 AI disclosure가 확인된 콘텐츠에만 적용합니다. 음악 자체의 AI 생성 여부를 별도로 추정하지 않습니다."
+  },
+  "filterStateEnabled": {
+    "message": "필터가 켜져 있습니다."
+  },
+  "filterStateDisabled": {
+    "message": "필터가 꺼져 있습니다."
+  },
+  "settingsSaveError": {
+    "message": "설정을 저장하지 못했습니다. 다시 시도해 주세요."
+  },
+  "youtubeDisclosureReason": {
+    "message": "NoAI · YouTube AI disclosure"
   }
 }

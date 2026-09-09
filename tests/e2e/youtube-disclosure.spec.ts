@@ -3,10 +3,12 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, test } from './fixtures';
 
-const fixturePath = fileURLToPath(
-  new URL('../fixtures/youtube/watch-made-with-ai.en.html', import.meta.url),
+const fixtureHtml = await readFile(
+  fileURLToPath(
+    new URL('../fixtures/youtube/watch-made-with-ai.en.html', import.meta.url),
+  ),
+  'utf8',
 );
-const fixtureHtml = await readFile(fixturePath, 'utf8');
 const unknownWatchHtml = await readFile(
   fileURLToPath(
     new URL('../fixtures/youtube/watch-page-data.unknown.html', import.meta.url),
@@ -14,14 +16,15 @@ const unknownWatchHtml = await readFile(
   'utf8',
 );
 const fixtureUrl = 'https://www.youtube.com/watch?v=z8Dz-IFFFY4';
-const developmentBadge = '[data-noai-development-disclosure-badge]';
+const filterAttribute = 'data-noai-filter-action';
 
-test('marks only confirmed disclosure video units once', async ({ context, page }) => {
+test('filters a card with direct official evidence but not watch metadata', async ({
+  context,
+  page,
+}) => {
   await context.route('https://www.youtube.com/**', async (route) => {
     await route.fulfill({
-      body: route.request().isNavigationRequest()
-        ? fixtureHtml
-        : unknownWatchHtml,
+      body: route.request().isNavigationRequest() ? fixtureHtml : unknownWatchHtml,
       contentType: 'text/html',
       status: 200,
     });
@@ -29,29 +32,18 @@ test('marks only confirmed disclosure video units once', async ({ context, page 
 
   await page.goto(fixtureUrl);
 
-  const disclosedVideo = page.getByTestId('disclosed-video');
-  await expect(disclosedVideo.locator(developmentBadge)).toHaveCount(1);
-  await expect(disclosedVideo.locator(developmentBadge)).toHaveText(
-    'NoAI: AI disclosure detected',
+  await expect(page.getByTestId('disclosed-video')).not.toHaveAttribute(
+    filterAttribute,
+    /.+/,
   );
-  await expect(
-    page.getByTestId('ordinary-video').locator(developmentBadge),
-  ).toHaveCount(0);
-  await expect(
-    page.getByTestId('similar-user-text-video').locator(developmentBadge),
-  ).toHaveCount(0);
-
-  await page.evaluate(() => {
-    const disclosed = document.querySelector('[data-testid="disclosed-video"]');
-    const badge = disclosed?.querySelector('ytd-badge-supported-renderer');
-    if (disclosed && badge) {
-      disclosed.append(badge.cloneNode(true));
-    }
-    history.pushState({}, '', '/watch?v=M7lc1UVf-VE');
-    document.dispatchEvent(new Event('yt-navigate-finish'));
-  });
-
-  await expect(disclosedVideo.locator(developmentBadge)).toHaveCount(1);
+  await expect(page.getByTestId('ordinary-video')).not.toHaveAttribute(
+    filterAttribute,
+    /.+/,
+  );
+  await expect(page.getByTestId('similar-user-text-video')).not.toHaveAttribute(
+    filterAttribute,
+    /.+/,
+  );
 
   await page.evaluate(() => {
     const dynamicVideo = document.createElement('ytd-video-renderer');
@@ -65,19 +57,11 @@ test('marks only confirmed disclosure video units once', async ({ context, page 
     document.body.append(dynamicVideo);
   });
 
-  await expect(
-    page.getByTestId('dynamic-disclosed-video').locator(developmentBadge),
-  ).toHaveCount(1);
+  const dynamic = page.getByTestId('dynamic-disclosed-video');
+  await expect(dynamic).toHaveAttribute(filterAttribute, 'hide');
 
-  await page.evaluate(() => {
-    document
-      .querySelector(
-        '[data-testid="dynamic-disclosed-video"] ytd-badge-supported-renderer',
-      )
-      ?.remove();
-  });
-
-  await expect(
-    page.getByTestId('dynamic-disclosed-video').locator(developmentBadge),
-  ).toHaveCount(0);
+  await dynamic
+    .locator('ytd-badge-supported-renderer')
+    .evaluate((element) => element.remove());
+  await expect(dynamic).not.toHaveAttribute(filterAttribute, /.+/);
 });

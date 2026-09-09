@@ -5,10 +5,34 @@
   "extDescription": {
     "message": "Filter officially labeled AI or altered music content on YouTube and YouTube Music."
   },
-  "popupScaffoldMessage": {
-    "message": "Filtering controls will be added in the next development stage."
+  "enabledLabel": {
+    "message": "Use NoAI"
   },
-  "optionsScaffoldMessage": {
-    "message": "Detailed settings will be added in the next development stage."
+  "filterModeLabel": {
+    "message": "Filter mode"
+  },
+  "filterModeHide": {
+    "message": "Hide"
+  },
+  "filterModeBlur": {
+    "message": "Blur"
+  },
+  "filterModeMark": {
+    "message": "Mark only"
+  },
+  "filterScopeDescription": {
+    "message": "Applies only when YouTube's official AI disclosure is confirmed. NoAI does not infer whether the music itself was AI-generated."
+  },
+  "filterStateEnabled": {
+    "message": "Filtering is on."
+  },
+  "filterStateDisabled": {
+    "message": "Filtering is off."
+  },
+  "settingsSaveError": {
+    "message": "Settings could not be saved. Try again."
+  },
+  "youtubeDisclosureReason": {
+    "message": "NoAI · YouTube AI disclosure"
   }
 }
