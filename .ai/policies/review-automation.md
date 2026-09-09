@@ -37,7 +37,7 @@ Codex는 구현을 마치면 기준 브랜치부터 작업 트리까지의 전�
 4. 현재 변경을 포함한 전체 로컬 검증을 수행한다.
 5. 한국어 커밋 메시지로 커밋한다.
 6. 작업 브랜치를 `origin`에 push한다.
-7. `main` 대상 PR을 생성한다.
+7. 아래 UTF-8 규칙에 따라 `main` 대상 PR을 생성한다.
 8. PR의 최신 커밋에 대한 CI 결과와 merge 가능 상태를 확인한다.
 9. 이 정책의 위험 판정을 수행해 auto-merge 가능 여부를 결정한다.
 
@@ -52,6 +52,15 @@ PR 본문에는 다음을 포함한다.
 - 로컬 자동 검증과 실행하지 못한 검증
 - 보안, 개인정보, extension permission, host permission, 외부 통신과 의존성 영향
 - auto-merge 가능 여부와 manual review가 필요하면 그 이유
+
+### PR 제목·본문 UTF-8 안전 규칙
+
+- PR 본문은 영문만 있더라도 항상 Markdown 파일로 먼저 완성하고 `gh pr create --body-file <path>` 또는 `gh pr edit --body-file <path>`처럼 실제 파일 경로를 전달한다. Windows/PowerShell에서는 긴 본문을 inline argument나 표준 입력 pipeline인 `--body-file -`로 전달하지 않는다.
+- 본문 파일은 UTF-8 without BOM으로 작성한다. PowerShell의 버전별 기본 encoding, output redirection과 pipeline encoding에 의존하지 않는다. PowerShell에서 파일을 만들 때는 예를 들어 `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))`처럼 encoding과 BOM 여부를 명시한다.
+- 비ASCII 문자가 포함된 제목도 긴 inline 문자열이나 shell interpolation으로 조립하지 않는다. 짧은 제목을 안전한 단일 argument로 전달할 수 없는 환경에서는 UTF-8 JSON input 파일을 사용하는 `gh api --input <path>` 방식으로 생성·수정한다.
+- body 또는 JSON input용 임시 파일은 가능한 한 저장소 밖의 안전한 임시 경로에 만들고, Git에 포함하지 않으며, GitHub 반영과 검증이 끝나면 삭제한다. 파일명 자체를 정책으로 고정하지 않는다.
+- PR 생성·수정 직후 `gh pr view --json title,body` 또는 GitHub API로 원격 값을 다시 읽어 예상한 비ASCII 제목·문장과 Markdown 구조가 실제로 보존됐는지 확인한다. URL query처럼 의도된 `?`와 치환 손상을 구분하고, 의도하지 않은 `??` 연속 문자나 U+FFFD replacement character도 확인한다.
+- `?` 치환, replacement character, 누락 또는 다른 Unicode 손상이 있으면 PR metadata 작업과 후속 병합 판단을 완료로 보고하지 않는다. 손상된 원격 문자열을 재사용하지 말고 정상 원문에서 UTF-8 파일을 다시 만든 뒤 `--body-file` 또는 UTF-8 JSON input으로 덮어쓰고 재조회한다.
 
 ## 3. auto-merge 가능 조건
 
