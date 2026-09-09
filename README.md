@@ -47,6 +47,7 @@ YouTube와 YouTube Music의 DOM 의존성은 어댑터 계층 등으로 격리�
 - 언어·빌드: TypeScript, WXT
 - UI: React를 popup과 options에만 사용
 - 테스트: Vitest, Playwright
+- CI: GitHub Actions에서 lint, typecheck, Vitest, WXT production build, Playwright, npm audit와 whitespace 검증
 - 패키지 관리: npm
 - 우선 지원: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 - Firefox: 1.0 이후 검토
@@ -72,3 +73,5 @@ npm run dev
 npm run verify
 npm run verify:all
 ```
+
+Codex는 구현 뒤 전체 diff self-review와 로컬 검증을 거쳐 기본적으로 작업 브랜치 push와 PR 생성까지 수행합니다. 안전한 변경의 auto-merge 조건과 사람 확인이 필요한 위험 변경 기준은 [자동화 정책](.ai/policies/review-automation.md)에 기록되어 있습니다.

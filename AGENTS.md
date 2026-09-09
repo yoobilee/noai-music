@@ -32,6 +32,7 @@
 ## 작업 방식 선택
 
 - 버그, 테스트·빌드 실패와 예상하지 못한 동작은 수정안을 먼저 적용하지 않고 `.ai/policies/debugging.md`의 원인 분석 절차를 따른다.
+- 구현을 마친 뒤에는 커밋 전에 전체 diff를 `.ai/policies/review-automation.md`에 따라 self-review한다. 이는 이미 발생한 버그나 실패의 최초 원인을 찾는 체계적 디버깅과 구분한다.
 - 위험도가 낮고 요구사항과 변경 범위가 명확하면 별도 계획 문서 없이 최소 변경으로 진행한다.
 - 위험도가 중간이거나 여러 파일·기능에 걸친 작업은 구현 전에 완료 조건, 변경 범위, 주요 파일과 검증 방법을 짧게 정리한다. 계획을 파일로 남길 필요가 있으면 `.ai/templates/WORK_PLAN.md`를 사용한다.
 - 위험도가 높거나 구조·데이터·외부 서비스 방향을 바꾸는 작업은 대안, 위험과 롤백 방법을 포함한 계획을 사용자와 확정한 뒤 구현한다.
@@ -56,7 +57,8 @@
 - 인증·권한·개인정보·저장소·핵심 판정 로직은 정상·실패·권한 경계를 검증한다.
 - 사용자 화면은 지원 대상 화면 크기와 주요 브라우저에서 확인한다. 자동 접근성 검사만으로 완료 처리하지 않는다.
 - 실패하거나 실행하지 못한 검사를 숨기지 않는다.
-- 필수 리뷰의 미실행, 스킵, 조회 실패와 판단 불가는 통과가 아니다. 실제 검증 결과와 대상 커밋을 확인한다.
+- self-review에서 문제를 발견하면 수정하고 현재 변경 전체를 다시 검토한 뒤 필요한 로컬 검증을 처음부터 다시 수행한다.
+- 필수 CI와 사람 확인의 미실행, 스킵, 조회 실패와 판단 불가는 통과가 아니다. 실제 검증 결과와 대상 커밋을 확인한다.
 - 간헐적이거나 영향이 작은 문제는 안정성·보안성에 영향이 없을 때만 근거를 남겨 백로그로 이관한다.
 - 필수 CI 실패, 회귀, 보안·개인정보·데이터 손상 위험은 백로그 처리만으로 병합하지 않는다.
 - 완료 보고에는 변경 파일, 주요 결정, 실제 검증 결과와 남은 위험을 포함한다.
@@ -66,14 +68,15 @@
 - 브랜치명은 `feature/설명`, `fix/설명`, 필요 시 `refactor/설명`, `chore/설명` 형식을 사용한다.
 - 기본 브랜치에 직접 push하지 않는다.
 - 커밋 메시지는 변경 내용을 한국어로 간결하게 요약한다.
-- 변경 완료 후 로컬 검증을 수행하고 사용자가 요청한 범위에 따라 commit, push와 PR 생성을 진행한다.
-- 자동 병합은 사용하지 않는다.
-- PR의 GitHub Codex 자동 리뷰는 구현 대화와 분리된 검증 단계로 사용한다. 리뷰 완료 여부와 대상 커밋을 확인하며, 리뷰 요청이나 무응답을 통과로 간주하지 않는다.
-- 높은 위험 변경은 GitHub Codex 자동 리뷰와 사람 확인을 모두 거친다. 리뷰가 구현과 같은 실행 문맥에서 이뤄진 자체 점검뿐이라면 독립 검증으로 간주하지 않는다.
-- 리뷰에서 문제가 발견되면 수정 후 로컬 검증과 CI를 다시 통과해야 한다.
+- 일반 기능·수정 작업은 별도 지시가 없어도 새 브랜치, 구현, self-review, 전체 로컬 검증, commit, origin push와 `main` 대상 PR 생성까지 진행한다.
+- 사용자가 명시적으로 commit, push 또는 PR 생성을 금지하면 해당 단계와 그 이후 의존 단계를 생략한다.
+- PR 본문에는 변경 목적, 주요 변경, self-review 결과, 자동 검증 결과, 보안·개인정보·권한 영향과 알려진 한계를 기록한다.
+- GitHub Codex 별도 리뷰는 사용하지 않는다. 구현 Codex의 self-review, CI와 필요한 사람 확인을 검증 단계로 사용한다.
+- 낮음·중간 위험 변경은 `.ai/policies/review-automation.md`의 모든 조건을 충족할 때만 auto-merge를 활성화할 수 있다.
+- 높은 위험 변경, 위험 여부가 불명확한 변경과 보호된 required CI가 확인되지 않은 PR은 manual review required이며 auto-merge하거나 직접 병합하지 않는다.
 - `.github/workflows/` 등 CI/CD 변경은 높은 위험으로 취급하며 자동 수정·자동 병합하지 않는다.
 - 자동화 조건은 fail-closed로 처리한다. 값 누락, 예상하지 못한 상태와 명령 실패는 사람 확인 상태로 둔다.
-- 리뷰 자동화를 도입하거나 변경할 때 `.ai/policies/review-automation.md`를 적용한다.
+- self-review와 auto-merge를 판단할 때 `.ai/policies/review-automation.md`를 적용한다.
 
 ## 문서 생명주기
 
@@ -89,8 +92,8 @@
 - 새 프로젝트 설정: `.ai/checklists/project-init.md`
 - 새 화면·UI 개편의 디자인 방향: `.ai/policies/design-direction.md`
 - 버그·실패 원인 분석: `.ai/policies/debugging.md`
-- 위험도·테스트·Codex PR 리뷰·CI 기준: `.ai/policies/verification.md`
-- 리뷰 자동화 도입·변경: `.ai/policies/review-automation.md`
+- 위험도·테스트·self-review·CI 기준: `.ai/policies/verification.md`
+- Codex self-review와 자동 병합 판단: `.ai/policies/review-automation.md`
 - 중간·높은 위험 작업 계획: `.ai/templates/WORK_PLAN.md`
 - PR 작성: `.github/pull_request_template.md`
 
@@ -181,10 +184,12 @@
 - 태그 형식: `vX.Y.Z`
 - 라이선스: 오픈소스 공개 전 사용자가 확정
 
-### Codex 운영과 리뷰
+### Codex 운영과 검증
 
 - 개발 도구: Codex만 사용한다. Claude Code와 Slack 기반 Agent 협업은 사용하지 않는다.
 - 실시간 멀티 Agent 협업, Agent handoff와 자동 논의·수정 루프는 사용하지 않는다.
-- GitHub PR의 Codex 자동 리뷰를 구현과 분리된 리뷰 단계로 사용할 예정이다.
-- 리뷰 자동화 구현은 아직 하지 않는다. 신뢰할 작성자 식별, 요청 방식, 완료 근거, 차단 기준과 재시도 정책은 도입 작업에서 확정한다.
-- 모든 PR은 자동 병합하지 않으며, 리뷰와 CI가 준비되기 전에는 미실행 상태를 통과로 간주하지 않는다.
+- GitHub Codex 별도 리뷰는 사용하지 않는다. 구현 완료 후 전체 diff self-review와 CI를 수행한다.
+- 일반 작업은 사용자의 별도 지시가 없어도 commit, push와 PR 생성까지 Codex가 수행한다.
+- 안전한 변경만 정책 조건 충족 시 auto-merge를 활성화할 수 있다. workflow·자동화 정책·권한·외부 통신·개인정보 등 위험 변경은 사람 확인 대상으로 남긴다.
+- `npm run assess:merge-risk -- <base-ref> [head-ref]`를 변경 파일 기반 보조 판정에 사용하되 결과가 불명확하거나 명령이 실패하면 manual review required로 처리한다.
+- auto-merge에는 `main`에서 CI `Verify`가 required check로 보호된다는 확인이 필요하다. 저장소 설정은 사용자 확인 없이 Codex가 임의로 바꾸지 않는다.

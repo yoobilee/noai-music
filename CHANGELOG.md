@@ -12,3 +12,5 @@
 - YouTube watch 페이지의 공식 AI disclosure evidence 추출과 순수 detector
 - 동적 DOM과 SPA 전환에 대응하는 개발 검증용 disclosure 배지
 - 개인정보를 제거한 YouTube fixture 기반 단위·확장 E2E 테스트
+- 읽기 전용 GitHub Actions CI와 Codex self-review·안전한 auto-merge 정책
+- 변경 파일 기반 fail-closed 병합 위험 판정 스크립트와 회귀 테스트

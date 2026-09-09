@@ -32,9 +32,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:automation-policy": "node --test scripts/*.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "npm run build && playwright test",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "assess:merge-risk": "node scripts/assess-merge-risk.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run test:automation-policy && npm run build",
     "verify:all": "npm run verify && playwright test",
     "postinstall": "wxt prepare"
   }

@@ -52,7 +52,7 @@
 - [ ] 필수 CI 작업은 조건부로 건너뛰지 않게 한다.
 - [ ] 기본 브랜치 직접 push 제한과 필수 상태 검사를 저장소 설정에서 확인한다.
 - [ ] CI/CD 변경은 높은 위험이며 사람 확인 대상임을 유지한다.
-- [ ] 리뷰 자동화를 도입하는 경우에만 `.ai/policies/review-automation.md`를 읽고 `AGENTS.md`의 리뷰 자동화 설정과 실패 시나리오 검증을 완료한다. 계획만 있고 아직 미도입이면 현재 상태와 남은 결정을 기록한다.
+- [ ] Codex self-review와 auto-merge를 사용하는 경우 `.ai/policies/review-automation.md`를 읽고 fail-closed 조건, 사람 확인 경계와 required CI 설정을 확정한다.
 
 ## 6. 시작 준비 완료
 
