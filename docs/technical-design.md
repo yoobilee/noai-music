@@ -1,6 +1,6 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지 vertical slice 구현
+- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지와 영상 카드 video ID 추출 vertical slice 구현
 - 기준일: 2026-09-09
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
@@ -175,6 +175,8 @@ YouTube와 YouTube Music은 각각 별도 `SiteAdapter` 구현을 갖는다. sel
 
 history 메서드 monkey patch, 고빈도 polling과 매 mutation 전체 문서 재탐색은 기본 전략으로 사용하지 않는다. 실제 DOM 조사가 끝난 뒤 필요한 event와 selector를 fixture 테스트로 고정한다.
 
+영상 단위의 video ID는 adapter 내부 DOM 탐색과 DOM 없는 순수 URL parser를 분리한다. 제목 링크, 썸네일 링크, 일반 링크 순으로 확인하며 같은 우선순위에서 서로 다른 유효 ID가 나오면 추출하지 않는다. 지원 URL과 surface별 조사 결과는 [`youtube-video-id-extraction.md`](youtube-video-id-extraction.md)에 기록한다.
+
 ## 8. 판정과 필터 정책
 
 어댑터는 공식 UI에서 확인한 문구, 위치와 대상 candidate를 evidence로 구조화한다. detector는 알려진 공식 표시 규칙만 평가한다.
@@ -259,6 +261,6 @@ content script는 `MutationObserver`가 받은 추가·제거 노드와 관련 �
 - 저장 read/write/migration 구현
 - popup/options 제품 UI와 최종 디자인
 - 라이브 YouTube E2E와 브라우저별 수동 검증
-- CI, 스토어 제출과 자동 배포
+- 스토어 제출과 자동 배포
 
-다음 단계는 실제 Chrome에서 현재 watch-page selector와 영어·한국어 표시를 수동 검증하고 차이를 fixture에 반영하는 것이다. 그 검증 뒤 카드별 추가 확인을 어떤 최소 권한·비용 구조로 수행할지 별도 설계한다. DOM 필터링과 자동 skip은 카드 판정 경로가 확정된 다음에 연결한다.
+다음 단계는 실제 Chrome에서 홈·검색·관련·재생목록 카드의 video ID 추출과 현재 watch-page disclosure selector를 함께 수동 검증하고 차이를 fixture에 반영하는 것이다. 그 검증 뒤 카드별 추가 확인을 어떤 최소 권한·비용 구조로 수행할지 별도 설계한다. DOM 필터링과 자동 skip은 카드 판정 경로가 확정된 다음에 연결한다.

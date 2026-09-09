@@ -3,6 +3,7 @@ import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 
 import { readYouTubeOfficialDisclosures } from './officialDisclosure';
 import { YOUTUBE_SELECTORS } from './selectors';
+import { parseYouTubeWatchVideoId } from './videoId';
 
 interface YouTubeAdapterEnvironment {
   document: Document;
@@ -23,35 +24,40 @@ export interface YouTubeAdapter {
   getCurrentUrl(): URL;
 }
 
-const VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
-
 function isElement(node: ParentNode): node is Element {
   return node.nodeType === Node.ELEMENT_NODE;
 }
 
 function getVideoId(candidate: Element, currentUrl: URL): string | undefined {
-  const anchor = candidate.querySelector<HTMLAnchorElement>(
-    YOUTUBE_SELECTORS.videoLink,
-  );
+  if (
+    !candidate.matches(YOUTUBE_SELECTORS.watchMetadata) &&
+    candidate.querySelector(YOUTUBE_SELECTORS.playlistNavigationLink)
+  ) {
+    return undefined;
+  }
 
-  if (anchor) {
-    try {
-      const videoId = new URL(
-        anchor.getAttribute('href') ?? '',
-        currentUrl.origin,
-      ).searchParams.get('v');
+  for (const selector of YOUTUBE_SELECTORS.videoLinkPriority) {
+    const videoIds = new Set<string>();
 
-      if (videoId && VIDEO_ID_PATTERN.test(videoId)) {
-        return videoId;
+    for (const anchor of candidate.querySelectorAll<HTMLAnchorElement>(selector)) {
+      const videoId = parseYouTubeWatchVideoId(anchor.getAttribute('href'));
+      if (videoId !== null) {
+        videoIds.add(videoId);
       }
-    } catch {
-      // A malformed YouTube link makes this candidate indeterminate, not fatal.
+    }
+
+    if (videoIds.size === 1) {
+      return videoIds.values().next().value;
+    }
+
+    if (videoIds.size > 1) {
+      return undefined;
     }
   }
 
   if (candidate.matches(YOUTUBE_SELECTORS.watchMetadata)) {
-    const currentVideoId = currentUrl.searchParams.get('v');
-    if (currentVideoId && VIDEO_ID_PATTERN.test(currentVideoId)) {
+    const currentVideoId = parseYouTubeWatchVideoId(currentUrl.href);
+    if (currentVideoId !== null) {
       return currentVideoId;
     }
   }
@@ -108,7 +114,8 @@ function collectCandidateElements(root: ParentNode): readonly Element[] {
 
   return [...candidates].filter(
     (candidate) =>
-      !candidate.parentElement?.closest(YOUTUBE_SELECTORS.videoUnit),
+      !candidate.parentElement?.closest(YOUTUBE_SELECTORS.videoUnit) &&
+      !candidate.closest(YOUTUBE_SELECTORS.excludedVideoUnitAncestor),
   );
 }
 
