@@ -82,6 +82,9 @@ function createCandidate(
 
   return {
     element,
+    surface: element.matches(YOUTUBE_SELECTORS.watchMetadata)
+      ? 'watch-page'
+      : 'video-card',
     snapshot: {
       identity: {
         site: 'youtube',

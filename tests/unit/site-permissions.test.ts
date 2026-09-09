@@ -26,4 +26,9 @@ describe('content script host scope', () => {
       ),
     ).toBe(true);
   });
+
+  it('uses only the exact YouTube watch host for background lookup', () => {
+    expect(YOUTUBE_MATCH_PATTERNS).toEqual(['https://www.youtube.com/*']);
+    expect(YOUTUBE_MATCH_PATTERNS).not.toContain('<all_urls>');
+  });
 });

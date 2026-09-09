@@ -10,5 +10,6 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     permissions: ['storage'],
+    host_permissions: ['https://www.youtube.com/*'],
   },
 });
