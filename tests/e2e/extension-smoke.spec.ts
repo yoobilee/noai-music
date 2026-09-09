@@ -21,7 +21,8 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
 
   expect(manifest.manifest_version).toBe(3);
   expect(manifest.permissions).toEqual(['storage']);
-  expect(manifest.host_permissions).toBeUndefined();
+  expect(manifest.host_permissions).toEqual(['https://www.youtube.com/*']);
+  expect(manifest.host_permissions).not.toContain('<all_urls>');
   expect(
     manifest.content_scripts?.flatMap((contentScript) =>
       contentScript.matches ?? [],

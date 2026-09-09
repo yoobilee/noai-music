@@ -7,13 +7,21 @@ const fixturePath = fileURLToPath(
   new URL('../fixtures/youtube/watch-made-with-ai.en.html', import.meta.url),
 );
 const fixtureHtml = await readFile(fixturePath, 'utf8');
+const unknownWatchHtml = await readFile(
+  fileURLToPath(
+    new URL('../fixtures/youtube/watch-page-data.unknown.html', import.meta.url),
+  ),
+  'utf8',
+);
 const fixtureUrl = 'https://www.youtube.com/watch?v=z8Dz-IFFFY4';
 const developmentBadge = '[data-noai-development-disclosure-badge]';
 
-test('marks only confirmed disclosure video units once', async ({ page }) => {
-  await page.route('https://www.youtube.com/**', async (route) => {
+test('marks only confirmed disclosure video units once', async ({ context, page }) => {
+  await context.route('https://www.youtube.com/**', async (route) => {
     await route.fulfill({
-      body: fixtureHtml,
+      body: route.request().isNavigationRequest()
+        ? fixtureHtml
+        : unknownWatchHtml,
       contentType: 'text/html',
       status: 200,
     });

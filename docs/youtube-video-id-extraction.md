@@ -83,7 +83,7 @@ watch page의 `ytd-watch-metadata`는 기존 disclosure vertical slice 회귀를
 - 홈은 로그아웃 공개 응답에 카드가 없어 실제 현재 DOM을 확인하지 못했다.
 - 관련·재생목록의 `lockupViewModel`은 서버 view-model에서 확인했지만 최종 custom-element DOM은 실제 Chrome에서 확인하지 못했다.
 - 현재 확인한 `ytd-ad-slot-renderer` 밖의 새로운 광고 container는 자동으로 식별하지 못할 수 있다.
-- ID 추출만 수행하며 watch page fetch, background 네트워크 요청, disclosure 원격 확인과 캐시를 하지 않는다.
+- 이 adapter의 책임은 계속 ID 추출까지만이다. 추출 결과를 사용하는 watch-page fetch와 캐시는 별도 [`youtube-watch-disclosure-lookup.md`](youtube-watch-disclosure-lookup.md)에 격리했다.
 - 콘텐츠 숨김·흐림·필터 이유 UI를 적용하지 않는다.
 - Shorts와 YouTube Music은 이번 범위에서 제외한다.
-- extension permission과 host permission은 변경하지 않는다.
+- 이 ID 추출 slice 자체는 permission을 바꾸지 않는다. 후속 watch-page 확인 slice가 `https://www.youtube.com/*` host permission을 추가했다.
