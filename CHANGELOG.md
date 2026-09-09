@@ -18,4 +18,9 @@
 - 순수 YouTube watch URL parser와 비식별 카드 fixture 기반 회귀 테스트
 - background service worker의 제한된 YouTube watch-page disclosure 추가 확인
 - 동시성·queue·timeout·중복 요청 제어와 versioned `storage.local` 판정 캐시
-- 카드별 개발 검증용 checking·detected·not-detected·unknown 상태 배지
+- versioned `storage.local` 전역 설정과 popup/options의 hide·blur·mark 제어
+- confirmed 공식 disclosure 카드의 reversible 필터, 이유 표시와 SPA stale-result 방어
+
+### 변경
+
+- checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결

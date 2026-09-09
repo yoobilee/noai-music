@@ -1,21 +1,24 @@
-import type { DetectionResult, MediaIdentity } from '@/detection/contracts';
+import type { OfficialDisclosureEvidence } from '@/detection/contracts';
+import type { WatchDisclosureStatus } from '@/shared/youtubeWatchDisclosure';
 
-export type FilterMode = 'hide' | 'blur' | 'show';
+export type FilterMode = 'hide' | 'blur' | 'mark';
 
-export type FilterReason =
-  | 'allowlist'
-  | 'user-blocklist'
-  | 'official-disclosure'
-  | 'no-filter-rule';
+export type FilterReason = 'youtube-official-ai-disclosure';
 
-export interface FilterPolicyInput {
+export interface FilterSettings {
   enabled: boolean;
   mode: FilterMode;
-  media: MediaIdentity;
-  detection: DetectionResult;
 }
 
-export interface FilterDecision {
-  presentation: 'unchanged' | FilterMode;
-  reason: FilterReason;
+export interface FilterPolicyInput {
+  settings: FilterSettings;
+  disclosureStatus: WatchDisclosureStatus;
+  evidence: readonly OfficialDisclosureEvidence[];
 }
+
+export type FilterDecision =
+  | { action: 'none' }
+  | {
+      action: FilterMode;
+      reason: FilterReason;
+    };

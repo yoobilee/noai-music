@@ -2,7 +2,7 @@
 
 NoAI는 YouTube와 YouTube Music에서 사용자가 원하지 않는 AI 표시 음악 콘텐츠를 숨기거나 자동으로 건너뛸 수 있게 하는 오픈소스 브라우저 확장 프로그램입니다.
 
-현재는 기술 설계와 최소 실행 뼈대에 더해 YouTube watch 페이지의 공식 AI disclosure 감지, 영상 카드 video ID 추출, background watch-page 추가 확인과 제한된 로컬 캐시 vertical slice를 구현한 단계입니다. 감지 결과에는 개발 검증용 상태 배지만 표시하며 숨김, 흐림과 자동 건너뛰기는 아직 구현하지 않았습니다.
+현재 YouTube 영상 카드의 video ID를 이용해 background에서 watch page의 공식 AI disclosure를 확인하고 제한된 로컬 캐시에 저장합니다. 공식 evidence가 `confirmed`인 카드만 사용자의 전역 설정에 따라 숨김·흐림·표시하며, 판정 불가나 오류 결과는 필터링하지 않습니다.
 
 ## 판정 원칙
 
@@ -62,6 +62,8 @@ YouTube와 YouTube Music의 DOM 의존성은 어댑터 계층 등으로 격리�
 홈·검색·관련·재생목록의 video ID 추출 계약과 현재 한계는 [`docs/youtube-video-id-extraction.md`](docs/youtube-video-id-extraction.md)에 기록되어 있습니다.
 
 video ID 기반 watch-page 확인, 요청 제한과 캐시 계약은 [`docs/youtube-watch-disclosure-lookup.md`](docs/youtube-watch-disclosure-lookup.md)에 기록되어 있습니다.
+
+카드 필터 정책, 설정 schema, 접근성 및 SPA 복구 방식은 [`docs/youtube-card-filtering.md`](docs/youtube-card-filtering.md)에 기록되어 있습니다.
 
 ## 개발 명령
 

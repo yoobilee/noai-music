@@ -1,6 +1,6 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 추가 확인/캐시 vertical slice 구현
+- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 확인/캐시·confirmed 카드 필터 vertical slice 구현
 - 기준일: 2026-09-09
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
@@ -147,12 +147,15 @@ src/
     contracts.ts
   filtering/
     contracts.ts
+    decideYouTubeCardFilter.ts
   storage/
     contracts.ts
+    settings.ts
   shared/
     sites.ts
   ui/
-    ScaffoldPage.tsx
+    SettingsPanel.tsx
+    youtubeCardFilter.ts
   public/
     _locales/
       en/messages.json
@@ -203,13 +206,13 @@ filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순
 5. 공식 표시 판정이 있고 allow가 없으면 선택한 mode로 필터한다.
 6. 그 외와 판정 불가는 변경하지 않는다.
 
-`show` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. YouTube Music 자동 skip은 동일한 최종 정책 결정을 사용하며, track key와 cooldown으로 같은 곡을 반복 skip하지 않게 한다.
+`mark` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. 현재 vertical slice는 사용자 규칙과 YouTube Music 자동 skip을 아직 구현하지 않으며, `confirmed` 상태와 detector가 재확인한 공식 evidence가 함께 있을 때만 선택 mode를 반환한다.
 
 ## 9. 저장과 캐시
 
 지속 데이터는 `storage.local`만 사용한다. `storage.sync`는 Google 계정 기반 동기화를 만들 수 있으므로 1.0에서 사용하지 않는다.
 
-- `settings`: schema version, 전체 활성화, mode, locale
+- `settingsV1`: schema version, 전체 활성화와 `hide | blur | mark` mode
 - `rules`: 사용자가 만든 allow/block entity 목록
 - entity: site, `track | artist | channel`, 가능한 경우 YouTube의 안정 ID, 사용자 확인용 label
 
@@ -243,7 +246,7 @@ watch-page 추가 확인 결과는 schema version 1의 `youtubeDisclosureCacheV1
 - Chrome, Edge, Whale에서 logged-out/logged-in, 한국어/영어, 홈·검색·관련·재생목록과 YouTube Music player를 수동 확인한다.
 - 자동 접근성 검사와 별도로 popup/options/이유 표시의 키보드, focus, 확대와 대비를 수동 확인한다.
 
-현재 첫 vertical slice에서는 `happy-dom`으로 비식별 HTML fixture를 읽어 adapter를 단위 검증한다. Playwright는 같은 fixture를 `youtube.com` URL에 응답하도록 가로채 빌드된 content script가 확정 대상에 개발 배지를 한 번만 추가하고 일반 카드와 유사 문구 카드에는 추가하지 않는지 확인한다. 실제 YouTube 네트워크는 이 자동 테스트의 입력이나 성공 조건이 아니다.
+`happy-dom` 단위 테스트는 비식별 HTML fixture와 DOM 없는 policy/storage 계약을 검증한다. Playwright는 같은 fixture를 `youtube.com` URL에 응답하도록 가로채 빌드된 content script의 confirmed 카드 hide, mark/blur/off 전환, 중복 방지와 stale 결과 무시를 확인한다. 실제 YouTube 네트워크는 이 자동 테스트의 입력이나 성공 조건이 아니다.
 
 Playwright 공식 문서에 따라 확장 E2E는 bundled Chromium persistent context를 사용한다. Chrome과 Edge 자체는 sideload CLI flag 제한이 있으므로 자동 테스트 결과만으로 Edge·Whale 호환을 선언하지 않는다.
 
@@ -260,7 +263,7 @@ adapter가 반환하는 evidence에는 `source`, `kind`, `matchedText`, `confide
 
 content script는 `MutationObserver`가 받은 추가·제거 노드와 관련 속성 변경만 `requestAnimationFrame` 단위로 묶어 처리한다. `yt-navigate-finish`에서는 route key를 갱신하고 드물게 전체 문서를 다시 확인한다. 처리 결과는 `WeakMap`에만 두며 extension context가 무효화되면 observer, navigation listener와 예약된 frame을 해제한다.
 
-판정된 영상 단위에는 `NoAI: AI disclosure detected`라는 작은 개발용 배지만 붙인다. 중복 DOM 속성과 `WeakMap` fingerprint를 함께 확인하며 콘텐츠를 숨기거나 흐리거나 재생을 제어하지 않는다.
+watch-page 본문 자체는 필터하지 않는다. 영상 카드에서 직접 판정된 공식 evidence는 추가 fetch 없이 동일한 순수 필터 정책으로 전달한다.
 
 조사 근거, fixture 출처와 현재 지원 한계는 [`youtube-disclosure-detection.md`](youtube-disclosure-detection.md)에 기록한다.
 
@@ -270,19 +273,24 @@ content script는 `MutationObserver`가 받은 추가·제거 노드와 관련 �
 
 HTML adapter는 스크립트를 실행하거나 DOM에 주입하지 않고 `ytInitialData` JSON 객체만 파싱한다. 현재 영상의 `videoPrimaryInfoRenderer.badges`와 `engagementPanels` 안의 `howThisWasMadeSectionViewModel`만 기존 evidence 생성 규칙에 전달하고, detector는 기존 순수 함수를 그대로 사용한다. 유효한 watch 구조가 없는 응답, 알 수 없는 공식 컴포넌트, timeout, HTTP·network 오류는 모두 `unknown-or-error`다.
 
-카드에는 제품 필터 UI 대신 `NoAI dev:` 접두사의 checking, detected, not-detected 또는 unknown 상태 하나만 갱신한다. route별 content-script map과 background in-flight map이 중복을 줄이고, SPA에서 element가 재사용되면 video ID/route key가 맞는 응답만 반영한다.
+route별 content-script map과 background in-flight map이 중복을 줄이고, SPA에서 element가 재사용되면 video ID/route key가 맞는 응답만 반영한다. lookup 진행·음성·unknown 개발 배지는 더 이상 기본 화면에 표시하지 않는다.
 
 상세 설계, fixture와 수동 검증은 [`youtube-watch-disclosure-lookup.md`](youtube-watch-disclosure-lookup.md)에 기록한다.
 
-## 13. 아직 구현하지 않는 것
+## 13. 구현된 confirmed 카드 필터 slice
+
+`storage.local`의 versioned 설정은 기본 `enabled: true`, `mode: hide`이며 popup과 options에서 hide/blur/mark를 바꿀 수 있다. settings change는 열려 있는 YouTube 탭에서 현재 candidate를 즉시 다시 처리한다.
+
+순수 policy는 `confirmed` 상태와 detector가 확인한 공식 evidence가 모두 있을 때만 mode를 반환한다. UI 계층은 NoAI 전용 data attribute로 카드를 제거하지 않고 숨기며, blur와 mark에는 `NoAI · YouTube AI disclosure` 이유를 표시한다. 모든 상태는 설정, route 또는 video ID 변경 때 되돌릴 수 있다. 상세 계약은 [`youtube-card-filtering.md`](youtube-card-filtering.md)에 기록한다.
+
+## 14. 아직 구현하지 않는 것
 
 - YouTube Music selector와 adapter 구현
 - 확인되지 않은 언어·표시 변형
-- 필터 정책 함수와 DOM hide/blur/reason UI
 - 자동 skip
-- 저장 read/write/migration 구현
-- popup/options 제품 UI와 최종 디자인
+- 사용자 허용·차단 규칙 저장과 정책 연결
+- popup/options의 목록 관리와 최종 디자인
 - 라이브 YouTube E2E와 브라우저별 수동 검증
 - 스토어 제출과 자동 배포
 
-다음 단계는 실제 Chrome에서 홈·검색·관련·재생목록 카드의 video ID 추출과 현재 watch-page disclosure selector를 함께 수동 검증하고 차이를 fixture에 반영하는 것이다. 그 검증 뒤 카드별 추가 확인을 어떤 최소 권한·비용 구조로 수행할지 별도 설계한다. DOM 필터링과 자동 skip은 카드 판정 경로가 확정된 다음에 연결한다.
+다음 단계는 실제 Chrome에서 홈·검색·관련·재생목록의 lookup 및 hide/blur/mark 전환을 수동 검증하고 renderer별 레이아웃 차이를 fixture에 반영하는 것이다. 이후 사용자가 오탐을 복구할 수 있는 곡·아티스트 허용 목록과 충돌 우선순위를 별도 vertical slice로 연결한다.
