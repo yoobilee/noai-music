@@ -1,6 +1,6 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지와 영상 카드 video ID 추출 vertical slice 구현
+- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 추가 확인/캐시 vertical slice 구현
 - 기준일: 2026-09-09
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
@@ -40,7 +40,7 @@ WXT 공식 문서는 현재 React 모듈, MV3 대상 빌드, `srcDir`, manifest 
 |---|---|
 | `manifest_version` | `3`으로 고정 |
 | 이름·설명 | `__MSG_*__`와 `default_locale: en`을 사용하고 영어·한국어 locale을 번들에 포함 |
-| background | MV3 service worker. 설치·업데이트 시 저장 스키마 migration과 extension context 사이 메시지 조정만 담당 |
+| background | MV3 service worker. 저장 스키마, context 사이 메시지와 제한된 YouTube watch-page 확인 요청을 담당 |
 | action | popup entrypoint에서 생성 |
 | options | options entrypoint에서 생성 |
 | content scripts | YouTube와 YouTube Music을 별도 정적 entrypoint로 선언하고 isolated world에서 `document_idle`에 실행 |
@@ -72,7 +72,13 @@ Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조�
 
 ### 사이트 접근 범위
 
-별도 `host_permissions`는 선언하지 않는다. 네트워크 요청, programmatic injection이나 민감한 tab 속성 접근이 없기 때문이다. 정적 content script의 `matches`만 다음 두 origin으로 제한한다.
+background service worker가 카드의 video ID로 watch page를 확인하기 위해 다음 host permission 하나를 선언한다.
+
+- `https://www.youtube.com/*`
+
+Chrome 공식 문서상 extension service worker의 cross-origin `fetch()`에는 대상 host permission이 필요하다. content script는 임의 URL이 아니라 검증된 11자리 video ID만 보내고 background가 HTTPS watch URL을 직접 조립한다. `credentials: 'omit'`으로 YouTube 로그인 쿠키를 보내지 않으며 `cookies` 권한을 요청하지 않는다. `<all_urls>`, `*.youtube.com`, `music.youtube.com`, HTTP 범위는 추가하지 않는다.
+
+정적 content script의 `matches`는 계속 다음 두 origin으로 제한한다.
 
 - `https://www.youtube.com/*`
 - `https://music.youtube.com/*`
@@ -84,6 +90,7 @@ Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조�
 - [Chrome content script 정적 선언](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
 - [Chrome 권한 선언](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
 - [Chrome storage API](https://developer.chrome.com/docs/extensions/reference/api/storage)
+- [Chrome extension의 cross-origin 요청](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)
 
 ## 4. 브라우저 지원
 
@@ -112,7 +119,7 @@ Edge 공식 문서는 Chrome의 지원 API와 manifest key가 대체로 코드 �
 |---|---|---|
 | YouTube content script | 어댑터 시작, 페이지·DOM 변경 전달, 설정 snapshot에 따른 표시 적용 | 계정 조회, 원격 전송, 자체 AI 추측 |
 | YouTube Music content script | YouTube Music 어댑터 시작, 목록 표시와 현재 곡 변경 전달, 최종 결정에 따른 skip | 장기 상태 보관, 네트워크 차단 |
-| background service worker | 저장 schema migration, 설정·목록 접근 조정, context 사이 메시지 계약 | DOM 접근, 영구 in-memory 상태 가정 |
+| background service worker | 저장 schema·캐시, context 메시지, video ID로 제한된 watch-page fetch와 요청 queue | DOM 접근, 임의 URL fetch, 쿠키·계정 접근, 영구 in-memory 상태 가정 |
 | popup | 전체 ON/OFF, 현재 mode와 상태의 빠른 제어 | 복잡한 목록 편집 |
 | options | 필터 mode, 허용·차단 목록, 언어와 설명 관리 | 페이지 DOM 직접 접근 |
 | adapters | 사이트별 selector, DOM 탐색, 공식 표시 evidence 추출, DOM 표현·player 제어 | evidence 의미 판정, 사용자 정책 우선순위 결정 |
@@ -208,7 +215,13 @@ filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순
 
 저장 schema에는 version을 두고 background 시작 시 순수 migration 함수를 거친다. 쓰기는 전체 객체 덮어쓰기보다 단일 저장소 계층에서 검증·정규화한 뒤 수행한다. 목록 상한과 중복 제거 규칙은 실제 목록 기능 구현 때 확정한다.
 
-판정 캐시는 저장소에 남기지 않고 content script 메모리에만 둔다. `(site, contentId, evidence fingerprint, detector version)`을 key로 사용하고 route 변경, TTL 만료, element 제거 또는 extension reload 때 폐기한다. 원문 DOM, 시청·청취 이력과 Google 계정 정보는 캐시에 저장하지 않는다.
+watch-page 추가 확인 결과는 schema version 1의 `youtubeDisclosureCacheV1` 객체로 `storage.local`에 둔다. 항목은 video ID, `confirmed | not-detected | unknown-or-error`, 최소 구조화 evidence, 확인 시각, 만료 시각과 필요한 경우 오류 범주만 저장한다. URL 전체, 제목, 채널명, 검색어, 원문 HTML, 계정 정보는 저장하지 않는다.
+
+- `confirmed`: 7일. 확인된 공식 표시의 반복 요청을 줄인다.
+- `not-detected`: 12시간. 표시 부재와 응답 구조는 더 쉽게 변할 수 있어 양성보다 짧게 다시 확인한다.
+- `unknown-or-error`: 5분. 오류를 음성 결과로 굳히지 않으면서 일시 오류의 재요청 폭주를 막는다.
+
+읽기에서 만료 항목을 제거하고 쓰기마다 만료 항목을 정리한다. 최대 500개를 넘으면 `checkedAt`이 오래된 항목부터 제거한다. MV3 worker 재시작을 고려해 저장소가 source of truth이며 메모리 map은 같은 실행 중 중복 요청 결합에만 사용한다. video ID 자체도 사용자가 본 화면을 일부 반영할 수 있으므로 서버로 보내거나 불필요한 문맥과 결합하지 않는다.
 
 ## 10. 테스트 전략
 
@@ -251,9 +264,18 @@ content script는 `MutationObserver`가 받은 추가·제거 노드와 관련 �
 
 조사 근거, fixture 출처와 현재 지원 한계는 [`youtube-disclosure-detection.md`](youtube-disclosure-detection.md)에 기록한다.
 
-## 12. 아직 구현하지 않는 것
+## 12. 구현된 watch-page 추가 확인 slice
 
-- 홈·검색·관련·재생목록 카드의 watch 페이지 disclosure 추가 조회
+영상 카드에 직접 공식 disclosure가 없으면 content script가 adapter에서 얻은 video ID만 background에 보낸다. background는 발신 origin과 ID 형식을 검증하고 고정된 `https://www.youtube.com/watch?v=...&hl=en` URL을 요청한다. 동시 요청은 2개, 대기 queue는 20개로 제한하며 동일 ID의 진행 중 요청을 결합한다. timeout은 8초이고 자동 retry는 하지 않는다.
+
+HTML adapter는 스크립트를 실행하거나 DOM에 주입하지 않고 `ytInitialData` JSON 객체만 파싱한다. 현재 영상의 `videoPrimaryInfoRenderer.badges`와 `engagementPanels` 안의 `howThisWasMadeSectionViewModel`만 기존 evidence 생성 규칙에 전달하고, detector는 기존 순수 함수를 그대로 사용한다. 유효한 watch 구조가 없는 응답, 알 수 없는 공식 컴포넌트, timeout, HTTP·network 오류는 모두 `unknown-or-error`다.
+
+카드에는 제품 필터 UI 대신 `NoAI dev:` 접두사의 checking, detected, not-detected 또는 unknown 상태 하나만 갱신한다. route별 content-script map과 background in-flight map이 중복을 줄이고, SPA에서 element가 재사용되면 video ID/route key가 맞는 응답만 반영한다.
+
+상세 설계, fixture와 수동 검증은 [`youtube-watch-disclosure-lookup.md`](youtube-watch-disclosure-lookup.md)에 기록한다.
+
+## 13. 아직 구현하지 않는 것
+
 - YouTube Music selector와 adapter 구현
 - 확인되지 않은 언어·표시 변형
 - 필터 정책 함수와 DOM hide/blur/reason UI

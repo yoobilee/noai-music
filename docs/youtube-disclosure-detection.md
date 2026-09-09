@@ -100,10 +100,10 @@ adapter는 다음 조합만 확정 evidence로 반환한다.
 
 ## 현재 한계
 
-- 홈·검색·관련·재생목록 카드가 watch disclosure를 포함하지 않으면 감지할 수 없다.
+- 이 문서의 직접 DOM 감지만으로는 홈·검색·관련·재생목록 카드가 watch disclosure를 포함하지 않을 때 감지할 수 없다. video ID 기반 추가 확인은 별도 [`youtube-watch-disclosure-lookup.md`](youtube-watch-disclosure-lookup.md)에 기록한다.
 - 확장 설명 disclosure가 아직 DOM에 렌더링되지 않았다면 설명이 로드될 때까지 감지할 수 없다.
 - YouTube가 component tag, 접근성 레이블, 도움말 ID 또는 표시 위치를 변경하면 감지가 중단될 수 있다. 이 경우 오탐 대신 배지를 표시하지 않는다.
 - 영어와 한국어의 확인된 현재 레이블 및 공식 component 안의 레거시 영어 문구만 지원한다.
 - Shorts와 YouTube Music은 조사·구현하지 않았다.
 - 개발 배지는 제품 UI가 아니며 hide, blur, allow/block 또는 skip 결정에 사용하지 않는다.
-- 외부 서버, YouTube Data API와 watch 페이지 background fetch를 사용하지 않는다.
+- 외부 서버와 YouTube Data API는 사용하지 않는다. 후속 vertical slice에서 최소 host permission을 사용하는 watch-page background fetch가 추가됐다.
