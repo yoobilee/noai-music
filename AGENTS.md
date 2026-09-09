@@ -142,13 +142,14 @@
 - 프로젝트명: NoAI
 - 저장소: `yoobilee/noai-music`
 - 프로젝트 유형: 브라우저 확장 프로그램
-- 기술 스택·라이브러리: 기술 설계 후 확정. 초기화 단계에서 설치하지 않는다.
-- 배포 환경: 일반 웹앱 배포는 해당 없음. 확장 프로그램 패키징과 배포 채널은 기술 설계 후 확정한다.
-- 데이터 저장: 별도 서버 없이 로컬 저장. 구체 API와 스키마는 기술 설계 후 확정한다.
+- 기술 스택·라이브러리: Manifest V3, TypeScript, WXT. React는 popup과 options UI에만 사용한다.
+- 기술 선택 이유: WXT의 MV3 manifest 생성, 파일 기반 entrypoint, TypeScript·React 통합과 Chromium 빌드·테스트 지원을 사용한다. 핵심 로직은 WXT와 React에 직접 의존하지 않는다.
+- 배포 환경: WXT의 단일 `chrome-mv3` 산출물을 Chrome, Edge와 Whale의 공통 기반으로 사용한다. 스토어별 metadata와 검증·배포 절차는 출시 전에 확정한다.
+- 데이터 저장: 별도 서버와 `storage.sync` 없이 `storage.local`을 사용한다. 설정·목록 schema는 versioning하고, 판정 캐시는 content script 메모리에만 둔다.
 - 외부 서비스 연동: 1.0에서 별도 외부 데이터 서비스 없음. YouTube·YouTube Music 페이지의 공식 표시와 DOM을 사용한다.
-- 지원 브라우저: 대상 브라우저와 최소 버전은 기술 설계 후 확정한다. Firefox는 1.0 제외다.
-- 패키지 관리 도구·잠금 파일: 기술 스택과 함께 확정한다.
-- 테스트 도구: 기술 스택과 함께 확정한다.
+- 지원 브라우저: 데스크톱 Chrome, Edge와 Whale의 현재 안정 버전을 우선 지원한다. 최소 버전은 실제 브라우저 검증 후 확정하며 Firefox는 1.0 제외다.
+- 패키지 관리 도구·잠금 파일: npm과 `package-lock.json`
+- 테스트 도구: Vitest 단위 테스트와 Playwright Chromium 확장 E2E. Edge와 Whale은 별도 수동 검증한다.
 - 커버리지 정책: 초기에는 비율을 강제하지 않으며 핵심 판정·필터·저장 로직을 우선 검증한다.
 - 백로그 위치: GitHub Issues. 필요해질 때 `.ai/BACKLOG.md`를 보조 문서로 만들 수 있다.
 - 레퍼런스 출처: 현재 없음.
@@ -162,14 +163,21 @@
 
 ### 명령
 
-- 설치·개발 실행·Lint·Type Check·Test·Build·전체 검증: 기술 설계와 도구 선택 전이므로 아직 구성되지 않음.
-- 구성되지 않은 검사를 성공한 것처럼 보고하지 않는다.
+- 설치: `npm install` (`npm ci`는 잠금 파일 기반 검증 환경)
+- 개발 실행: `npm run dev`
+- Lint: `npm run lint`
+- Type Check: `npm run typecheck`
+- Test: `npm test`
+- E2E: `npm run test:e2e`
+- Build: `npm run build`
+- 전체 검증: `npm run verify:all`
 
 ### Git·배포 설정
 
 - 기본 브랜치: `main`
 - 브랜치 접두사: `feature`, `fix`, `refactor`, `chore`
-- 버전 배포 사용 여부·버전 기준 파일·배포 절차: 기술 설계 후 확정
+- 버전 기준 파일: `package.json`
+- 버전 배포 사용 여부와 스토어별 배포 절차: 1.0 출시 계획에서 확정
 - 태그 형식: `vX.Y.Z`
 - 라이선스: 오픈소스 공개 전 사용자가 확정
 
