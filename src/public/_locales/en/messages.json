@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "NoAI"
+  },
+  "extDescription": {
+    "message": "Filter officially labeled AI or altered music content on YouTube and YouTube Music."
+  },
+  "popupScaffoldMessage": {
+    "message": "Filtering controls will be added in the next development stage."
+  },
+  "optionsScaffoldMessage": {
+    "message": "Detailed settings will be added in the next development stage."
+  }
+}

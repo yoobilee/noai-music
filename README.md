@@ -2,7 +2,7 @@
 
 NoAI는 YouTube와 YouTube Music에서 사용자가 원하지 않는 AI 표시 음악 콘텐츠를 숨기거나 자동으로 건너뛸 수 있게 하는 오픈소스 브라우저 확장 프로그램입니다.
 
-현재는 프로젝트 규칙과 제품 범위를 정리한 초기 단계입니다. 확장 프로그램 코드, `package.json`, 빌드 환경과 프레임워크는 아직 구성하지 않았습니다. 기술 설계를 확정한 뒤 구현을 시작합니다.
+현재는 기술 설계와 최소 실행 뼈대를 구성한 단계입니다. 실제 AI 표시 판정, 필터링과 자동 건너뛰기 기능은 아직 구현하지 않았습니다.
 
 ## 판정 원칙
 
@@ -43,10 +43,30 @@ YouTube와 YouTube Music의 DOM 의존성은 어댑터 계층 등으로 격리�
 
 ## 개발 상태
 
-- 기술 스택과 라이브러리: 미정
-- 패키지 관리 도구와 빌드 환경: 미정
-- 대상 브라우저와 최소 지원 버전: 미정 (Firefox는 1.0 제외)
-- 확장 프로그램 패키징과 배포 방식: 미정
+- 확장 플랫폼: Manifest V3
+- 언어·빌드: TypeScript, WXT
+- UI: React를 popup과 options에만 사용
+- 테스트: Vitest, Playwright
+- 패키지 관리: npm
+- 우선 지원: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
+- Firefox: 1.0 이후 검토
+- 최소 지원 버전과 스토어별 배포 절차: 실제 브라우저 검증 후 확정
 - 라이선스: 미정
 
-개발 규칙과 상세 제품 원칙은 [`AGENTS.md`](AGENTS.md)를 따릅니다.
+기술 구조와 권한·테스트 설계는 [`docs/technical-design.md`](docs/technical-design.md), 개발 규칙과 상세 제품 원칙은 [`AGENTS.md`](AGENTS.md)를 따릅니다.
+
+## 개발 명령
+
+Node.js 22.13 이상과 npm이 필요합니다.
+
+```sh
+npm install
+npm run dev
+```
+
+기본 검증과 Playwright를 포함한 전체 검증은 각각 다음 명령으로 실행합니다.
+
+```sh
+npm run verify
+npm run verify:all
+```

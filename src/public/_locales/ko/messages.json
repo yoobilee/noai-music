@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "NoAI"
+  },
+  "extDescription": {
+    "message": "YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 음악 콘텐츠를 필터링합니다."
+  },
+  "popupScaffoldMessage": {
+    "message": "필터 제어 기능은 다음 개발 단계에서 추가합니다."
+  },
+  "optionsScaffoldMessage": {
+    "message": "상세 설정은 다음 개발 단계에서 추가합니다."
+  }
+}

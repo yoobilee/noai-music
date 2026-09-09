@@ -10,6 +10,14 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Dependencies and generated extension artifacts
+node_modules/
+.output/
+.wxt/
+coverage/
+playwright-report/
+test-results/
+
 # Temporary files
 *.tmp
 *.temp
