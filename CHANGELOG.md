@@ -14,3 +14,5 @@
 - 개인정보를 제거한 YouTube fixture 기반 단위·확장 E2E 테스트
 - 읽기 전용 GitHub Actions CI와 Codex self-review·안전한 auto-merge 정책
 - 변경 파일 기반 fail-closed 병합 위험 판정 스크립트와 회귀 테스트
+- YouTube 홈·검색·관련·재생목록 영상 단위의 fail-closed video ID 추출
+- 순수 YouTube watch URL parser와 비식별 카드 fixture 기반 회귀 테스트

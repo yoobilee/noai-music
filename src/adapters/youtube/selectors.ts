@@ -7,8 +7,15 @@ export const YOUTUBE_SELECTORS = {
     'ytd-compact-video-renderer',
     'ytd-playlist-video-renderer',
   ].join(', '),
+  excludedVideoUnitAncestor: 'ytd-ad-slot-renderer',
   watchMetadata: 'ytd-watch-metadata',
-  videoLink: 'a[href^="/watch?v="], a[href^="https://www.youtube.com/watch?v="]',
+  videoLinkPriority: [
+    'a#video-title[href]',
+    'a#thumbnail[href]',
+    'a[href]',
+  ],
+  playlistNavigationLink:
+    'a[href^="/playlist?"], a[href^="https://www.youtube.com/playlist?"], a[href^="https://youtube.com/playlist?"]',
   title: 'h1 yt-formatted-string, #video-title',
   officialMetadataBadge:
     'ytd-badge-supported-renderer, yt-badge-view-model',

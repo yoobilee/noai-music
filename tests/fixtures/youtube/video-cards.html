@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube video card fixture</title>
+  </head>
+  <body>
+    <!-- Surface relationships only; titles, channels and tracking data are synthetic. -->
+    <ytd-watch-metadata data-testid="watch-metadata">
+      <a href="/playlist?list=PL_SANITIZED">Containing playlist</a>
+    </ytd-watch-metadata>
+
+    <ytd-rich-item-renderer data-testid="home-video">
+      <a id="thumbnail" href="/watch?v=HomeVid0001">Thumbnail</a>
+      <a id="video-title" href="/watch?v=HomeVid0001&pp=sanitized">Home video</a>
+      <a href="/channel/UC_SANITIZED">Channel</a>
+    </ytd-rich-item-renderer>
+
+    <ytd-video-renderer data-testid="search-video">
+      <a href="/channel/UC_SANITIZED">Channel</a>
+      <a id="video-title" href="https://www.youtube.com/watch?list=PL_SANITIZED&v=SearchVid01&index=2">
+        Search video
+      </a>
+    </ytd-video-renderer>
+
+    <yt-lockup-view-model data-testid="related-video">
+      <a href="/watch?v=Related0001">Related thumbnail</a>
+      <a href="/watch?v=Related0001&pp=sanitized">Related title</a>
+      <a href="/channel/UC_SANITIZED">Channel</a>
+    </yt-lockup-view-model>
+
+    <ytd-playlist-video-renderer data-testid="playlist-video">
+      <a id="thumbnail" href="/watch?v=Playlist001&list=PL_SANITIZED&index=1">
+        Playlist thumbnail
+      </a>
+      <a id="video-title" href="/watch?v=Playlist001&list=PL_SANITIZED&index=1">
+        Playlist video
+      </a>
+    </ytd-playlist-video-renderer>
+
+    <yt-lockup-view-model data-testid="priority-video">
+      <a id="video-title" href="/watch?v=Priority001">Primary title</a>
+      <a href="/watch?v=OtherVideo1">Nested unrelated watch link</a>
+    </yt-lockup-view-model>
+
+    <ytd-video-renderer data-testid="duplicate-video-a">
+      <a id="video-title" href="/watch?v=RepeatVid01">Repeated video</a>
+    </ytd-video-renderer>
+    <ytd-compact-video-renderer data-testid="duplicate-video-b">
+      <a id="video-title" href="/watch?v=RepeatVid01&feature=share">Repeated video</a>
+    </ytd-compact-video-renderer>
+
+    <ytd-video-renderer data-testid="non-video-links">
+      <a href="/channel/UC_SANITIZED">Channel</a>
+      <a href="/playlist?list=PL_SANITIZED">Playlist</a>
+      <a href="https://example.com/watch?v=External001">External</a>
+    </ytd-video-renderer>
+
+    <ytd-rich-item-renderer data-testid="shorts-card">
+      <a href="/shorts/ShortsVid01">Shorts</a>
+    </ytd-rich-item-renderer>
+
+    <yt-lockup-view-model data-testid="playlist-collection-card">
+      <a id="video-title" href="/playlist?list=PL_SANITIZED">Playlist collection</a>
+      <a id="thumbnail" href="/watch?v=Collection1&list=PL_SANITIZED">Play all</a>
+    </yt-lockup-view-model>
+
+    <yt-lockup-view-model data-testid="ambiguous-video">
+      <a href="/watch?v=FirstVideo1">First video</a>
+      <a href="/watch?v=SecondVideo">Second video</a>
+    </yt-lockup-view-model>
+
+    <ytd-video-renderer data-testid="missing-link">
+      <span id="video-title">Missing href</span>
+    </ytd-video-renderer>
+
+    <ytd-ad-slot-renderer data-testid="advertisement">
+      <ytd-video-renderer data-testid="nested-ad-video">
+        <a id="video-title" href="/watch?v=AdvertVideo">Advertisement</a>
+      </ytd-video-renderer>
+    </ytd-ad-slot-renderer>
+  </body>
+</html>
