@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube disclosure fixture</title>
+  </head>
+  <body>
+    <!--
+      Sanitized from the disclosure fields observed for public video
+      z8Dz-IFFFY4 on 2026-09-09. Only the video-unit, official badge and
+      How-this-was-made relationships needed by the adapter are retained.
+    -->
+    <ytd-watch-metadata data-testid="disclosed-video">
+      <a id="video-title" href="/watch?v=z8Dz-IFFFY4">
+        Disclosed fixture video
+      </a>
+      <ytd-badge-supported-renderer>
+        <span aria-label="AI: Content was made with AI">AI</span>
+      </ytd-badge-supported-renderer>
+      <ytd-badge-supported-renderer>
+        <span aria-label="AI: Content was made with AI">AI</span>
+      </ytd-badge-supported-renderer>
+      <how-this-was-made-section-view-model>
+        <h2>How this was made</h2>
+        <h3>Made with AI</h3>
+        <p>Sounds or visuals were altered or fully generated.</p>
+        <a href="https://support.google.com/youtube/answer/15447836?hl=en">
+          Learn more
+        </a>
+      </how-this-was-made-section-view-model>
+    </ytd-watch-metadata>
+
+    <ytd-video-renderer data-testid="ordinary-video">
+      <a id="video-title" href="/watch?v=dQw4w9WgXcQ">
+        Ordinary fixture video
+      </a>
+    </ytd-video-renderer>
+
+    <ytd-video-renderer data-testid="similar-user-text-video">
+      <a id="video-title" href="/watch?v=BaW_jenozKc">
+        Made with AI tutorial
+      </a>
+      <p>AI: Content was made with AI</p>
+      <a href="https://example.com/15447836">Learn more</a>
+    </ytd-video-renderer>
+  </body>
+</html>

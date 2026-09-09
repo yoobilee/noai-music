@@ -2,7 +2,6 @@ import type {
   MediaCandidateSnapshot,
   OfficialDisclosureEvidence,
 } from '@/detection/contracts';
-import type { FilterDecision } from '@/filtering/contracts';
 import type { SupportedSite } from '@/shared/sites';
 
 export interface DomMediaCandidate {
@@ -18,5 +17,4 @@ export interface SiteAdapter {
     candidate: DomMediaCandidate,
   ): readonly OfficialDisclosureEvidence[];
   observePage(onChange: (roots: readonly ParentNode[]) => void): () => void;
-  renderDecision(candidate: DomMediaCandidate, decision: FilterDecision): void;
 }
