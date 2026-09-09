@@ -13,21 +13,30 @@ export interface MediaCandidateSnapshot {
   artistNames: readonly string[];
 }
 
+export type OfficialDisclosureKind =
+  | 'made-with-ai'
+  | 'altered-or-synthetic-content'
+  | 'unknown';
+
 export interface OfficialDisclosureEvidence {
-  source: 'youtube-official-disclosure';
-  text: string;
-  location: string;
+  source: 'youtube';
+  kind: OfficialDisclosureKind;
+  matchedText: string;
+  confidence: 'confirmed' | 'indeterminate';
+  location: 'metadata-badge' | 'expanded-description';
+  evidenceType: 'accessibility-label' | 'official-support-link';
 }
 
 export type DetectionResult =
   | {
-      status: 'official-disclosure-found';
+      detected: true;
+      source: 'youtube';
+      reason: 'youtube-official-ai-disclosure';
       evidence: readonly OfficialDisclosureEvidence[];
     }
   | {
-      status: 'no-official-disclosure';
-    }
-  | {
-      status: 'indeterminate';
-      reason: string;
+      detected: false;
+      source: 'youtube';
+      reason: 'no-confirmed-youtube-official-disclosure';
+      evidence: readonly OfficialDisclosureEvidence[];
     };

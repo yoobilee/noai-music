@@ -1,6 +1,6 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, 제품 기능 미구현
+- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지 vertical slice 구현
 - 기준일: 2026-09-09
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
@@ -228,14 +228,32 @@ filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순
 - Chrome, Edge, Whale에서 logged-out/logged-in, 한국어/영어, 홈·검색·관련·재생목록과 YouTube Music player를 수동 확인한다.
 - 자동 접근성 검사와 별도로 popup/options/이유 표시의 키보드, focus, 확대와 대비를 수동 확인한다.
 
+현재 첫 vertical slice에서는 `happy-dom`으로 비식별 HTML fixture를 읽어 adapter를 단위 검증한다. Playwright는 같은 fixture를 `youtube.com` URL에 응답하도록 가로채 빌드된 content script가 확정 대상에 개발 배지를 한 번만 추가하고 일반 카드와 유사 문구 카드에는 추가하지 않는지 확인한다. 실제 YouTube 네트워크는 이 자동 테스트의 입력이나 성공 조건이 아니다.
+
 Playwright 공식 문서에 따라 확장 E2E는 bundled Chromium persistent context를 사용한다. Chrome과 Edge 자체는 sideload CLI flag 제한이 있으므로 자동 테스트 결과만으로 Edge·Whale 호환을 선언하지 않는다.
 
 참고: [Playwright Chrome extension 테스트](https://playwright.dev/docs/chrome-extensions)
 
-## 11. 이번 단계에서 구현하지 않는 것
+## 11. 구현된 첫 YouTube disclosure slice
 
-- 실제 YouTube·YouTube Music selector와 adapter 구현
-- 공식 표시 문구 catalog와 detection 규칙
+YouTube adapter는 페이지에 이미 렌더링된 영상 단위에서 다음 두 종류의 공식 근거만 구조화한다.
+
+- `ytd-badge-supported-renderer` 또는 `yt-badge-view-model` 아래의 확인된 영어·한국어 AI 접근성 레이블
+- `how-this-was-made-section-view-model` 안에서 YouTube 도움말 문서 `15447836` 링크와 확인된 disclosure 제목·본문이 함께 있는 경우
+
+adapter가 반환하는 evidence에는 `source`, `kind`, `matchedText`, `confidence`, `location`과 `evidenceType`만 포함하며 DOM을 detector에 전달하지 않는다. detector는 `confirmed`인 `made-with-ai` 또는 `altered-or-synthetic-content`만 `detected: true`로 판정한다. 알 수 없는 구조와 유사 문구는 판정하지 않는다.
+
+content script는 `MutationObserver`가 받은 추가·제거 노드와 관련 속성 변경만 `requestAnimationFrame` 단위로 묶어 처리한다. `yt-navigate-finish`에서는 route key를 갱신하고 드물게 전체 문서를 다시 확인한다. 처리 결과는 `WeakMap`에만 두며 extension context가 무효화되면 observer, navigation listener와 예약된 frame을 해제한다.
+
+판정된 영상 단위에는 `NoAI: AI disclosure detected`라는 작은 개발용 배지만 붙인다. 중복 DOM 속성과 `WeakMap` fingerprint를 함께 확인하며 콘텐츠를 숨기거나 흐리거나 재생을 제어하지 않는다.
+
+조사 근거, fixture 출처와 현재 지원 한계는 [`youtube-disclosure-detection.md`](youtube-disclosure-detection.md)에 기록한다.
+
+## 12. 아직 구현하지 않는 것
+
+- 홈·검색·관련·재생목록 카드의 watch 페이지 disclosure 추가 조회
+- YouTube Music selector와 adapter 구현
+- 확인되지 않은 언어·표시 변형
 - 필터 정책 함수와 DOM hide/blur/reason UI
 - 자동 skip
 - 저장 read/write/migration 구현
@@ -243,4 +261,4 @@ Playwright 공식 문서에 따라 확장 E2E는 bundled Chromium persistent con
 - 라이브 YouTube E2E와 브라우저별 수동 검증
 - CI, 스토어 제출과 자동 배포
 
-다음 단계는 “공식 AI·변경 표시 evidence 추출” 한 가지 vertical slice부터 시작한다. 먼저 실제 YouTube와 YouTube Music surface에서 공식 표시가 노출되는 위치와 문구를 확인하고, 개인정보를 제거한 fixture를 만든 뒤 YouTube adapter → pure detector → 이유가 포함된 판정 결과까지 구현한다. DOM 필터링과 자동 skip은 이 판정 contract가 검증된 다음에 연결한다.
+다음 단계는 실제 Chrome에서 현재 watch-page selector와 영어·한국어 표시를 수동 검증하고 차이를 fixture에 반영하는 것이다. 그 검증 뒤 카드별 추가 확인을 어떤 최소 권한·비용 구조로 수행할지 별도 설계한다. DOM 필터링과 자동 skip은 카드 판정 경로가 확정된 다음에 연결한다.
