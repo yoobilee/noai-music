@@ -6,11 +6,8 @@ import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDiscl
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
 import type { FilterDecision } from '@/filtering/contracts';
 import { YOUTUBE_MATCH_PATTERNS } from '@/shared/sites';
-import {
-  isWatchDisclosureLookupResult,
-  YOUTUBE_WATCH_DISCLOSURE_MESSAGE,
-  type WatchDisclosureLookupResult,
-} from '@/shared/youtubeWatchDisclosure';
+import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
+import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import { SETTINGS_STORAGE_KEY, type PersistedSettings } from '@/storage/contracts';
 import {
   isPersistedSettings,
@@ -29,33 +26,6 @@ import {
 interface CandidateResult {
   lookupKey: string;
   result: WatchDisclosureLookupResult;
-}
-
-function createUnavailableResult(videoId: string): WatchDisclosureLookupResult {
-  return {
-    videoId,
-    status: 'unknown-or-error',
-    evidence: [],
-    checkedAt: Date.now(),
-    source: 'network',
-    failureReason: 'background-unavailable',
-  };
-}
-
-async function requestWatchDisclosure(
-  videoId: string,
-): Promise<WatchDisclosureLookupResult> {
-  try {
-    const response: unknown = await browser.runtime.sendMessage({
-      type: YOUTUBE_WATCH_DISCLOSURE_MESSAGE,
-      videoId,
-    });
-    return isWatchDisclosureLookupResult(response) && response.videoId === videoId
-      ? response
-      : createUnavailableResult(videoId);
-  } catch {
-    return createUnavailableResult(videoId);
-  }
 }
 
 function decisionFingerprint(
@@ -128,7 +98,7 @@ export default defineContentScript({
 
       let lookup = routeLookups.get(videoId);
       if (lookup === undefined) {
-        lookup = requestWatchDisclosure(videoId);
+        lookup = requestWatchDisclosure(browser.runtime, videoId);
         routeLookups.set(videoId, lookup);
         void lookup.finally(() => {
           if (routeLookups.get(videoId) === lookup) {

@@ -37,12 +37,58 @@ describe('versioned local settings', () => {
 
   it('saves and loads valid settings', async () => {
     const storage = createMemoryStorage();
-    await saveSettings(storage, { enabled: false, mode: 'mark' });
+    await saveSettings(storage, {
+      enabled: false,
+      mode: 'mark',
+      youtubeMusicAutoSkip: false,
+    });
 
     await expect(loadSettings(storage)).resolves.toEqual({
       schemaVersion: STORAGE_SCHEMA_VERSION,
       enabled: false,
       mode: 'mark',
+      youtubeMusicAutoSkip: false,
+    });
+  });
+
+  it('migrates legacy version-one settings without losing enabled or mode', async () => {
+    const storage = createMemoryStorage({
+      [SETTINGS_STORAGE_KEY]: {
+        schemaVersion: STORAGE_SCHEMA_VERSION,
+        enabled: false,
+        mode: 'blur',
+      },
+    });
+
+    await expect(loadSettings(storage)).resolves.toEqual({
+      schemaVersion: STORAGE_SCHEMA_VERSION,
+      enabled: false,
+      mode: 'blur',
+      youtubeMusicAutoSkip: true,
+    });
+    expect(storage.data[SETTINGS_STORAGE_KEY]).toEqual({
+      schemaVersion: STORAGE_SCHEMA_VERSION,
+      enabled: false,
+      mode: 'blur',
+      youtubeMusicAutoSkip: true,
+    });
+  });
+
+  it('repairs only an invalid auto-skip field on otherwise valid settings', async () => {
+    const storage = createMemoryStorage({
+      [SETTINGS_STORAGE_KEY]: {
+        schemaVersion: STORAGE_SCHEMA_VERSION,
+        enabled: false,
+        mode: 'mark',
+        youtubeMusicAutoSkip: 'yes',
+      },
+    });
+
+    await expect(loadSettings(storage)).resolves.toEqual({
+      schemaVersion: STORAGE_SCHEMA_VERSION,
+      enabled: false,
+      mode: 'mark',
+      youtubeMusicAutoSkip: true,
     });
   });
 
@@ -66,6 +112,7 @@ describe('versioned local settings', () => {
               schemaVersion: STORAGE_SCHEMA_VERSION,
               enabled: true,
               mode: 'blur',
+              youtubeMusicAutoSkip: false,
             },
           },
         },
@@ -75,6 +122,7 @@ describe('versioned local settings', () => {
       schemaVersion: STORAGE_SCHEMA_VERSION,
       enabled: true,
       mode: 'blur',
+      youtubeMusicAutoSkip: false,
     });
     expect(
       readSettingsChange(

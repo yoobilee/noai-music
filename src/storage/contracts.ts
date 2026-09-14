@@ -20,10 +20,12 @@ export interface PersistedSettings {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION;
   enabled: boolean;
   mode: FilterMode;
+  youtubeMusicAutoSkip: boolean;
 }
 
 export const DEFAULT_SETTINGS: PersistedSettings = {
   schemaVersion: STORAGE_SCHEMA_VERSION,
   enabled: true,
   mode: 'hide',
+  youtubeMusicAutoSkip: true,
 };

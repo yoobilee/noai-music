@@ -8,6 +8,9 @@
   "enabledLabel": {
     "message": "Use NoAI"
   },
+  "youtubeMusicAutoSkipLabel": {
+    "message": "Automatically skip on YouTube Music"
+  },
   "filterModeLabel": {
     "message": "Filter mode"
   },

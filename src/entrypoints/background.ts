@@ -1,24 +1,10 @@
 import { createYouTubeWatchDisclosureLookupService } from '@/background/youtubeWatchDisclosureLookup';
+import { isTrustedWatchDisclosureSender } from '@/background/trustedWatchDisclosureSender';
 import {
   isYouTubeWatchDisclosureLookupMessage,
   type WatchDisclosureLookupResult,
 } from '@/shared/youtubeWatchDisclosure';
 import { createYouTubeDisclosureCache } from '@/storage/youtubeDisclosureCache';
-
-function isTrustedYouTubeSender(sender: {
-  id?: string;
-  url?: string;
-}): boolean {
-  if (sender.id !== browser.runtime.id || sender.url === undefined) {
-    return false;
-  }
-
-  try {
-    return new URL(sender.url).origin === 'https://www.youtube.com';
-  } catch {
-    return false;
-  }
-}
 
 export default defineBackground(() => {
   const cache = createYouTubeDisclosureCache({
@@ -38,7 +24,7 @@ export default defineBackground(() => {
     ): Promise<WatchDisclosureLookupResult> | undefined => {
       if (
         !isYouTubeWatchDisclosureLookupMessage(message) ||
-        !isTrustedYouTubeSender(sender)
+        !isTrustedWatchDisclosureSender(sender, browser.runtime.id)
       ) {
         return undefined;
       }
