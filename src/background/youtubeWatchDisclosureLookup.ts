@@ -1,10 +1,10 @@
 import { parseYouTubeWatchPageHtml } from '@/adapters/youtube/watchPageHtml';
-import { isYouTubeVideoId } from '@/adapters/youtube/videoId';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
 import type {
   WatchDisclosureFailureReason,
   WatchDisclosureLookupResult,
 } from '@/shared/youtubeWatchDisclosure';
+import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
 import type { YouTubeDisclosureCache } from '@/storage/youtubeDisclosureCache';
 
 import {

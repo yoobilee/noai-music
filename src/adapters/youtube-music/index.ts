@@ -1,7 +1,191 @@
-import type { DomMediaCandidate, SiteAdapter } from '@/adapters/contracts';
+import type { MediaCandidateSnapshot } from '@/detection/contracts';
 
-export type YouTubeMusicAdapter = SiteAdapter & {
+import { YOUTUBE_MUSIC_SELECTORS } from './selectors';
+import { parseYouTubeMusicWatchVideoId } from './videoId';
+
+export type YouTubeMusicCandidateSurface =
+  | 'search-result'
+  | 'album-track'
+  | 'playlist-track'
+  | 'artist-song'
+  | 'player-current';
+
+export interface YouTubeMusicMediaCandidate {
+  element: Element;
+  surface: YouTubeMusicCandidateSurface;
+  snapshot: MediaCandidateSnapshot;
+}
+
+interface YouTubeMusicAdapterEnvironment {
+  document: Document;
+  getCurrentUrl: () => URL;
+}
+
+export interface YouTubeMusicAdapter {
   readonly site: 'youtube-music';
-  getNowPlayingCandidate(): DomMediaCandidate | undefined;
-  skipNowPlaying(): boolean;
-};
+  getRouteKey(url: URL): string;
+  collectCandidates(root: ParentNode): readonly YouTubeMusicMediaCandidate[];
+  getNowPlayingCandidate(): YouTubeMusicMediaCandidate | undefined;
+}
+
+function isElement(node: ParentNode): node is Element {
+  return node.nodeType === Node.ELEMENT_NODE;
+}
+
+function readUnambiguousVideoId(
+  element: Element,
+  selectorPriority: readonly string[],
+): string | undefined {
+  for (const selector of selectorPriority) {
+    const videoIds = new Set<string>();
+
+    for (const anchor of element.querySelectorAll<HTMLAnchorElement>(selector)) {
+      const videoId = parseYouTubeMusicWatchVideoId(
+        anchor.getAttribute('href'),
+      );
+      if (videoId !== null) {
+        videoIds.add(videoId);
+      }
+    }
+
+    if (videoIds.size === 1) {
+      return videoIds.values().next().value;
+    }
+
+    if (videoIds.size > 1) {
+      return undefined;
+    }
+  }
+
+  return undefined;
+}
+
+function createCandidate(
+  element: Element,
+  surface: YouTubeMusicCandidateSurface,
+  selectorPriority: readonly string[],
+): YouTubeMusicMediaCandidate | undefined {
+  const videoId = readUnambiguousVideoId(element, selectorPriority);
+  if (videoId === undefined) {
+    return undefined;
+  }
+
+  return {
+    element,
+    surface,
+    snapshot: {
+      identity: {
+        site: 'youtube-music',
+        videoId,
+        artistIds: [],
+      },
+      artistNames: [],
+    },
+  };
+}
+
+function getListSurface(url: URL): YouTubeMusicCandidateSurface | undefined {
+  if (
+    url.protocol !== 'https:' ||
+    url.hostname.toLocaleLowerCase() !== 'music.youtube.com' ||
+    url.port !== ''
+  ) {
+    return undefined;
+  }
+
+  if (url.pathname === '/search') {
+    return 'search-result';
+  }
+
+  if (/^\/browse\/MPRE[A-Za-z0-9_-]+$/.test(url.pathname)) {
+    return 'album-track';
+  }
+
+  if (
+    url.pathname === '/playlist' &&
+    url.searchParams.getAll('list').length === 1 &&
+    url.searchParams.get('list')
+  ) {
+    return 'playlist-track';
+  }
+
+  if (/^\/channel\/UC[A-Za-z0-9_-]{22}$/.test(url.pathname)) {
+    return 'artist-song';
+  }
+
+  return undefined;
+}
+
+function collectRowElements(root: ParentNode): readonly Element[] {
+  const rows = new Set<Element>();
+
+  if (isElement(root)) {
+    if (root.matches(YOUTUBE_MUSIC_SELECTORS.playableRow)) {
+      rows.add(root);
+    }
+
+    const enclosingRow = root.closest(YOUTUBE_MUSIC_SELECTORS.playableRow);
+    if (enclosingRow) {
+      rows.add(enclosingRow);
+    }
+  }
+
+  for (const row of root.querySelectorAll(YOUTUBE_MUSIC_SELECTORS.playableRow)) {
+    rows.add(row);
+  }
+
+  return [...rows];
+}
+
+function defaultEnvironment(): YouTubeMusicAdapterEnvironment {
+  return {
+    document,
+    getCurrentUrl: () => new URL(location.href),
+  };
+}
+
+export function createYouTubeMusicAdapter(
+  environment: YouTubeMusicAdapterEnvironment = defaultEnvironment(),
+): YouTubeMusicAdapter {
+  return {
+    site: 'youtube-music',
+    getRouteKey(url) {
+      return `${url.pathname}${url.search}`;
+    },
+    collectCandidates(root) {
+      try {
+        const surface = getListSurface(environment.getCurrentUrl());
+        if (surface === undefined) {
+          return [];
+        }
+
+        return collectRowElements(root).flatMap((element) => {
+          const candidate = createCandidate(
+            element,
+            surface,
+            YOUTUBE_MUSIC_SELECTORS.rowLinkPriority,
+          );
+          return candidate ? [candidate] : [];
+        });
+      } catch {
+        return [];
+      }
+    },
+    getNowPlayingCandidate() {
+      try {
+        const playerBar = environment.document.querySelector(
+          YOUTUBE_MUSIC_SELECTORS.playerBar,
+        );
+        return playerBar
+          ? createCandidate(
+              playerBar,
+              'player-current',
+              YOUTUBE_MUSIC_SELECTORS.playerLinkPriority,
+            )
+          : undefined;
+      } catch {
+        return undefined;
+      }
+    },
+  };
+}

@@ -20,6 +20,7 @@
 - 동시성·queue·timeout·중복 요청 제어와 versioned `storage.local` 판정 캐시
 - versioned `storage.local` 전역 설정과 popup/options의 hide·blur·mark 제어
 - confirmed 공식 disclosure 카드의 reversible 필터, 이유 표시와 SPA stale-result 방어
+- YouTube Music 검색·앨범·플레이리스트·아티스트 row와 player bar의 fail-closed video ID identity adapter
 
 ### 변경
 

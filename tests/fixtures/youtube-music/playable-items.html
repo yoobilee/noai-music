@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube Music playable item fixture</title>
+  </head>
+  <body>
+    <!-- Only renderer/link relationships are retained. All labels and IDs are synthetic. -->
+    <ytmusic-responsive-list-item-renderer data-testid="search-song-row">
+      <div class="title">
+        <a href="watch?v=SearchSong1&list=PL_SANITIZED">Synthetic song</a>
+      </div>
+      <a href="browse/UC_SANITIZED">Synthetic artist</a>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="search-video-row">
+      <div class="title">
+        <a href="/watch?index=0&list=PL_SANITIZED&v=SearchVid01">
+          Synthetic video
+        </a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="album-track-row">
+      <div class="title">
+        <a href="/watch?v=AlbumTrack1&list=OLAK5uy_SANITIZED">
+          Synthetic album track
+        </a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="playlist-track-row">
+      <div class="title">
+        <a href="/watch?v=Playlist01A&list=PL_SANITIZED&index=1">
+          Synthetic playlist item
+        </a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="artist-song-row">
+      <div class="title">
+        <a href="https://music.youtube.com/watch?v=ArtistSong1">
+          Synthetic artist item
+        </a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="priority-row">
+      <div class="title"><a href="/watch?v=PriorityY01">Primary title</a></div>
+      <a href="/watch?v=OtherYtm001">Nested unrelated item</a>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="ambiguous-row">
+      <div class="title">
+        <a href="/watch?v=Ambiguous01">First title</a>
+        <a href="/watch?v=Ambiguous02">Second title</a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="duplicate-link-row">
+      <div class="title">
+        <a href="/watch?v=Duplicate01">Primary title</a>
+        <a href="/watch?v=Duplicate01&list=PL_SANITIZED">Repeated title</a>
+      </div>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="fallback-link-row">
+      <span class="title">Synthetic fallback item</span>
+      <a href="/watch?v=Fallback001">Playable link</a>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-responsive-list-item-renderer data-testid="missing-id-row">
+      <div class="title"><a href="/browse/MPREb_SANITIZED">Album</a></div>
+      <a href="/playlist?list=PL_SANITIZED">Playlist</a>
+    </ytmusic-responsive-list-item-renderer>
+
+    <ytmusic-player-bar data-testid="player-bar">
+      <div class="title">
+        <a href="/watch?v=NowPlaying1&list=RD_SANITIZED">Current item</a>
+      </div>
+      <a href="/channel/UC_SANITIZED">Current artist</a>
+    </ytmusic-player-bar>
+  </body>
+</html>
