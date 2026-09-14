@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube Music auto-skip fixture</title>
+  </head>
+  <body data-next-click-count="0">
+    <ytmusic-player-bar>
+      <div class="title">
+        <a data-testid="current-track" href="/watch?v=PlaybackA01">
+          Synthetic current item
+        </a>
+      </div>
+      <button
+        class="next-button ytmusic-player-bar"
+        data-testid="next-button"
+        type="button"
+      >
+        Next
+      </button>
+    </ytmusic-player-bar>
+    <script>
+      const trackIds = ['PlaybackA01', 'PlaybackB01', 'PlaybackC01'];
+      const currentTrack = document.querySelector('[data-testid="current-track"]');
+      document
+        .querySelector('[data-testid="next-button"]')
+        .addEventListener('click', () => {
+          const clickCount = Number(document.body.dataset.nextClickCount) + 1;
+          document.body.dataset.nextClickCount = String(clickCount);
+          const nextTrackId = trackIds[Math.min(clickCount, trackIds.length - 1)];
+          currentTrack.setAttribute('href', `/watch?v=${nextTrackId}`);
+        });
+    </script>
+  </body>
+</html>

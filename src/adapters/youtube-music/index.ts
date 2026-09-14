@@ -19,6 +19,9 @@ export interface YouTubeMusicMediaCandidate {
 interface YouTubeMusicAdapterEnvironment {
   document: Document;
   getCurrentUrl: () => URL;
+  createMutationObserver: (callback: MutationCallback) => MutationObserver;
+  requestAnimationFrame: (callback: FrameRequestCallback) => number;
+  cancelAnimationFrame: (handle: number) => void;
 }
 
 export interface YouTubeMusicAdapter {
@@ -26,6 +29,8 @@ export interface YouTubeMusicAdapter {
   getRouteKey(url: URL): string;
   collectCandidates(root: ParentNode): readonly YouTubeMusicMediaCandidate[];
   getNowPlayingCandidate(): YouTubeMusicMediaCandidate | undefined;
+  clickNext(expectedVideoId: string): boolean;
+  observePlayer(onChange: () => void): () => void;
 }
 
 function isElement(node: ParentNode): node is Element {
@@ -141,6 +146,9 @@ function defaultEnvironment(): YouTubeMusicAdapterEnvironment {
   return {
     document,
     getCurrentUrl: () => new URL(location.href),
+    createMutationObserver: (callback) => new MutationObserver(callback),
+    requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+    cancelAnimationFrame: (handle) => cancelAnimationFrame(handle),
   };
 }
 
@@ -186,6 +194,76 @@ export function createYouTubeMusicAdapter(
       } catch {
         return undefined;
       }
+    },
+    clickNext(expectedVideoId) {
+      try {
+        const currentVideoId = this.getNowPlayingCandidate()?.snapshot.identity.videoId;
+        if (currentVideoId !== expectedVideoId) {
+          return false;
+        }
+
+        const playerBar = environment.document.querySelector(
+          YOUTUBE_MUSIC_SELECTORS.playerBar,
+        );
+        const nextButton = playerBar?.querySelector<HTMLElement>(
+          YOUTUBE_MUSIC_SELECTORS.nextButton,
+        );
+        if (
+          !nextButton ||
+          !nextButton.isConnected ||
+          nextButton.hasAttribute('disabled') ||
+          nextButton.getAttribute('aria-disabled') === 'true' ||
+          ('disabled' in nextButton && nextButton.disabled === true)
+        ) {
+          return false;
+        }
+
+        nextButton.click();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    observePlayer(onChange) {
+      const observedRoot =
+        environment.document.body ?? environment.document.documentElement;
+      if (!observedRoot) {
+        return () => undefined;
+      }
+
+      let animationFrame: number | undefined;
+      const schedule = () => {
+        if (animationFrame === undefined) {
+          animationFrame = environment.requestAnimationFrame(() => {
+            animationFrame = undefined;
+            onChange();
+          });
+        }
+      };
+      const observer = environment.createMutationObserver(schedule);
+      const handleNavigation = () => schedule();
+
+      observer.observe(observedRoot, {
+        attributeFilter: ['aria-disabled', 'disabled', 'href'],
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+      environment.document.addEventListener(
+        'yt-navigate-finish',
+        handleNavigation,
+      );
+
+      return () => {
+        observer.disconnect();
+        environment.document.removeEventListener(
+          'yt-navigate-finish',
+          handleNavigation,
+        );
+        if (animationFrame !== undefined) {
+          environment.cancelAnimationFrame(animationFrame);
+        }
+      };
     },
   };
 }

@@ -285,9 +285,8 @@ route별 content-script map과 background in-flight map이 중복을 줄이고, 
 
 ## 14. 아직 구현하지 않는 것
 
-- YouTube Music identity adapter의 content script·lookup 연결과 목록 필터 적용
+- YouTube Music 목록 카드 필터 적용
 - 확인되지 않은 언어·표시 변형
-- 자동 skip
 - 사용자 허용·차단 규칙 저장과 정책 연결
 - popup/options의 목록 관리와 최종 디자인
 - 라이브 YouTube E2E와 브라우저별 수동 검증
@@ -297,8 +296,18 @@ route별 content-script map과 background in-flight map이 중복을 줄이고, 
 
 YouTube Music adapter는 검색, 앨범 browse, 플레이리스트와 UC channel 아티스트 route에서 `ytmusic-responsive-list-item-renderer`를 재생 항목 경계로 사용한다. row의 제목 anchor를 우선하고 다른 anchor를 fallback으로 보되, 지원되는 `music.youtube.com/watch` URL에 유효한 11자리 `v`가 있을 때만 `MediaCandidateSnapshot.identity`를 만든다. 같은 우선순위의 서로 다른 ID는 fail-closed로 거절한다.
 
-현재 재생 항목은 `ytmusic-player-bar`의 제목 watch anchor를 우선한다. href가 없는 전환 구간에 현재 URL이나 비공개 runtime state로 fallback하지 않아 재사용된 player element에서 이전 ID가 남지 않게 한다. 이 slice는 identity 추출까지만 제공하며 content script, lookup, 필터와 skip에는 연결하지 않는다.
+현재 재생 항목은 `ytmusic-player-bar`의 제목 watch anchor를 우선한다. href가 없는 전환 구간에 현재 URL이나 비공개 runtime state로 fallback하지 않아 재사용된 player element에서 이전 ID가 남지 않게 한다. 이 identity는 다음 slice에서 기존 lookup과 자동 skip에 연결됐다.
 
 YouTube와 YouTube Music은 정확한 11자리 ID와 strict `v` query 추출만 shared helper로 공유하고, origin·경로·selector·surface는 각 adapter에 둔다. YTM ID 네 개를 공개 일반 YouTube watch URL로 조회해 기존 lookup 계약과 같은 identity임을 확인했으며 새 network path는 추가하지 않았다. 조사 근거, URL 범위와 Chrome 수동 검증 절차는 [`youtube-music-identity.md`](youtube-music-identity.md)에 기록한다.
 
-다음 단계는 실제 Chrome에서 YTM row와 player bar selector·href를 수동 검증한 뒤 adapter를 기존 lookup에 연결하는 것이다. hide/blur/mark와 자동 skip은 각각 별도 vertical slice로 유지한다.
+YTM 목록 hide/blur/mark는 현재 재생 자동 skip과 분리된 후속 vertical slice로 유지한다.
+
+## 16. 구현된 YouTube Music 현재 재생 자동 건너뛰기 slice
+
+YouTube Music content script는 player bar의 strict video ID를 기존 background watch disclosure message에 전달한다. 결과가 `confirmed`여도 기존 detector가 공식 evidence를 다시 확인해야 하며, lookup generation과 현재 video ID가 일치할 때만 adapter의 next control을 DOM click한다.
+
+runtime 상태는 메모리에만 두고 같은 video ID에서는 next click을 한 번 시도한 뒤 다른 유효 ID가 나타날 때까지 latch한다. 이로써 stale callback, 동일 element 재사용, 전환 중 href 누락, observer 폭주와 click 실패가 반복 skip으로 이어지지 않는다. 다음 ID가 나타나면 새 generation을 만들어 연속 confirmed 항목을 각각 판단할 수 있다.
+
+`settingsV1`에는 version bump 없이 default-true additive `youtubeMusicAutoSkip` field를 추가했다. 구버전 version-1 설정은 기존 `enabled`와 `mode`를 보존하면서 field를 보정한다. 전역 `enabled=false`도 auto-skip을 중지한다.
+
+YTM 전용 player/next selector는 adapter에만 있고 비공개 player API는 사용하지 않는다. 상세 조건, 자동·수동 검증과 한계는 [`youtube-music-auto-skip.md`](youtube-music-auto-skip.md)에 기록한다.

@@ -16,6 +16,7 @@ type MessageKey =
   | 'filterModeHide'
   | 'filterModeBlur'
   | 'filterModeMark'
+  | 'youtubeMusicAutoSkipLabel'
   | 'filterScopeDescription'
   | 'filterStateEnabled'
   | 'filterStateDisabled'
@@ -95,6 +96,25 @@ export function SettingsPanel() {
           id="noai-enabled"
           onChange={(event) =>
             updateSettings({ ...settings, enabled: event.currentTarget.checked })
+          }
+          type="checkbox"
+        />
+      </label>
+
+      <label
+        className="settings-panel__toggle"
+        htmlFor="noai-youtube-music-auto-skip"
+      >
+        <span>{message('youtubeMusicAutoSkipLabel')}</span>
+        <input
+          checked={settings.youtubeMusicAutoSkip}
+          disabled={disabled}
+          id="noai-youtube-music-auto-skip"
+          onChange={(event) =>
+            updateSettings({
+              ...settings,
+              youtubeMusicAutoSkip: event.currentTarget.checked,
+            })
           }
           type="checkbox"
         />

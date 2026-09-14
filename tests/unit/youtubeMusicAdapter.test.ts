@@ -3,7 +3,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
@@ -17,6 +17,9 @@ function createAdapter(currentUrl: URL) {
   return createYouTubeMusicAdapter({
     document,
     getCurrentUrl: () => currentUrl,
+    createMutationObserver: (callback) => new MutationObserver(callback),
+    requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+    cancelAnimationFrame: (handle) => cancelAnimationFrame(handle),
   });
 }
 
@@ -182,5 +185,45 @@ describe('YouTube Music playable item identity extraction', () => {
 
     expect(adapter.getNowPlayingCandidate()).toBeUndefined();
     expect(() => adapter.collectCandidates(document)).not.toThrow();
+  });
+
+  it('clicks an enabled, connected next control only for the expected track', () => {
+    const adapter = createAdapter(new URL('https://music.youtube.com/'));
+    const nextButton = fixtureElement('next-button') as HTMLButtonElement;
+    const click = vi.spyOn(nextButton, 'click');
+
+    expect(adapter.clickNext('Different01')).toBe(false);
+    expect(adapter.clickNext('NowPlaying1')).toBe(true);
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['disabled attribute', () => fixtureElement('next-button').setAttribute('disabled', '')],
+    ['aria-disabled state', () => fixtureElement('next-button').setAttribute('aria-disabled', 'true')],
+    ['missing control', () => fixtureElement('next-button').remove()],
+  ])('does not click a next control with %s', (_name, arrange) => {
+    arrange();
+    expect(
+      createAdapter(new URL('https://music.youtube.com/')).clickNext(
+        'NowPlaying1',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects a disconnected next control and contains click failures', () => {
+    const playerBar = fixtureElement('player-bar');
+    const nextButton = fixtureElement('next-button') as HTMLButtonElement;
+    nextButton.remove();
+    vi.spyOn(playerBar, 'querySelector').mockReturnValue(nextButton);
+    const adapter = createAdapter(new URL('https://music.youtube.com/'));
+
+    expect(adapter.clickNext('NowPlaying1')).toBe(false);
+
+    document.documentElement.innerHTML = fixtureHtml;
+    const connectedButton = fixtureElement('next-button') as HTMLButtonElement;
+    vi.spyOn(connectedButton, 'click').mockImplementation(() => {
+      throw new Error('synthetic click failure');
+    });
+    expect(adapter.clickNext('NowPlaying1')).toBe(false);
   });
 });

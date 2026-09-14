@@ -26,18 +26,30 @@ export function isPersistedSettings(
     isObject(value) &&
     value.schemaVersion === STORAGE_SCHEMA_VERSION &&
     typeof value.enabled === 'boolean' &&
-    (value.mode === 'hide' || value.mode === 'blur' || value.mode === 'mark')
+    (value.mode === 'hide' || value.mode === 'blur' || value.mode === 'mark') &&
+    typeof value.youtubeMusicAutoSkip === 'boolean'
   );
 }
 
 export function normalizeSettings(value: unknown): PersistedSettings {
-  return isPersistedSettings(value)
-    ? {
-        schemaVersion: STORAGE_SCHEMA_VERSION,
-        enabled: value.enabled,
-        mode: value.mode,
-      }
-    : { ...DEFAULT_SETTINGS };
+  if (
+    !isObject(value) ||
+    value.schemaVersion !== STORAGE_SCHEMA_VERSION ||
+    typeof value.enabled !== 'boolean' ||
+    (value.mode !== 'hide' && value.mode !== 'blur' && value.mode !== 'mark')
+  ) {
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  return {
+    schemaVersion: STORAGE_SCHEMA_VERSION,
+    enabled: value.enabled,
+    mode: value.mode,
+    youtubeMusicAutoSkip:
+      typeof value.youtubeMusicAutoSkip === 'boolean'
+        ? value.youtubeMusicAutoSkip
+        : DEFAULT_SETTINGS.youtubeMusicAutoSkip,
+  };
 }
 
 export async function loadSettings(
@@ -56,12 +68,16 @@ export async function loadSettings(
 
 export async function saveSettings(
   storageArea: SettingsStorageArea,
-  settings: Pick<PersistedSettings, 'enabled' | 'mode'>,
+  settings: Pick<
+    PersistedSettings,
+    'enabled' | 'mode' | 'youtubeMusicAutoSkip'
+  >,
 ): Promise<PersistedSettings> {
   const normalized = normalizeSettings({
     schemaVersion: STORAGE_SCHEMA_VERSION,
     enabled: settings.enabled,
     mode: settings.mode,
+    youtubeMusicAutoSkip: settings.youtubeMusicAutoSkip,
   });
   await storageArea.set({ [SETTINGS_STORAGE_KEY]: normalized });
   return normalized;
