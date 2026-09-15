@@ -22,6 +22,7 @@
 - confirmed 공식 disclosure 카드의 reversible 필터, 이유 표시와 SPA stale-result 방어
 - YouTube Music 검색·앨범·플레이리스트·아티스트 row와 player bar의 fail-closed video ID identity adapter
 - YouTube Music 현재 재생 항목의 confirmed 공식 disclosure 자동 건너뛰기, stale·중복 클릭 방어와 설정 toggle
+- YouTube Music 검색·앨범·플레이리스트·아티스트 row의 confirmed 공식 disclosure hide·blur·mark 필터와 stale·reuse·중복 방어
 
 ### 변경
 

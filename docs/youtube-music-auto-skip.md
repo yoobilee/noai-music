@@ -2,7 +2,7 @@
 
 - 구현 기준일: 2026-09-14
 - 범위: 현재 재생 player bar identity, 기존 YouTube watch disclosure lookup 재사용, confirmed 항목의 다음 곡 버튼 1회 클릭
-- 제외: YTM 카드 필터, queue 재작성, 반복 정책 변경, 비공개 player API, 새 네트워크·권한·telemetry, 재생 기록 저장
+- 이 controller의 제외 범위: YTM 목록 row 필터, queue 재작성, 반복 정책 변경, 비공개 player API, 새 네트워크·권한·telemetry, 재생 기록 저장. 목록 row 필터는 이후 별도 controller로 구현했으며 `youtube-music-card-filtering.md`에서 다룬다.
 
 ## 동작 조건
 
@@ -82,4 +82,4 @@ bundled Chromium extension E2E는 YTM fixture content script → runtime message
 - player bar에 지원 watch anchor가 없는 전환 구간이나 premium/disabled UI에서는 skip하지 않는다.
 - 클릭 성공 뒤 실제 player 전환 완료 여부를 비공개 state로 확인하지 않는다. ID가 바뀌지 않으면 같은 항목을 재클릭하지 않는다.
 - 같은 video ID가 중간에 다른 유효 ID 없이 repeat되면 새 playback generation으로 판단할 수 없어 추가 skip하지 않는다.
-- skip toast, badge, 이유 history, queue 정책과 YTM 카드 필터는 이 단계의 범위가 아니다.
+- skip toast, skip 이유 history와 queue 정책은 이 controller의 범위가 아니다. YTM 목록 reason badge와 필터는 별도 `youtube-music-card-filtering.md` 계약을 따른다.

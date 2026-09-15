@@ -1,6 +1,6 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 확인/캐시·confirmed 카드 필터 및 YouTube Music identity vertical slice 구현
+- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 확인/캐시·confirmed 카드 필터, YouTube Music identity·현재 재생 auto-skip·목록 row 필터 vertical slice 구현
 - 기준일: 2026-09-14
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
@@ -206,7 +206,7 @@ filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순
 5. 공식 표시 판정이 있고 allow가 없으면 선택한 mode로 필터한다.
 6. 그 외와 판정 불가는 변경하지 않는다.
 
-`mark` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. 현재 vertical slice는 사용자 규칙과 YouTube Music 자동 skip을 아직 구현하지 않으며, `confirmed` 상태와 detector가 재확인한 공식 evidence가 함께 있을 때만 선택 mode를 반환한다.
+`mark` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. 현재 vertical slice는 사용자 규칙을 아직 구현하지 않으며, YouTube와 YouTube Music 목록 필터 및 YouTube Music 자동 skip은 `confirmed` 상태와 detector가 재확인한 공식 evidence가 함께 있을 때만 동작한다.
 
 ## 9. 저장과 캐시
 
@@ -246,7 +246,7 @@ watch-page 추가 확인 결과는 schema version 1의 `youtubeDisclosureCacheV1
 - Chrome, Edge, Whale에서 logged-out/logged-in, 한국어/영어, 홈·검색·관련·재생목록과 YouTube Music player를 수동 확인한다.
 - 자동 접근성 검사와 별도로 popup/options/이유 표시의 키보드, focus, 확대와 대비를 수동 확인한다.
 
-`happy-dom` 단위 테스트는 비식별 HTML fixture와 DOM 없는 policy/storage 계약을 검증한다. Playwright는 같은 fixture를 `youtube.com` URL에 응답하도록 가로채 빌드된 content script의 confirmed 카드 hide, mark/blur/off 전환, 중복 방지와 stale 결과 무시를 확인한다. 실제 YouTube 네트워크는 이 자동 테스트의 입력이나 성공 조건이 아니다.
+`happy-dom` 단위 테스트는 비식별 HTML fixture와 DOM 없는 policy/storage 계약을 검증한다. Playwright는 fixture를 `youtube.com`과 `music.youtube.com` URL에 응답하도록 가로채 빌드된 content script의 confirmed 카드·row hide, mark/blur/off 전환, 중복 방지와 stale 결과 무시를 확인한다. 실제 YouTube 네트워크는 이 자동 테스트의 입력이나 성공 조건이 아니다.
 
 Playwright 공식 문서에 따라 확장 E2E는 bundled Chromium persistent context를 사용한다. Chrome과 Edge 자체는 sideload CLI flag 제한이 있으므로 자동 테스트 결과만으로 Edge·Whale 호환을 선언하지 않는다.
 
@@ -285,7 +285,6 @@ route별 content-script map과 background in-flight map이 중복을 줄이고, 
 
 ## 14. 아직 구현하지 않는 것
 
-- YouTube Music 목록 카드 필터 적용
 - 확인되지 않은 언어·표시 변형
 - 사용자 허용·차단 규칙 저장과 정책 연결
 - popup/options의 목록 관리와 최종 디자인
@@ -300,7 +299,7 @@ YouTube Music adapter는 검색, 앨범 browse, 플레이리스트와 UC channel
 
 YouTube와 YouTube Music은 정확한 11자리 ID와 strict `v` query 추출만 shared helper로 공유하고, origin·경로·selector·surface는 각 adapter에 둔다. YTM ID 네 개를 공개 일반 YouTube watch URL로 조회해 기존 lookup 계약과 같은 identity임을 확인했으며 새 network path는 추가하지 않았다. 조사 근거, URL 범위와 Chrome 수동 검증 절차는 [`youtube-music-identity.md`](youtube-music-identity.md)에 기록한다.
 
-YTM 목록 hide/blur/mark는 현재 재생 자동 skip과 분리된 후속 vertical slice로 유지한다.
+YTM 목록 hide/blur/mark는 현재 재생 자동 skip과 별도 controller로 구현한다.
 
 ## 16. 구현된 YouTube Music 현재 재생 자동 건너뛰기 slice
 
@@ -311,3 +310,11 @@ runtime 상태는 메모리에만 두고 같은 video ID에서는 next click을 
 `settingsV1`에는 version bump 없이 default-true additive `youtubeMusicAutoSkip` field를 추가했다. 구버전 version-1 설정은 기존 `enabled`와 `mode`를 보존하면서 field를 보정한다. 전역 `enabled=false`도 auto-skip을 중지한다.
 
 YTM 전용 player/next selector는 adapter에만 있고 비공개 player API는 사용하지 않는다. 상세 조건, 자동·수동 검증과 한계는 [`youtube-music-auto-skip.md`](youtube-music-auto-skip.md)에 기록한다.
+
+## 17. 구현된 YouTube Music 목록 row 필터 slice
+
+YouTube Music content script는 identity slice에서 확인한 검색·앨범·플레이리스트·아티스트 `ytmusic-responsive-list-item-renderer`만 수집한다. 유효한 video ID를 기존 background watch disclosure message에 전달하고, 결과 status가 `confirmed`이면서 기존 detector가 공식 evidence를 다시 확인하고 응답·현재 row ID가 모두 일치할 때만 공통 카드 필터 policy의 hide·blur·mark 결정을 적용한다.
+
+YTM 전용 UI helper는 row를 remove하지 않고 가역 data attribute와 CSS를 사용한다. blur는 클릭을 막지 않으며 blur·mark에는 공식 표시를 뜻하는 실제 텍스트 reason badge를 하나만 삽입한다. `storage.onChanged`에서 mode와 enabled 전환을 즉시 다시 적용하며 `youtubeMusicAutoSkip`은 목록 판단과 독립적이다.
+
+row별 `surface|videoId` expected key, 완료 시 adapter 재조회, 응답 video ID 비교와 route-scoped Promise map으로 stale callback, element reuse, observer 폭주와 badge 중복을 막는다. 새 network, cache, permission과 영구 기록은 없다. 상세 계약, fixture, Chrome 수동 검증 절차와 한계는 [`youtube-music-card-filtering.md`](youtube-music-card-filtering.md)에 기록한다.

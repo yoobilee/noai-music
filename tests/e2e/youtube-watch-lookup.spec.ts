@@ -119,7 +119,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   await expect(first).toHaveAttribute(filterAttribute, 'mark');
   await expect(first).toBeVisible();
   await expect(first.locator(reasonBadge)).toHaveText(
-    'NoAI · YouTube AI disclosure',
+    /^NoAI · YouTube AI (?:disclosure|표시)$/,
   );
 
   await setSettings(context, true, 'blur');

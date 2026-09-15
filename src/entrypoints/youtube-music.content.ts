@@ -11,6 +11,7 @@ import {
   saveSettings,
 } from '@/storage/settings';
 import { createYouTubeMusicAutoSkipController } from '@/youtube-music/autoSkipController';
+import { createYouTubeMusicRowFilterController } from '@/youtube-music/rowFilterController';
 
 export default defineContentScript({
   matches: YOUTUBE_MUSIC_MATCH_PATTERNS,
@@ -25,6 +26,15 @@ export default defineContentScript({
       getSettings: () => settings,
       lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
       clickNext: (videoId) => adapter.clickNext(videoId),
+    });
+    const rowFilterController = createYouTubeMusicRowFilterController({
+      adapter,
+      document,
+      getSettings: () => settings,
+      lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
+      reasonText:
+        browser.i18n.getMessage('youtubeDisclosureReason') ||
+        'NoAI · YouTube AI disclosure',
     });
 
     const handleStorageChange = (
@@ -41,15 +51,24 @@ export default defineContentScript({
         void saveSettings(browser.storage.local, settings).catch(() => undefined);
       }
       controller.processCurrent();
+      rowFilterController.processRoots([document]);
     };
 
     browser.storage.onChanged.addListener(handleStorageChange);
     controller.processCurrent();
-    const stopObserving = adapter.observePlayer(controller.processCurrent);
+    rowFilterController.processRoots([document]);
+    const stopObservingPlayer = adapter.observePlayer(
+      controller.processCurrent,
+    );
+    const stopObservingPage = adapter.observePage(
+      rowFilterController.processRoots,
+    );
 
     ctx.onInvalidated(() => {
-      stopObserving();
+      stopObservingPlayer();
+      stopObservingPage();
       controller.dispose();
+      rowFilterController.dispose();
       browser.storage.onChanged.removeListener(handleStorageChange);
     });
   },

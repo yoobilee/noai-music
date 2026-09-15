@@ -159,4 +159,4 @@ adapter output은 기존 `MediaCandidateSnapshot.identity`를 사용한다.
 - 검색 결과의 곡·영상·episode를 semantic type으로 구분하지 않는다.
 - 홈 카드, `ytmusic-two-row-item-renderer`, 믹스, 라디오와 queue panel row는 지원하지 않는다.
 - player bar watch anchor가 없거나 모호한 전환 구간에는 현재 identity를 반환하지 않는다.
-- adapter는 entrypoint, lookup, 필터와 skip에 아직 연결되지 않았다.
+- adapter identity는 기존 background lookup에 연결되어 현재 재생 auto-skip과 지원 목록 row 필터에서 사용한다. 각 runtime 계약은 `youtube-music-auto-skip.md`와 `youtube-music-card-filtering.md`에 기록한다.
