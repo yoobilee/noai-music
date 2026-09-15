@@ -73,6 +73,8 @@ video ID 기반 watch-page 확인, 요청 제한과 캐시 계약은 [`docs/yout
 
 ## 개발 명령
 
+곡·아티스트 allowlist의 안정적 identity, 우선순위, 저장 schema, UI와 지원 한계는 [`docs/allowlist.md`](docs/allowlist.md)에 기록되어 있습니다.
+
 Node.js 22.13 이상과 npm이 필요합니다.
 
 ```sh

@@ -4,6 +4,7 @@ import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { readYouTubeOfficialDisclosures } from './officialDisclosure';
 import { YOUTUBE_SELECTORS } from './selectors';
 import { parseYouTubeWatchVideoId } from './videoId';
+import { parseYouTubeArtistHref } from '@/shared/youtubeArtistId';
 
 interface YouTubeAdapterEnvironment {
   document: Document;
@@ -71,6 +72,30 @@ function getCandidateTitle(candidate: Element): string | undefined {
   return normalized || undefined;
 }
 
+function getArtistIds(candidate: Element): readonly string[] {
+  const artistIds = new Set<string>();
+  for (const anchor of candidate.querySelectorAll<HTMLAnchorElement>(
+    YOUTUBE_SELECTORS.artistLinks,
+  )) {
+    const artistId = parseYouTubeArtistHref(
+      anchor.getAttribute('href'),
+      'youtube',
+    );
+    if (artistId !== null) {
+      artistIds.add(artistId);
+    }
+  }
+  return [...artistIds].sort();
+}
+
+function getFilterOverlayAnchor(candidate: Element): HTMLElement | undefined {
+  return (
+    candidate.querySelector<HTMLElement>(
+      YOUTUBE_SELECTORS.filterOverlayAnchor,
+    ) ?? undefined
+  );
+}
+
 function createCandidate(
   element: Element,
   currentUrl: URL,
@@ -79,17 +104,20 @@ function createCandidate(
   if (!videoId) {
     return undefined;
   }
+  const artistIds = getArtistIds(element);
 
   return {
     element,
     surface: element.matches(YOUTUBE_SELECTORS.watchMetadata)
       ? 'watch-page'
       : 'video-card',
+    filterOverlayAnchor: getFilterOverlayAnchor(element),
     snapshot: {
       identity: {
         site: 'youtube',
         videoId,
-        artistIds: [],
+        channelId: artistIds.length === 1 ? artistIds[0] : undefined,
+        artistIds,
       },
       title: getCandidateTitle(element),
       artistNames: [],
@@ -97,15 +125,25 @@ function createCandidate(
   };
 }
 
+function getOutermostCandidateElement(element: Element): Element | null {
+  let candidate = element.closest(YOUTUBE_SELECTORS.videoUnit);
+  let parentCandidate = candidate?.parentElement?.closest(
+    YOUTUBE_SELECTORS.videoUnit,
+  );
+  while (parentCandidate) {
+    candidate = parentCandidate;
+    parentCandidate = candidate.parentElement?.closest(
+      YOUTUBE_SELECTORS.videoUnit,
+    );
+  }
+  return candidate;
+}
+
 function collectCandidateElements(root: ParentNode): readonly Element[] {
   const candidates = new Set<Element>();
 
   if (isElement(root)) {
-    if (root.matches(YOUTUBE_SELECTORS.videoUnit)) {
-      candidates.add(root);
-    }
-
-    const enclosingCandidate = root.closest(YOUTUBE_SELECTORS.videoUnit);
+    const enclosingCandidate = getOutermostCandidateElement(root);
     if (enclosingCandidate) {
       candidates.add(enclosingCandidate);
     }

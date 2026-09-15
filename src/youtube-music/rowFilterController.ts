@@ -3,9 +3,11 @@ import type {
   YouTubeMusicMediaCandidate,
 } from '@/adapters/youtube-music';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
+import { isMediaAllowed } from '@/filtering/allowlist';
 import type { FilterDecision } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type { PersistedSettings } from '@/storage/contracts';
+import type { PersistedAllowlist } from '@/storage/contracts';
 import {
   applyYouTubeMusicRowFilter,
   clearAllYouTubeMusicRowFilters,
@@ -13,6 +15,7 @@ import {
   findAppliedYouTubeMusicRowFilterElements,
   isYouTubeMusicRowFilterCurrent,
 } from '@/ui/youtubeMusicRowFilter';
+import type { FilterAllowlistActions } from '@/ui/filterAllowlistActions';
 
 interface CandidateResult {
   expectedKey: string;
@@ -26,8 +29,16 @@ interface YouTubeMusicRowFilterDependencies {
   >;
   document: Document;
   getSettings(): PersistedSettings;
+  getAllowlist(): PersistedAllowlist;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   reasonText: string;
+  allowTrackLabel?: string;
+  allowArtistLabel?: string;
+  onAllowTrack?(candidate: YouTubeMusicMediaCandidate): void;
+  onAllowArtist?(
+    candidate: YouTubeMusicMediaCandidate,
+    artistId: string,
+  ): void;
 }
 
 export interface YouTubeMusicRowFilterController {
@@ -43,6 +54,7 @@ function decisionFingerprint(
   expectedKey: string,
   result: WatchDisclosureLookupResult,
   settings: PersistedSettings,
+  candidate: YouTubeMusicMediaCandidate,
 ): string {
   return JSON.stringify({
     expectedKey,
@@ -51,6 +63,8 @@ function decisionFingerprint(
     evidence: result.evidence,
     enabled: settings.enabled,
     mode: settings.mode,
+    channelId: candidate.snapshot.identity.channelId,
+    artistIds: candidate.snapshot.identity.artistIds,
   });
 }
 
@@ -88,10 +102,17 @@ export function createYouTubeMusicRowFilterController(
 
     const decision: FilterDecision = decideYouTubeCardFilter({
       settings,
+      identity: candidate.snapshot.identity,
+      allowlist: dependencies.getAllowlist(),
       disclosureStatus: result.status,
       evidence: result.evidence,
     });
-    const fingerprint = decisionFingerprint(expectedKey, result, settings);
+    const fingerprint = decisionFingerprint(
+      expectedKey,
+      result,
+      settings,
+      candidate,
+    );
     if (
       appliedFingerprints.get(candidate.element) === fingerprint &&
       isYouTubeMusicRowFilterCurrent(candidate.element, decision)
@@ -99,10 +120,62 @@ export function createYouTubeMusicRowFilterController(
       return;
     }
 
+    const artistIds = new Set([
+      ...candidate.snapshot.identity.artistIds,
+      ...(candidate.snapshot.identity.channelId === undefined
+        ? []
+        : [candidate.snapshot.identity.channelId]),
+    ]);
+    const artistId =
+      artistIds.size === 1 ? artistIds.values().next().value : undefined;
+    const allowlistActions: FilterAllowlistActions = {
+      track:
+        dependencies.onAllowTrack === undefined ||
+        dependencies.allowTrackLabel === undefined
+          ? undefined
+          : {
+              label: dependencies.allowTrackLabel,
+              onActivate: () => {
+                const currentCandidate = readCurrentCandidate(candidate.element);
+                if (
+                  currentCandidate !== undefined &&
+                  candidateKey(currentCandidate) === expectedKey
+                ) {
+                  dependencies.onAllowTrack?.(currentCandidate);
+                }
+              },
+            },
+      artist:
+        artistId === undefined ||
+        dependencies.onAllowArtist === undefined ||
+        dependencies.allowArtistLabel === undefined
+          ? undefined
+          : {
+              label: dependencies.allowArtistLabel,
+              onActivate: () => {
+                const currentCandidate = readCurrentCandidate(candidate.element);
+                const currentArtistIds = new Set([
+                  ...(currentCandidate?.snapshot.identity.artistIds ?? []),
+                  ...(currentCandidate?.snapshot.identity.channelId === undefined
+                    ? []
+                    : [currentCandidate.snapshot.identity.channelId]),
+                ]);
+                if (
+                  currentCandidate !== undefined &&
+                  candidateKey(currentCandidate) === expectedKey &&
+                  currentArtistIds.has(artistId)
+                ) {
+                  dependencies.onAllowArtist?.(currentCandidate, artistId);
+                }
+              },
+            },
+    };
+
     applyYouTubeMusicRowFilter(
       candidate.element,
       decision,
       dependencies.reasonText,
+      allowlistActions,
     );
     appliedFingerprints.set(candidate.element, fingerprint);
   };
@@ -224,6 +297,13 @@ export function createYouTubeMusicRowFilterController(
 
       if (!settings.enabled) {
         clearCandidate(candidate.element);
+        continue;
+      }
+
+      if (isMediaAllowed(candidate.snapshot.identity, dependencies.getAllowlist())) {
+        clearCandidate(candidate.element);
+        expectedKeys.delete(candidate.element);
+        candidateResults.delete(candidate.element);
         continue;
       }
 

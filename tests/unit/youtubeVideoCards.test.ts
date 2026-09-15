@@ -6,11 +6,22 @@ import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { createYouTubeAdapter } from '@/adapters/youtube';
+import type { FilterDecision } from '@/filtering/contracts';
+import {
+  applyYouTubeCardFilter,
+  FILTER_ACTION_ATTRIBUTE,
+  FILTER_REASON_BADGE_ATTRIBUTE,
+} from '@/ui/youtubeCardFilter';
 
 const fixtureHtml = await readFile(
   resolve('tests/fixtures/youtube/video-cards.html'),
   'utf8',
 );
+
+const decision = (action: 'hide' | 'blur' | 'mark'): FilterDecision => ({
+  action,
+  reason: 'youtube-official-ai-disclosure',
+});
 
 function createAdapter(
   currentUrl = new URL('https://www.youtube.com/'),
@@ -44,6 +55,120 @@ describe('YouTube video card identity extraction', () => {
       'related-video': 'Related0001',
       'playlist-video': 'Playlist001',
     });
+  });
+
+  it('extracts only stable UC channel identities from confirmed channel links', () => {
+    const candidates = createAdapter().collectCandidates(document);
+    const home = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'home-video',
+    );
+    const search = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'search-video',
+    );
+
+    expect(home?.snapshot.identity).toMatchObject({
+      channelId: 'UCabcdefghijklmnopqrstuv',
+      artistIds: ['UCabcdefghijklmnopqrstuv'],
+    });
+    expect(search?.snapshot.identity).toMatchObject({
+      channelId: 'UCzyxwvutsrqponmlkjihgfe',
+      artistIds: ['UCzyxwvutsrqponmlkjihgfe'],
+    });
+  });
+
+  it('keeps the card filter overlay anchor inside the thumbnail surface', () => {
+    const candidates = createAdapter().collectCandidates(document);
+    const home = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'home-video',
+    );
+    const related = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'related-video',
+    );
+
+    const homeAnchor = home?.filterOverlayAnchor;
+    expect(homeAnchor?.tagName).toBe('YT-THUMBNAIL-VIEW-MODEL');
+    expect(home?.element.contains(homeAnchor!)).toBe(true);
+    expect(homeAnchor).not.toBe(home?.element);
+    const homeAnchorPath: string[] = [];
+    let current = homeAnchor?.parentElement;
+    while (current && current !== home?.element) {
+      homeAnchorPath.push(
+        current.id
+          ? `${current.tagName.toLowerCase()}#${current.id}`
+          : current.tagName.toLowerCase(),
+      );
+      current = current.parentElement;
+    }
+    expect(current).toBe(home?.element);
+    expect(homeAnchorPath).toEqual([
+      'a',
+      'div',
+      'yt-lockup-view-model',
+      'div#content',
+    ]);
+    expect(related?.filterOverlayAnchor?.tagName).toBe(
+      'YT-THUMBNAIL-VIEW-MODEL',
+    );
+  });
+
+  it('resolves a mutation inside a nested lockup back to the outer rich item', () => {
+    const mutationRoot = document.querySelector(
+      '[data-testid="home-video"] .ytThumbnailViewModelImage',
+    );
+    expect(mutationRoot).not.toBeNull();
+
+    const candidates = createAdapter().collectCandidates(mutationRoot!);
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]?.element.getAttribute('data-testid')).toBe(
+      'home-video',
+    );
+    expect(candidates[0]?.filterOverlayAnchor?.tagName).toBe(
+      'YT-THUMBNAIL-VIEW-MODEL',
+    );
+  });
+
+  it.each([
+    'home-video',
+    'search-video',
+    'related-video',
+    'playlist-video',
+  ])('connects the %s adapter candidate to every filter mode', (testId) => {
+    const candidate = createAdapter()
+      .collectCandidates(document)
+      .find(({ element }) => element.getAttribute('data-testid') === testId);
+    expect(candidate).toBeDefined();
+
+    applyYouTubeCardFilter(candidate!, decision('hide'), 'reason');
+    expect(candidate!.element.getAttribute(FILTER_ACTION_ATTRIBUTE)).toBe(
+      'hide',
+    );
+
+    applyYouTubeCardFilter(candidate!, decision('blur'), 'reason');
+    expect(candidate!.element.getAttribute(FILTER_ACTION_ATTRIBUTE)).toBe(
+      'blur',
+    );
+    const blurBadge = candidate!.element.querySelector(
+      `[${FILTER_REASON_BADGE_ATTRIBUTE}]`,
+    );
+    expect(blurBadge?.parentElement).toBe(candidate!.filterOverlayAnchor);
+    expect(blurBadge?.parentElement).not.toBe(candidate!.element);
+
+    applyYouTubeCardFilter(candidate!, decision('mark'), 'reason');
+    expect(candidate!.element.getAttribute(FILTER_ACTION_ATTRIBUTE)).toBe(
+      'mark',
+    );
+    expect(
+      candidate!.element.querySelectorAll(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`),
+    ).toHaveLength(1);
+
+    applyYouTubeCardFilter(candidate!, decision('hide'), 'reason');
+    expect(candidate!.element.getAttribute(FILTER_ACTION_ATTRIBUTE)).toBe(
+      'hide',
+    );
+    expect(
+      candidate!.element.querySelectorAll(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`),
+    ).toHaveLength(0);
   });
 
   it('uses the title link before lower-priority conflicting watch links', () => {
@@ -92,7 +217,9 @@ describe('YouTube video card identity extraction', () => {
   it('handles missing and malformed card structure without throwing', () => {
     document.querySelector('[data-testid="home-video"] a#video-title')?.remove();
     document
-      .querySelector('[data-testid="home-video"] a#thumbnail')
+      .querySelector(
+        '[data-testid="home-video"] a.ytLockupViewModelContentImage',
+      )
       ?.setAttribute('href', 'https://example.com/not-a-video');
 
     const adapter = createAdapter();

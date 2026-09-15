@@ -3,12 +3,27 @@ import type { Browser } from 'wxt/browser';
 import type { DomMediaCandidate } from '@/adapters/contracts';
 import { createYouTubeAdapter } from '@/adapters/youtube';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
+import { isMediaAllowed } from '@/filtering/allowlist';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
 import type { FilterDecision } from '@/filtering/contracts';
 import { YOUTUBE_MATCH_PATTERNS } from '@/shared/sites';
 import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
-import { SETTINGS_STORAGE_KEY, type PersistedSettings } from '@/storage/contracts';
+import {
+  ALLOWLIST_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY,
+  type PersistedAllowlist,
+  type PersistedSettings,
+} from '@/storage/contracts';
+import {
+  addAllowedArtist,
+  addAllowedTrack,
+  hasUnsupportedAllowlistSchemaVersion,
+  isPersistedAllowlist,
+  loadAllowlist,
+  readAllowlistChange,
+  saveAllowlist,
+} from '@/storage/allowlist';
 import {
   isPersistedSettings,
   loadSettings,
@@ -32,6 +47,7 @@ function decisionFingerprint(
   lookupKey: string,
   result: Pick<WatchDisclosureLookupResult, 'status' | 'evidence'>,
   settings: PersistedSettings,
+  candidate: DomMediaCandidate,
 ): string {
   return JSON.stringify({
     lookupKey,
@@ -39,6 +55,9 @@ function decisionFingerprint(
     evidence: result.evidence,
     enabled: settings.enabled,
     mode: settings.mode,
+    videoId: candidate.snapshot.identity.videoId,
+    channelId: candidate.snapshot.identity.channelId,
+    artistIds: candidate.snapshot.identity.artistIds,
   });
 }
 
@@ -48,8 +67,13 @@ export default defineContentScript({
   world: 'ISOLATED',
   async main(ctx) {
     const adapter = createYouTubeAdapter();
-    let settings = await loadSettings(browser.storage.local);
+    let [settings, allowlist]: [PersistedSettings, PersistedAllowlist] =
+      await Promise.all([
+        loadSettings(browser.storage.local),
+        loadAllowlist(browser.storage.local),
+      ]);
     let routeKey = adapter.getRouteKey(adapter.getCurrentUrl());
+    let allowlistWrite = Promise.resolve();
     let expectedLookupKeys = new WeakMap<Element, string>();
     let candidateResults = new WeakMap<Element, CandidateResult>();
     let appliedFingerprints = new WeakMap<Element, string>();
@@ -58,6 +82,20 @@ export default defineContentScript({
       browser.i18n.getMessage('youtubeDisclosureReason') ||
       'NoAI · YouTube AI disclosure';
 
+    const persistAllowlistUpdate = (
+      update: (current: PersistedAllowlist) => PersistedAllowlist,
+    ) => {
+      allowlistWrite = allowlistWrite
+        .then(async () => {
+          const current = await loadAllowlist(browser.storage.local);
+          allowlist = await saveAllowlist(
+            browser.storage.local,
+            update(current),
+          );
+        })
+        .catch(() => undefined);
+    };
+
     const renderResult = (
       candidate: DomMediaCandidate,
       lookupKey: string,
@@ -65,18 +103,85 @@ export default defineContentScript({
     ) => {
       const decision: FilterDecision = decideYouTubeCardFilter({
         settings,
+        identity: candidate.snapshot.identity,
+        allowlist,
         disclosureStatus: result.status,
         evidence: result.evidence,
       });
-      const fingerprint = decisionFingerprint(lookupKey, result, settings);
+      const fingerprint = decisionFingerprint(
+        lookupKey,
+        result,
+        settings,
+        candidate,
+      );
       if (
         appliedFingerprints.get(candidate.element) === fingerprint &&
-        isYouTubeCardFilterCurrent(candidate.element, decision)
+        isYouTubeCardFilterCurrent(candidate, decision)
       ) {
         return;
       }
 
-      applyYouTubeCardFilter(candidate, decision, reasonText);
+      const currentArtistIds = new Set([
+        ...candidate.snapshot.identity.artistIds,
+        ...(candidate.snapshot.identity.channelId === undefined
+          ? []
+          : [candidate.snapshot.identity.channelId]),
+      ]);
+      const artistId =
+        currentArtistIds.size === 1
+          ? currentArtistIds.values().next().value
+          : undefined;
+      const candidateVideoId = candidate.snapshot.identity.videoId;
+      applyYouTubeCardFilter(candidate, decision, reasonText, {
+        track:
+          candidateVideoId === undefined
+            ? undefined
+            : {
+                label:
+                  browser.i18n.getMessage('allowThisTrack') ||
+                  'Allow this track',
+                onActivate: () => {
+                  const currentCandidate = adapter
+                    .collectCandidates(candidate.element)
+                    .find(({ element }) => element === candidate.element);
+                  if (
+                    currentCandidate?.snapshot.identity.videoId ===
+                    candidateVideoId
+                  ) {
+                    persistAllowlistUpdate((current) =>
+                      addAllowedTrack(current, {
+                        videoId: candidateVideoId,
+                        ...(candidate.snapshot.title === undefined
+                          ? {}
+                          : { title: candidate.snapshot.title }),
+                      }),
+                    );
+                  }
+                },
+              },
+        artist:
+          artistId === undefined
+            ? undefined
+            : {
+                label:
+                  browser.i18n.getMessage('allowThisArtist') ||
+                  'Allow this artist',
+                onActivate: () => {
+                  const currentCandidate = adapter
+                    .collectCandidates(candidate.element)
+                    .find(({ element }) => element === candidate.element);
+                  if (
+                    currentCandidate?.snapshot.identity.artistIds.includes(
+                      artistId,
+                    )
+                  ) {
+                    persistAllowlistUpdate((current) =>
+                      addAllowedArtist(current, { artistId }),
+                    );
+                  }
+                },
+              },
+      });
       appliedFingerprints.set(candidate.element, fingerprint);
     };
 
@@ -160,6 +265,14 @@ export default defineContentScript({
           continue;
         }
 
+        if (isMediaAllowed(candidate.snapshot.identity, allowlist)) {
+          clearYouTubeCardFilter(candidate.element);
+          expectedLookupKeys.delete(candidate.element);
+          candidateResults.delete(candidate.element);
+          appliedFingerprints.delete(candidate.element);
+          continue;
+        }
+
         const detection = detectYouTubeOfficialDisclosure(
           adapter.readOfficialDisclosures(candidate),
         );
@@ -189,13 +302,30 @@ export default defineContentScript({
       areaName: string,
     ) => {
       const changedSettings = readSettingsChange(changes, areaName);
-      if (changedSettings === null) {
-        return;
+      const changedAllowlist = readAllowlistChange(changes, areaName);
+      if (changedSettings !== null) {
+        settings = changedSettings;
+        if (!isPersistedSettings(changes[SETTINGS_STORAGE_KEY]?.newValue)) {
+          void saveSettings(browser.storage.local, settings).catch(
+            () => undefined,
+          );
+        }
       }
-
-      settings = changedSettings;
-      if (!isPersistedSettings(changes[SETTINGS_STORAGE_KEY]?.newValue)) {
-        void saveSettings(browser.storage.local, settings).catch(() => undefined);
+      if (changedAllowlist !== null) {
+        allowlist = changedAllowlist;
+        if (
+          !isPersistedAllowlist(changes[ALLOWLIST_STORAGE_KEY]?.newValue) &&
+          !hasUnsupportedAllowlistSchemaVersion(
+            changes[ALLOWLIST_STORAGE_KEY]?.newValue,
+          )
+        ) {
+          void saveAllowlist(browser.storage.local, allowlist).catch(
+            () => undefined,
+          );
+        }
+      }
+      if (changedSettings === null && changedAllowlist === null) {
+        return;
       }
       processRoots([document]);
     };

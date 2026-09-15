@@ -7,6 +7,7 @@ import type { SupportedSite } from '@/shared/sites';
 export interface DomMediaCandidate {
   element: Element;
   surface: 'watch-page' | 'video-card';
+  filterOverlayAnchor?: HTMLElement;
   snapshot: MediaCandidateSnapshot;
 }
 

@@ -6,7 +6,12 @@ import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import type { FilterMode } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
-import { DEFAULT_SETTINGS, type PersistedSettings } from '@/storage/contracts';
+import {
+  DEFAULT_ALLOWLIST,
+  DEFAULT_SETTINGS,
+  type PersistedAllowlist,
+  type PersistedSettings,
+} from '@/storage/contracts';
 import {
   YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE,
   YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE,
@@ -56,6 +61,7 @@ interface SetupOptions {
   url?: string;
   rowHtml?: string;
   settings?: PersistedSettings;
+  allowlist?: PersistedAllowlist;
   lookup?: (videoId: string) => Promise<WatchDisclosureLookupResult>;
 }
 
@@ -64,6 +70,7 @@ function setup(options: SetupOptions = {}) {
     options.url ?? 'https://music.youtube.com/search?q=fixture',
   );
   let settings = options.settings ?? { ...DEFAULT_SETTINGS };
+  let allowlist = options.allowlist ?? DEFAULT_ALLOWLIST;
   document.body.innerHTML =
     options.rowHtml ??
     `<ytmusic-responsive-list-item-renderer data-testid="row">
@@ -83,6 +90,7 @@ function setup(options: SetupOptions = {}) {
     adapter,
     document,
     getSettings: () => settings,
+    getAllowlist: () => allowlist,
     lookup,
     reasonText: 'NoAI · YouTube AI disclosure',
   });
@@ -97,6 +105,9 @@ function setup(options: SetupOptions = {}) {
     row,
     setSettings(next: PersistedSettings) {
       settings = next;
+    },
+    setAllowlist(next: PersistedAllowlist) {
+      allowlist = next;
     },
     setUrl(next: string) {
       currentUrl = new URL(next);
@@ -274,6 +285,80 @@ describe('YouTube Music row filter lifecycle', () => {
         `[${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}]`,
       ),
     ).toHaveLength(1);
+  });
+
+  it('restores an allowlisted track immediately and reapplies after removal', async () => {
+    const state = setup({
+      settings: { ...DEFAULT_SETTINGS, mode: 'mark' },
+    });
+    state.controller.processRoots([document]);
+    await flushPromises();
+    expect(state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      'mark',
+    );
+
+    state.setAllowlist({
+      ...DEFAULT_ALLOWLIST,
+      tracks: [{ videoId: 'SurfaceAI01' }],
+    });
+    state.controller.processRoots([document]);
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      false,
+    );
+    expect(
+      state.row.querySelectorAll(
+        `[${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}]`,
+      ),
+    ).toHaveLength(0);
+
+    state.setAllowlist(DEFAULT_ALLOWLIST);
+    state.controller.processRoots([document]);
+    await flushPromises();
+    expect(state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      'mark',
+    );
+  });
+
+  it('does not look up or filter a row with an allowlisted stable artist ID', () => {
+    const artistId = 'UCabcdefghijklmnopqrstuv';
+    const state = setup({
+      rowHtml: `<ytmusic-responsive-list-item-renderer data-testid="row">
+        <div class="title"><a href="/watch?v=SurfaceAI01">Fixture track</a></div>
+        <a href="/browse/${artistId}">Fixture artist</a>
+      </ytmusic-responsive-list-item-renderer>`,
+      allowlist: {
+        ...DEFAULT_ALLOWLIST,
+        artists: [{ artistId }],
+      },
+    });
+
+    state.controller.processRoots([document]);
+
+    expect(state.lookup).not.toHaveBeenCalled();
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      false,
+    );
+  });
+
+  it('does not retain an old allowlist decision when the row identity changes', async () => {
+    const state = setup({
+      allowlist: {
+        ...DEFAULT_ALLOWLIST,
+        tracks: [{ videoId: 'SurfaceAI01' }],
+      },
+    });
+    state.controller.processRoots([document]);
+    expect(state.lookup).not.toHaveBeenCalled();
+
+    const link = state.row.querySelector('a');
+    link?.setAttribute('href', '/watch?v=SurfaceAI02');
+    state.controller.processRoots([link ?? state.row]);
+    await flushPromises();
+
+    expect(state.lookup).toHaveBeenCalledOnce();
+    expect(state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      'hide',
+    );
   });
 
   it('does not attach another handler when enabled changes during a pending lookup', async () => {

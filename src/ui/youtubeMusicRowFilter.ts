@@ -1,4 +1,8 @@
 import type { FilterDecision } from '@/filtering/contracts';
+import {
+  appendFilterAllowlistActions,
+  type FilterAllowlistActions,
+} from '@/ui/filterAllowlistActions';
 
 export const YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE =
   'data-noai-filter-action';
@@ -39,7 +43,9 @@ function ensureFilterStyles(currentDocument: Document): void {
       background: #0f766e !important;
       border-radius: 4px !important;
       color: #ffffff !important;
-      display: block !important;
+      align-items: center !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
       font-family: Roboto, Arial, sans-serif !important;
       font-size: 12px !important;
       font-weight: 600 !important;
@@ -48,13 +54,36 @@ function ensureFilterStyles(currentDocument: Document): void {
       line-height: 16px !important;
       margin: 0 !important;
       max-width: calc(100% - 8px) !important;
-      overflow: hidden !important;
+      gap: 4px !important;
+      overflow: visible !important;
       padding: 3px 6px !important;
       pointer-events: none !important;
       position: absolute !important;
       text-overflow: ellipsis !important;
       white-space: nowrap !important;
       z-index: 1 !important;
+    }
+    [${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action {
+      background: #ffffff !important;
+      border: 0 !important;
+      border-radius: 3px !important;
+      color: #0f5f59 !important;
+      cursor: pointer !important;
+      flex: 0 0 auto !important;
+      font: inherit !important;
+      line-height: 16px !important;
+      padding: 1px 5px !important;
+      pointer-events: auto !important;
+    }
+    [${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action:focus-visible {
+      outline: 2px solid #ffffff !important;
+      outline-offset: 2px !important;
+    }
+    [${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}] > span {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
     }
   `;
   currentDocument.head?.append(style);
@@ -72,6 +101,7 @@ export function applyYouTubeMusicRowFilter(
   element: Element,
   decision: FilterDecision,
   reasonText: string,
+  allowlistActions?: FilterAllowlistActions,
 ): void {
   clearYouTubeMusicRowFilter(element);
   if (decision.action === 'none') {
@@ -88,8 +118,15 @@ export function applyYouTubeMusicRowFilter(
 
   const badge = element.ownerDocument.createElement('span');
   badge.setAttribute(YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE, 'true');
-  badge.setAttribute('role', 'note');
-  badge.textContent = reasonText;
+  const reason = element.ownerDocument.createElement('span');
+  reason.textContent = reasonText;
+  badge.append(reason);
+  appendFilterAllowlistActions(badge, allowlistActions);
+  badge.setAttribute(
+    'role',
+    badge.querySelector('button') === null ? 'note' : 'group',
+  );
+  badge.setAttribute('aria-label', reasonText);
   badge.title = reasonText;
   element.append(badge);
 }

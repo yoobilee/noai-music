@@ -4,6 +4,8 @@
 
 ### 추가
 
+- 곡 video ID와 확인된 UC channel ID 기반 허용 목록, options 관리 UI, YouTube·YouTube Music 카드의 즉시 복구와 YouTube Music auto-skip 제외 정책 추가
+
 - Manifest V3, TypeScript, WXT와 제한적인 React UI를 사용하는 확장 프로그램 기반
 - Vitest 단위 테스트와 Playwright 확장 smoke test 구성
 - YouTube·YouTube Music 어댑터, 판정, 필터링과 로컬 저장소의 책임 계약
@@ -27,3 +29,5 @@
 ### 변경
 
 - checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결
+- 허용 목록을 popup 안에서 compact하게 직접 관리하도록 바꾸고, nested rich-grid mutation에서 Blur·Mark가 즉시 해제되던 회귀를 수정
+- YouTube 카드 blur 대상을 안정적인 thumbnail·metadata 경계로 단순화하고 조상 path attribute와 강제 positioning을 제거

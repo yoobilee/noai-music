@@ -1,5 +1,7 @@
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
+import type { MediaIdentity } from '@/detection/contracts';
 import type { WatchDisclosureStatus } from '@/shared/youtubeWatchDisclosure';
+import type { PersistedAllowlist } from '@/storage/contracts';
 
 export type FilterMode = 'hide' | 'blur' | 'mark';
 
@@ -12,6 +14,8 @@ export interface FilterSettings {
 
 export interface FilterPolicyInput {
   settings: FilterSettings;
+  identity: MediaIdentity;
+  allowlist: PersistedAllowlist;
   disclosureStatus: WatchDisclosureStatus;
   evidence: readonly OfficialDisclosureEvidence[];
 }

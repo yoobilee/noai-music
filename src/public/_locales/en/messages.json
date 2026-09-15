@@ -37,5 +37,72 @@
   },
   "youtubeDisclosureReason": {
     "message": "NoAI · YouTube AI disclosure"
+  },
+  "allowlistHeading": {
+    "message": "Allowed music"
+  },
+  "allowedTrackCount": {
+    "message": "Allowed tracks: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowedArtistCount": {
+    "message": "Allowed artists: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowlistDescription": {
+    "message": "Allowed tracks and artists are not filtered or skipped, even when an official YouTube AI disclosure is confirmed. IDs are stored only when you add them."
+  },
+  "allowedTracksHeading": {
+    "message": "Allowed tracks"
+  },
+  "allowedArtistsHeading": {
+    "message": "Allowed artists"
+  },
+  "trackAllowlistInputLabel": {
+    "message": "Track video ID or watch URL"
+  },
+  "trackAllowlistInputPlaceholder": {
+    "message": "Video ID or YouTube watch URL"
+  },
+  "artistAllowlistInputLabel": {
+    "message": "Artist channel ID or URL"
+  },
+  "artistAllowlistInputPlaceholder": {
+    "message": "UC… ID or YouTube channel URL"
+  },
+  "addTrackAllowlist": {
+    "message": "Allow track"
+  },
+  "addArtistAllowlist": {
+    "message": "Allow artist"
+  },
+  "allowThisTrack": {
+    "message": "Allow this track"
+  },
+  "allowThisArtist": {
+    "message": "Allow this artist"
+  },
+  "removeAllowlistItem": {
+    "message": "Remove"
+  },
+  "emptyAllowlist": {
+    "message": "No saved items."
+  },
+  "invalidTrackIdentity": {
+    "message": "Enter an exact 11-character video ID or a supported YouTube watch URL."
+  },
+  "invalidArtistIdentity": {
+    "message": "Enter an exact UC channel ID or a supported YouTube channel URL."
+  },
+  "allowlistSaveError": {
+    "message": "The allowed list could not be saved. Try again."
   }
 }

@@ -1,4 +1,5 @@
 import type { MediaCandidateSnapshot } from '@/detection/contracts';
+import { parseYouTubeArtistHref } from '@/shared/youtubeArtistId';
 
 import { YOUTUBE_MUSIC_SELECTORS } from './selectors';
 import { parseYouTubeMusicWatchVideoId } from './videoId';
@@ -76,6 +77,19 @@ function createCandidate(
   if (videoId === undefined) {
     return undefined;
   }
+  const artistIds = new Set<string>();
+  for (const anchor of element.querySelectorAll<HTMLAnchorElement>(
+    YOUTUBE_MUSIC_SELECTORS.artistLinks,
+  )) {
+    const artistId = parseYouTubeArtistHref(
+      anchor.getAttribute('href'),
+      'youtube-music',
+    );
+    if (artistId !== null) {
+      artistIds.add(artistId);
+    }
+  }
+  const normalizedArtistIds = [...artistIds].sort();
 
   return {
     element,
@@ -84,7 +98,11 @@ function createCandidate(
       identity: {
         site: 'youtube-music',
         videoId,
-        artistIds: [],
+        channelId:
+          normalizedArtistIds.length === 1
+            ? normalizedArtistIds[0]
+            : undefined,
+        artistIds: normalizedArtistIds,
       },
       artistNames: [],
     },

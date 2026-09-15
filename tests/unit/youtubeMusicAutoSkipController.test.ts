@@ -2,8 +2,25 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
-import { DEFAULT_SETTINGS } from '@/storage/contracts';
+import {
+  DEFAULT_ALLOWLIST,
+  DEFAULT_SETTINGS,
+  type PersistedAllowlist,
+} from '@/storage/contracts';
 import { createYouTubeMusicAutoSkipController } from '@/youtube-music/autoSkipController';
+
+function playerIdentity(
+  videoId: string | undefined,
+  artistIds: readonly string[] = [],
+) {
+  return videoId === undefined
+    ? undefined
+    : {
+        site: 'youtube-music' as const,
+        videoId,
+        artistIds,
+      };
+}
 
 const confirmedEvidence: OfficialDisclosureEvidence[] = [
   {
@@ -56,8 +73,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
     });
     const clickNext = vi.fn(() => true);
     const controller = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => currentVideoId,
+      getCurrentIdentity: () => playerIdentity(currentVideoId),
       getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup,
       clickNext,
     });
@@ -105,8 +123,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
     );
     const clickNext = vi.fn(() => true);
     const controller = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => currentVideoId,
+      getCurrentIdentity: () => playerIdentity(currentVideoId),
       getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup,
       clickNext,
     });
@@ -125,8 +144,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
     const lookup = vi.fn();
     const clickNext = vi.fn();
     const controller = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => undefined,
+      getCurrentIdentity: () => undefined,
       getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup,
       clickNext,
     });
@@ -143,8 +163,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
     const lookup = vi.fn(() => request.promise);
     const clickNext = vi.fn(() => true);
     const controller = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => 'PlaybackA01',
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
       getSettings: () => settings,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup,
       clickNext,
     });
@@ -169,8 +190,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
   it('never retries the same playback after a failed or throwing click', async () => {
     const clickNext = vi.fn(() => false);
     const controller = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => 'PlaybackA01',
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
       getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup: async () => lookupResult('PlaybackA01'),
       clickNext,
     });
@@ -185,8 +207,9 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
       throw new Error('synthetic click failure');
     });
     const throwingController = createYouTubeMusicAutoSkipController({
-      getCurrentVideoId: () => 'PlaybackB01',
+      getCurrentIdentity: () => playerIdentity('PlaybackB01'),
       getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
       lookup: async () => lookupResult('PlaybackB01'),
       clickNext: throwingClick,
     });
@@ -194,5 +217,116 @@ describe('YouTube Music auto-skip playback lifecycle', () => {
     await flushPromises();
     throwingController.processCurrent();
     expect(throwingClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not look up or skip an allowlisted track or artist', () => {
+    const artistId = 'UCabcdefghijklmnopqrstuv';
+    let currentIdentity = playerIdentity('PlaybackA01');
+    let allowlist: PersistedAllowlist = {
+      ...DEFAULT_ALLOWLIST,
+      tracks: [{ videoId: 'PlaybackA01' }],
+    };
+    const lookup = vi.fn();
+    const clickNext = vi.fn();
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => currentIdentity,
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => allowlist,
+      lookup,
+      clickNext,
+    });
+
+    controller.processCurrent();
+    expect(lookup).not.toHaveBeenCalled();
+
+    currentIdentity = playerIdentity('PlaybackB01', [artistId]);
+    allowlist = {
+      ...DEFAULT_ALLOWLIST,
+      artists: [{ artistId }],
+    };
+    controller.processCurrent();
+
+    expect(lookup).not.toHaveBeenCalled();
+    expect(clickNext).not.toHaveBeenCalled();
+  });
+
+  it('keeps the current generation allowed after removal and evaluates the next generation', async () => {
+    let currentVideoId = 'PlaybackA01';
+    let allowlist: PersistedAllowlist = {
+      ...DEFAULT_ALLOWLIST,
+      tracks: [{ videoId: currentVideoId }],
+    };
+    const lookup = vi.fn(async (videoId: string) => lookupResult(videoId));
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity(currentVideoId),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => allowlist,
+      lookup,
+      clickNext,
+    });
+
+    controller.processCurrent();
+    allowlist = DEFAULT_ALLOWLIST;
+    controller.processCurrent();
+    await flushPromises();
+    expect(lookup).not.toHaveBeenCalled();
+    expect(clickNext).not.toHaveBeenCalled();
+
+    currentVideoId = 'PlaybackB01';
+    controller.processCurrent();
+    await flushPromises();
+    expect(lookup).toHaveBeenCalledWith('PlaybackB01');
+    expect(clickNext).toHaveBeenCalledWith('PlaybackB01');
+  });
+
+  it('honors an allowlist update while a lookup is pending', async () => {
+    const request = deferred<WatchDisclosureLookupResult>();
+    let allowlist: PersistedAllowlist = DEFAULT_ALLOWLIST;
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => allowlist,
+      lookup: () => request.promise,
+      clickNext,
+    });
+
+    controller.processCurrent();
+    allowlist = {
+      ...DEFAULT_ALLOWLIST,
+      tracks: [{ videoId: 'PlaybackA01' }],
+    };
+    controller.processCurrent();
+    request.resolve(lookupResult('PlaybackA01'));
+    await flushPromises();
+
+    expect(clickNext).not.toHaveBeenCalled();
+  });
+
+  it('retains the current allowlist generation while auto-skip is disabled', async () => {
+    let settings = { ...DEFAULT_SETTINGS, youtubeMusicAutoSkip: false };
+    let allowlist: PersistedAllowlist = {
+      ...DEFAULT_ALLOWLIST,
+      tracks: [{ videoId: 'PlaybackA01' }],
+    };
+    const lookup = vi.fn(async (videoId: string) => lookupResult(videoId));
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
+      getSettings: () => settings,
+      getAllowlist: () => allowlist,
+      lookup,
+      clickNext,
+    });
+
+    controller.processCurrent();
+    allowlist = DEFAULT_ALLOWLIST;
+    settings = { ...settings, youtubeMusicAutoSkip: true };
+    controller.processCurrent();
+    await flushPromises();
+
+    expect(lookup).not.toHaveBeenCalled();
+    expect(clickNext).not.toHaveBeenCalled();
   });
 });

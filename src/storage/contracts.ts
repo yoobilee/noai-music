@@ -3,6 +3,8 @@ import type { SupportedSite } from '@/shared/sites';
 
 export const STORAGE_SCHEMA_VERSION = 1;
 export const SETTINGS_STORAGE_KEY = 'settingsV1';
+export const ALLOWLIST_SCHEMA_VERSION = 1;
+export const ALLOWLIST_STORAGE_KEY = 'allowlistV1';
 
 export interface StoredEntityReference {
   site: SupportedSite;
@@ -28,4 +30,27 @@ export const DEFAULT_SETTINGS: PersistedSettings = {
   enabled: true,
   mode: 'hide',
   youtubeMusicAutoSkip: true,
+};
+
+export interface AllowedTrack {
+  videoId: string;
+  title?: string;
+  artistName?: string;
+}
+
+export interface AllowedArtist {
+  artistId: string;
+  name?: string;
+}
+
+export interface PersistedAllowlist {
+  schemaVersion: typeof ALLOWLIST_SCHEMA_VERSION;
+  tracks: readonly AllowedTrack[];
+  artists: readonly AllowedArtist[];
+}
+
+export const DEFAULT_ALLOWLIST: PersistedAllowlist = {
+  schemaVersion: ALLOWLIST_SCHEMA_VERSION,
+  tracks: [],
+  artists: [],
 };
