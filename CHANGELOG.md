@@ -29,4 +29,5 @@
 ### 변경
 
 - checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결
-- popup에서 기존 허용 목록 관리 화면으로 이동할 수 있게 하고, YouTube 카드 badge를 thumbnail overlay에 배치해 hover 시 grid layout 변동을 방지
+- 허용 목록을 popup 안에서 compact하게 직접 관리하도록 바꾸고, nested rich-grid mutation에서 Blur·Mark가 즉시 해제되던 회귀를 수정
+- YouTube 카드 blur 대상을 안정적인 thumbnail·metadata 경계로 단순화하고 조상 path attribute와 강제 positioning을 제거

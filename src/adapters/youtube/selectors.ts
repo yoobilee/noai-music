@@ -18,6 +18,13 @@ export const YOUTUBE_SELECTORS = {
     'a[href^="/playlist?"], a[href^="https://www.youtube.com/playlist?"], a[href^="https://youtube.com/playlist?"]',
   title: 'h1 yt-formatted-string, #video-title',
   filterOverlayAnchor: 'ytd-thumbnail, yt-thumbnail-view-model',
+  filterBlurTargets: [
+    'ytd-thumbnail > *',
+    'yt-thumbnail-view-model > *',
+    '#details',
+    '#meta',
+    '.ytLockupViewModelMetadata',
+  ],
   artistLinks: '#channel-name a[href], ytd-channel-name a[href]',
   officialMetadataBadge:
     'ytd-badge-supported-renderer, yt-badge-view-model',

@@ -22,6 +22,8 @@ import {
 type AllowlistMessageKey =
   | 'allowlistHeading'
   | 'allowlistDescription'
+  | 'allowedTrackCount'
+  | 'allowedArtistCount'
   | 'allowedTracksHeading'
   | 'allowedArtistsHeading'
   | 'trackAllowlistInputLabel'
@@ -36,11 +38,18 @@ type AllowlistMessageKey =
   | 'invalidArtistIdentity'
   | 'allowlistSaveError';
 
-function message(key: AllowlistMessageKey): string {
-  return browser.i18n.getMessage(key);
+function message(
+  key: AllowlistMessageKey,
+  substitutions?: string | string[],
+): string {
+  return browser.i18n.getMessage(key, substitutions);
 }
 
-export function AllowlistManager() {
+interface AllowlistManagerProps {
+  compact?: boolean;
+}
+
+export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
   const [allowlist, setAllowlist] =
     useState<PersistedAllowlist>(DEFAULT_ALLOWLIST);
   const [trackInput, setTrackInput] = useState('');
@@ -120,9 +129,8 @@ export function AllowlistManager() {
 
   const disabled = status === 'loading' || status === 'saving';
 
-  return (
-    <section aria-labelledby="allowlist-heading" className="allowlist-manager">
-      <h2 id="allowlist-heading">{message('allowlistHeading')}</h2>
+  const contents = (
+    <>
       <p className="settings-panel__description">
         {message('allowlistDescription')}
       </p>
@@ -243,6 +251,45 @@ export function AllowlistManager() {
           {message('allowlistSaveError')}
         </p>
       ) : null}
+    </>
+  );
+
+  if (compact) {
+    return (
+      <section
+        aria-labelledby="allowlist-heading"
+        className="allowlist-manager allowlist-manager--compact"
+      >
+        <details className="allowlist-manager__disclosure">
+          <summary>
+            <span
+              className="allowlist-manager__summary-heading"
+              id="allowlist-heading"
+            >
+              {message('allowlistHeading')}
+            </span>
+            <span aria-live="polite" className="allowlist-manager__counts">
+              <span>
+                {message('allowedTrackCount', String(allowlist.tracks.length))}
+              </span>
+              <span>
+                {message(
+                  'allowedArtistCount',
+                  String(allowlist.artists.length),
+                )}
+              </span>
+            </span>
+          </summary>
+          <div className="allowlist-manager__compact-body">{contents}</div>
+        </details>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-labelledby="allowlist-heading" className="allowlist-manager">
+      <h2 id="allowlist-heading">{message('allowlistHeading')}</h2>
+      {contents}
     </section>
   );
 }

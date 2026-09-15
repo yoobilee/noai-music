@@ -9,7 +9,6 @@ import {
   clearAllYouTubeCardFilters,
   FILTER_ACTION_ATTRIBUTE,
   FILTER_OVERLAY_ANCHOR_ATTRIBUTE,
-  FILTER_OVERLAY_PATH_ATTRIBUTE,
   FILTER_REASON_ATTRIBUTE,
   FILTER_REASON_BADGE_ATTRIBUTE,
   isYouTubeCardFilterCurrent,
@@ -54,7 +53,7 @@ describe('YouTube card DOM filtering', () => {
     expect(candidate.element.getAttribute(FILTER_REASON_ATTRIBUTE)).toBe(
       'youtube-official-ai-disclosure',
     );
-    expect(isYouTubeCardFilterCurrent(candidate.element, decision(action))).toBe(
+    expect(isYouTubeCardFilterCurrent(candidate, decision(action))).toBe(
       true,
     );
     expect(
@@ -85,7 +84,7 @@ describe('YouTube card DOM filtering', () => {
     );
     expect(
       candidate.element.querySelectorAll(
-        `[${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}], [${FILTER_OVERLAY_PATH_ATTRIBUTE}]`,
+        `[${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}]`,
       ),
     ).toHaveLength(0);
   });
@@ -133,6 +132,21 @@ describe('YouTube card DOM filtering', () => {
     expect(
       badge?.parentElement?.hasAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE),
     ).toBe(true);
+  });
+
+  it('does not force layout positioning or annotate the card ancestor path', () => {
+    const candidate = createCandidate();
+    applyYouTubeCardFilter(candidate, decision('blur'), reasonText);
+
+    const styles = document.head.querySelector(
+      '[data-noai-youtube-card-filter-styles]',
+    )?.textContent;
+    expect(styles).not.toContain('position: relative');
+    expect(styles).not.toContain('filter-overlay-path');
+    expect(candidate.element.querySelector('[data-noai-filter-overlay-path]')).toBeNull();
+    expect(
+      candidate.element.querySelector(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`),
+    ).not.toBe(candidate.element.firstElementChild);
   });
 
   it('fails closed for visible modes without a confirmed overlay anchor', () => {

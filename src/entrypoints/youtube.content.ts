@@ -116,7 +116,7 @@ export default defineContentScript({
       );
       if (
         appliedFingerprints.get(candidate.element) === fingerprint &&
-        isYouTubeCardFilterCurrent(candidate.element, decision)
+        isYouTubeCardFilterCurrent(candidate, decision)
       ) {
         return;
       }

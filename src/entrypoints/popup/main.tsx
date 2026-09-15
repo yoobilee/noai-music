@@ -12,13 +12,10 @@ if (!rootElement) {
 }
 
 document.documentElement.lang = browser.i18n.getUILanguage();
-
-function openAllowlistManager(): void {
-  void browser.runtime.openOptionsPage().catch(() => undefined);
-}
+document.body.classList.add('noai-popup');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <SettingsPanel onManageAllowlist={openAllowlistManager} />
+    <SettingsPanel allowlistVariant="compact" />
   </StrictMode>,
 );

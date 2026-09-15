@@ -125,15 +125,25 @@ function createCandidate(
   };
 }
 
+function getOutermostCandidateElement(element: Element): Element | null {
+  let candidate = element.closest(YOUTUBE_SELECTORS.videoUnit);
+  let parentCandidate = candidate?.parentElement?.closest(
+    YOUTUBE_SELECTORS.videoUnit,
+  );
+  while (parentCandidate) {
+    candidate = parentCandidate;
+    parentCandidate = candidate.parentElement?.closest(
+      YOUTUBE_SELECTORS.videoUnit,
+    );
+  }
+  return candidate;
+}
+
 function collectCandidateElements(root: ParentNode): readonly Element[] {
   const candidates = new Set<Element>();
 
   if (isElement(root)) {
-    if (root.matches(YOUTUBE_SELECTORS.videoUnit)) {
-      candidates.add(root);
-    }
-
-    const enclosingCandidate = root.closest(YOUTUBE_SELECTORS.videoUnit);
+    const enclosingCandidate = getOutermostCandidateElement(root);
     if (enclosingCandidate) {
       candidates.add(enclosingCandidate);
     }

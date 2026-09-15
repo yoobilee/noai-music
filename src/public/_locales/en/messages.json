@@ -41,8 +41,21 @@
   "allowlistHeading": {
     "message": "Allowed music"
   },
-  "manageAllowlist": {
-    "message": "Manage allowlist"
+  "allowedTrackCount": {
+    "message": "Allowed tracks: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowedArtistCount": {
+    "message": "Allowed artists: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   },
   "allowlistDescription": {
     "message": "Allowed tracks and artists are not filtered or skipped, even when an official YouTube AI disclosure is confirmed. IDs are stored only when you add them."

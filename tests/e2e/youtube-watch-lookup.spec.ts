@@ -22,19 +22,52 @@ const ordinaryHtml = await readFile(
 );
 const cardPageHtml = `<!doctype html>
 <html lang="en">
+  <head>
+    <style>
+      ytd-rich-item-renderer, ytd-video-renderer {
+        display: block;
+        margin-block-end: 16px;
+      }
+      ytd-thumbnail, yt-thumbnail-view-model {
+        display: block;
+        min-block-size: 80px;
+        position: relative;
+      }
+    </style>
+  </head>
   <body>
-    <ytd-video-renderer data-testid="disclosed-card-one">
-      <ytd-thumbnail>
-        <a id="thumbnail" href="/watch?v=Disclose001">Thumbnail</a>
-      </ytd-thumbnail>
-      <a id="video-title" href="/watch?v=Disclose001">Disclosed fixture</a>
-    </ytd-video-renderer>
-    <ytd-video-renderer data-testid="disclosed-card-two">
-      <ytd-thumbnail>
-        <a id="thumbnail" href="/watch?v=Disclose001">Thumbnail</a>
-      </ytd-thumbnail>
-      <a id="video-title" href="/watch?v=Disclose001">Repeated fixture</a>
-    </ytd-video-renderer>
+    <ytd-rich-item-renderer data-testid="disclosed-card-one">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=Disclose001">
+              <yt-thumbnail-view-model>
+                <div class="ytThumbnailViewModelImage">Thumbnail</div>
+              </yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=Disclose001">Disclosed fixture</a>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+    <ytd-rich-item-renderer data-testid="disclosed-card-two">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=Disclose001">
+              <yt-thumbnail-view-model>
+                <div class="ytThumbnailViewModelImage">Thumbnail</div>
+              </yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=Disclose001">Repeated fixture</a>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
     <ytd-video-renderer data-testid="ordinary-card">
       <ytd-thumbnail>
         <a id="thumbnail" href="/watch?v=Ordinary001">Thumbnail</a>
@@ -125,8 +158,8 @@ test('filters only confirmed cards and switches modes without reloading', async 
   await expect(second).not.toHaveAttribute(filterAttribute, /.+/);
   await expect(second).toBeVisible();
 
-  await setSettings(context, true, 'mark');
-  await expect(first).toHaveAttribute(filterAttribute, 'mark');
+  await setSettings(context, true, 'blur');
+  await expect(first).toHaveAttribute(filterAttribute, 'blur');
   await expect(first).toBeVisible();
   await expect(first.locator(`${reasonBadge} > span`)).toHaveText(
     /^NoAI · YouTube AI (?:disclosure|표시)$/,
@@ -136,25 +169,114 @@ test('filters only confirmed cards and switches modes without reloading', async 
     await first
       .locator(reasonBadge)
       .evaluate((badge) => badge.parentElement?.tagName),
-  ).toBe('YTD-THUMBNAIL');
+  ).toBe('YT-THUMBNAIL-VIEW-MODEL');
+  expect(
+    await first.locator(reasonBadge).evaluate((badge) =>
+      badge.parentElement === badge.closest('[data-noai-filter-action]'),
+    ),
+  ).toBe(false);
+  await expect(
+    first.locator('.ytThumbnailViewModelImage'),
+  ).not.toHaveCSS('filter', 'none');
+  await expect(first.locator('.ytLockupViewModelMetadata')).not.toHaveCSS(
+    'filter',
+    'none',
+  );
 
-  await first.locator(reasonBadge).evaluate((badge) => {
-    badge.setAttribute('data-testid', 'stable-noai-badge');
-  });
-  await first.locator('ytd-thumbnail').evaluate((thumbnail) => {
+  const hoverMutationResult = await first.evaluate(async (card) => {
+    const badge = card.querySelector('[data-noai-filter-reason-badge]');
+    const thumbnail = card.querySelector('yt-thumbnail-view-model');
+    const metadata = card.querySelector('.ytLockupViewModelMetadata');
+    if (
+      !(badge instanceof HTMLElement) ||
+      !(thumbnail instanceof HTMLElement) ||
+      !(metadata instanceof HTMLElement)
+    ) {
+      throw new Error('Expected filter overlay fixture elements.');
+    }
+
+    const beforeBounds = {
+      card: card.getBoundingClientRect().height,
+      metadata: metadata.getBoundingClientRect().height,
+      thumbnail: thumbnail.getBoundingClientRect().height,
+    };
+    const beforeFilterState = {
+      action: card.getAttribute('data-noai-filter-action'),
+      anchorCount: card.querySelectorAll('[data-noai-filter-overlay-anchor]')
+        .length,
+      pathCount: card.querySelectorAll('[data-noai-filter-overlay-path]').length,
+    };
+
+    let filterAttributeChanges = 0;
+    let badgeWasRemoved = false;
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName?.startsWith('data-noai-filter')
+        ) {
+          filterAttributeChanges += 1;
+        }
+        for (const removed of mutation.removedNodes) {
+          if (removed === badge || (removed instanceof Element && removed.contains(badge))) {
+            badgeWasRemoved = true;
+          }
+        }
+      }
+    });
+    observer.observe(card, { attributes: true, childList: true, subtree: true });
+
     const hoverOverlay = document.createElement('div');
     hoverOverlay.setAttribute('data-testid', 'synthetic-hover-overlay');
     thumbnail.append(hoverOverlay);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    observer.disconnect();
+
+    return {
+      afterBounds: {
+        card: card.getBoundingClientRect().height,
+        metadata: metadata.getBoundingClientRect().height,
+        thumbnail: thumbnail.getBoundingClientRect().height,
+      },
+      afterFilterState: {
+        action: card.getAttribute('data-noai-filter-action'),
+        anchorCount: card.querySelectorAll('[data-noai-filter-overlay-anchor]')
+          .length,
+        pathCount: card.querySelectorAll('[data-noai-filter-overlay-path]').length,
+      },
+      badgeCount: card.querySelectorAll('[data-noai-filter-reason-badge]').length,
+      badgeIsSame: card.querySelector('[data-noai-filter-reason-badge]') === badge,
+      badgeWasRemoved,
+      beforeBounds,
+      beforeFilterState,
+      filterAttributeChanges,
+    };
   });
   await expect(first.getByTestId('synthetic-hover-overlay')).toBeAttached();
-  await expect(first.getByTestId('stable-noai-badge')).toHaveCount(1);
+  expect(hoverMutationResult).toEqual({
+    afterBounds: hoverMutationResult.beforeBounds,
+    afterFilterState: hoverMutationResult.beforeFilterState,
+    badgeCount: 1,
+    badgeIsSame: true,
+    badgeWasRemoved: false,
+    beforeBounds: hoverMutationResult.beforeBounds,
+    beforeFilterState: {
+      action: 'blur',
+      anchorCount: 1,
+      pathCount: 0,
+    },
+    filterAttributeChanges: 0,
+  });
+
+  await setSettings(context, true, 'mark');
+  await expect(first).toHaveAttribute(filterAttribute, 'mark');
   await expect(first.locator(reasonBadge)).toHaveCount(1);
 
-  await setSettings(context, true, 'blur');
-  await expect(first).toHaveAttribute(filterAttribute, 'blur');
-  await expect(first.locator(reasonBadge)).toHaveCount(1);
+  await setSettings(context, true, 'hide');
+  await expect(first).toHaveAttribute(filterAttribute, 'hide');
+  await expect(first).toBeHidden();
 
-  await setSettings(context, false, 'blur');
+  await setSettings(context, false, 'hide');
   await expect(first).not.toHaveAttribute(filterAttribute, /.+/);
   await expect(first.locator(reasonBadge)).toHaveCount(0);
   await expect(first).toBeVisible();

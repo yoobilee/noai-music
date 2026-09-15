@@ -9,6 +9,12 @@ body {
   min-width: 300px;
 }
 
+body.noai-popup {
+  inline-size: 360px;
+  max-block-size: 600px;
+  overflow-y: auto;
+}
+
 .settings-panel {
   box-sizing: border-box;
   display: grid;
@@ -82,23 +88,48 @@ body {
   font-weight: 700;
 }
 
-.settings-panel__manage-allowlist {
-  background: #0f766e;
-  border: 0;
-  border-radius: 6px;
-  color: #ffffff;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  padding: 9px 12px;
-  text-align: center;
-}
-
 .allowlist-manager {
   border-block-start: 1px solid #d5dde5;
   display: grid;
   gap: 16px;
   padding-block-start: 20px;
+}
+
+.allowlist-manager--compact {
+  display: block;
+  padding-block-start: 12px;
+}
+
+.allowlist-manager__disclosure > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.allowlist-manager__disclosure > summary:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 3px;
+}
+
+.allowlist-manager__summary-heading {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.allowlist-manager__counts {
+  color: #455463;
+  display: grid;
+  font-size: 12px;
+  gap: 2px;
+  text-align: end;
+}
+
+.allowlist-manager__compact-body {
+  display: grid;
+  gap: 16px;
+  padding-block-start: 16px;
 }
 
 .allowlist-manager h2,

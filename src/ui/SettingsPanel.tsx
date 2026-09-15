@@ -21,7 +21,6 @@ type MessageKey =
   | 'filterScopeDescription'
   | 'filterStateEnabled'
   | 'filterStateDisabled'
-  | 'manageAllowlist'
   | 'settingsSaveError';
 
 const MODE_MESSAGE_KEYS = {
@@ -35,13 +34,11 @@ function message(key: MessageKey): string {
 }
 
 interface SettingsPanelProps {
-  showAllowlist?: boolean;
-  onManageAllowlist?: () => void;
+  allowlistVariant?: 'compact' | 'full';
 }
 
 export function SettingsPanel({
-  showAllowlist = false,
-  onManageAllowlist,
+  allowlistVariant,
 }: SettingsPanelProps) {
   const [settings, setSettings] = useState<PersistedSettings>(DEFAULT_SETTINGS);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'error'>(
@@ -150,16 +147,6 @@ export function SettingsPanel({
         )}
       </fieldset>
 
-      {onManageAllowlist === undefined ? null : (
-        <button
-          className="settings-panel__manage-allowlist"
-          onClick={onManageAllowlist}
-          type="button"
-        >
-          {message('manageAllowlist')}
-        </button>
-      )}
-
       <p className="settings-panel__state">
         {message(settings.enabled ? 'filterStateEnabled' : 'filterStateDisabled')}
       </p>
@@ -168,7 +155,9 @@ export function SettingsPanel({
           {message('settingsSaveError')}
         </p>
       ) : null}
-      {showAllowlist ? <AllowlistManager /> : null}
+      {allowlistVariant === undefined ? null : (
+        <AllowlistManager compact={allowlistVariant === 'compact'} />
+      )}
     </main>
   );
 }

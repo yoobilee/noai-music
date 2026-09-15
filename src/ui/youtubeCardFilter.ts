@@ -1,4 +1,5 @@
 import type { DomMediaCandidate } from '@/adapters/contracts';
+import { YOUTUBE_SELECTORS } from '@/adapters/youtube/selectors';
 import type { FilterDecision } from '@/filtering/contracts';
 import {
   appendFilterAllowlistActions,
@@ -10,7 +11,6 @@ export const FILTER_REASON_ATTRIBUTE = 'data-noai-filter-reason';
 export const FILTER_REASON_BADGE_ATTRIBUTE = 'data-noai-filter-reason-badge';
 export const FILTER_OVERLAY_ANCHOR_ATTRIBUTE =
   'data-noai-filter-overlay-anchor';
-export const FILTER_OVERLAY_PATH_ATTRIBUTE = 'data-noai-filter-overlay-path';
 
 const FILTER_STYLE_ATTRIBUTE = 'data-noai-youtube-card-filter-styles';
 
@@ -29,18 +29,18 @@ function ensureFilterStyles(currentDocument: Document): void {
 
   const style = currentDocument.createElement('style');
   style.setAttribute(FILTER_STYLE_ATTRIBUTE, 'true');
+  const blurTargetSelectors = YOUTUBE_SELECTORS.filterBlurTargets
+    .map(
+      (selector) =>
+        `[${FILTER_ACTION_ATTRIBUTE}="blur"] ${selector}:not([${FILTER_REASON_BADGE_ATTRIBUTE}])`,
+    )
+    .join(',\n    ');
   style.textContent = `
     [${FILTER_ACTION_ATTRIBUTE}="hide"] {
       display: none !important;
     }
-    [${FILTER_ACTION_ATTRIBUTE}="blur"] > :not([${FILTER_OVERLAY_PATH_ATTRIBUTE}]) {
+    ${blurTargetSelectors} {
       filter: blur(10px) !important;
-    }
-    [${FILTER_ACTION_ATTRIBUTE}="blur"] [${FILTER_OVERLAY_PATH_ATTRIBUTE}] > :not([${FILTER_OVERLAY_PATH_ATTRIBUTE}]):not([${FILTER_REASON_BADGE_ATTRIBUTE}]) {
-      filter: blur(10px) !important;
-    }
-    [${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}] {
-      position: relative !important;
     }
     [${FILTER_REASON_BADGE_ATTRIBUTE}] {
       background: #0f766e !important;
@@ -90,10 +90,9 @@ function ensureFilterStyles(currentDocument: Document): void {
 
 function clearOverlayMountState(element: Element): void {
   for (const mounted of element.querySelectorAll(
-    `[${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}], [${FILTER_OVERLAY_PATH_ATTRIBUTE}]`,
+    `[${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}]`,
   )) {
     mounted.removeAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE);
-    mounted.removeAttribute(FILTER_OVERLAY_PATH_ATTRIBUTE);
   }
 }
 
@@ -103,16 +102,6 @@ function prepareOverlayMount(
 ): boolean {
   if (anchor === card || !card.contains(anchor)) {
     return false;
-  }
-
-  let current: HTMLElement | null = anchor;
-  while (current !== card) {
-    current.setAttribute(FILTER_OVERLAY_PATH_ATTRIBUTE, 'true');
-    current = current.parentElement;
-    if (current === null) {
-      clearOverlayMountState(card);
-      return false;
-    }
   }
 
   anchor.setAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE, 'true');
@@ -173,12 +162,14 @@ export function applyYouTubeCardFilter(
 }
 
 export function isYouTubeCardFilterCurrent(
-  element: Element,
+  candidate: DomMediaCandidate,
   decision: FilterDecision,
 ): boolean {
+  const element = candidate.element;
   const action = element.getAttribute(FILTER_ACTION_ATTRIBUTE);
   const badges = findReasonBadges(element);
   const badgeCount = badges.length;
+  const overlayAnchor = candidate.filterOverlayAnchor;
 
   if (decision.action === 'none') {
     return action === null && badgeCount === 0;
@@ -190,9 +181,9 @@ export function isYouTubeCardFilterCurrent(
     (decision.action === 'hide'
       ? badgeCount === 0
       : badgeCount === 1 &&
-        badges[0]?.parentElement?.hasAttribute(
-          FILTER_OVERLAY_ANCHOR_ATTRIBUTE,
-        ) === true)
+        overlayAnchor !== undefined &&
+        badges[0]?.parentElement === overlayAnchor &&
+        overlayAnchor.hasAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE))
   );
 }
 
