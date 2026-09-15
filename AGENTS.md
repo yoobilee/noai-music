@@ -148,7 +148,7 @@
 - 기술 스택·라이브러리: Manifest V3, TypeScript, WXT. React는 popup과 options UI에만 사용한다.
 - 기술 선택 이유: WXT의 MV3 manifest 생성, 파일 기반 entrypoint, TypeScript·React 통합과 Chromium 빌드·테스트 지원을 사용한다. 핵심 로직은 WXT와 React에 직접 의존하지 않는다.
 - 배포 환경: WXT의 단일 `chrome-mv3` 산출물을 Chrome, Edge와 Whale의 공통 기반으로 사용한다. 스토어별 metadata와 검증·배포 절차는 출시 전에 확정한다.
-- 데이터 저장: 별도 서버와 `storage.sync` 없이 `storage.local`을 사용한다. 설정·목록 schema는 versioning하고, 판정 캐시는 content script 메모리에만 둔다.
+- 데이터 저장: 별도 서버와 `storage.sync` 없이 `storage.local`을 사용한다. 설정·목록 schema와 제한된 watch-page 판정 cache는 versioning하며, 요청 중복 제어와 queue 상태는 메모리에만 둔다.
 - 외부 서비스 연동: 1.0에서 별도 외부 데이터 서비스 없음. YouTube·YouTube Music 페이지의 공식 표시와 DOM을 사용한다.
 - 지원 브라우저: 데스크톱 Chrome, Edge와 Whale의 현재 안정 버전을 우선 지원한다. 최소 버전은 실제 브라우저 검증 후 확정하며 Firefox는 1.0 제외다.
 - 패키지 관리 도구·잠금 파일: npm과 `package-lock.json`
@@ -182,7 +182,7 @@
 - 버전 기준 파일: `package.json`
 - 버전 배포 사용 여부와 스토어별 배포 절차: 1.0 출시 계획에서 확정
 - 태그 형식: `vX.Y.Z`
-- 라이선스: 오픈소스 공개 전 사용자가 확정
+- 라이선스: MIT
 
 ### Codex 운영과 검증
 

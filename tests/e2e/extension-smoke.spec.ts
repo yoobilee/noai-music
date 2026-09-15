@@ -5,6 +5,7 @@ import { expect, test } from './fixtures';
 
 interface GeneratedManifest {
   manifest_version: number;
+  version: string;
   permissions?: string[];
   host_permissions?: string[];
   options_ui?: {
@@ -24,6 +25,7 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
   ) as GeneratedManifest;
 
   expect(manifest.manifest_version).toBe(3);
+  expect(manifest.version).toBe('0.9.0');
   expect(manifest.permissions).toEqual(['storage']);
   expect(manifest.host_permissions).toEqual(['https://www.youtube.com/*']);
   expect(manifest.host_permissions).not.toContain('<all_urls>');

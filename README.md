@@ -1,81 +1,82 @@
 # NoAI
 
-NoAI는 YouTube와 YouTube Music에서 사용자가 원하지 않는 AI 표시 음악 콘텐츠를 숨기거나 자동으로 건너뛸 수 있게 하는 오픈소스 브라우저 확장 프로그램입니다.
+> Block AI music on YouTube. Skip it on YouTube Music.
 
-현재 YouTube 영상 카드와 YouTube Music의 검색·앨범·플레이리스트·아티스트 row에서 안정적인 identity를 얻어 사용자가 직접 지정한 허용·차단 규칙을 먼저 적용합니다. 우선순위는 `allowlist > direct blocklist > official disclosure`이며, 직접 차단은 AI 판정이 아닙니다. 사용자 규칙이 없으면 background의 watch page 공식 AI disclosure를 확인하고, 공식 evidence가 `confirmed`인 항목만 숨김·흐림·표시하거나 YouTube Music에서 건너뜁니다.
+NoAI는 YouTube와 YouTube Music에서 YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 항목을 숨기거나 흐리거나 표시하고, YouTube Music에서는 자동으로 건너뛸 수 있게 하는 오픈소스 브라우저 확장 프로그램입니다.
+
+NoAI는 자체 AI detector를 사용하지 않으며 제목, 채널명이나 음원 특징으로 AI 여부를 추측하지 않습니다. 공식 표시가 있다는 사실과 음악 자체가 AI 생성됐다는 주장은 다릅니다. NoAI는 확인된 표시 이상의 의미를 단정하지 않으며, 표시나 identity를 확인할 수 없으면 추측해서 차단하지 않습니다.
+
+## 핵심 기능
+
+- YouTube 공식 AI·변경 콘텐츠 표시 기반 필터링
+- 숨기기, 흐리기, 표시만 모드와 필터 이유 표시
+- YouTube 홈·검색·관련 영상·재생목록 카드 필터링
+- YouTube Music 검색·앨범·플레이리스트·아티스트 목록 필터링
+- YouTube Music 현재 재생곡 자동 건너뛰기
+- 곡·아티스트 허용 목록
+- 곡·아티스트·채널 직접 차단 목록
+- popup과 options의 한국어·영어 설정 및 목록 관리
 
 ## 판정 원칙
 
-- 자체 모델, 음원 특징, 제목이나 채널을 근거로 AI 여부를 추측하지 않습니다.
-- 1.0에서는 YouTube가 제공하는 공식 AI·변경 콘텐츠 표시를 가장 신뢰도 높은 판정 기준으로 사용합니다.
-- 공식 표시가 있다는 이유만으로 음악 자체가 AI 생성이라고 단정하지 않습니다.
-- 사용자가 어떤 표시 때문에 콘텐츠가 필터링됐는지 확인할 수 있게 합니다.
-- 공식 표시를 확인할 수 없거나 페이지 구조가 예상과 다르면 추측으로 차단하지 않습니다.
+- YouTube가 제공하는 공식 AI·변경 콘텐츠 표시를 가장 신뢰도 높은 판정 근거로 사용합니다.
+- 공식 evidence가 확인된 항목만 기존 disclosure 정책으로 필터링합니다.
+- 조회 오류, 알 수 없는 표시, 손상된 evidence나 ambiguous identity는 필터링 근거로 사용하지 않습니다.
+- 직접 차단은 AI 판정이 아니라 사용자가 명시적으로 저장한 로컬 규칙입니다.
+
+## 지원 범위
+
+### YouTube
+
+- 홈, 검색, 관련 영상과 재생목록의 지원되는 영상 카드
+- 채널 metadata가 없는 채널 `Videos` 탭의 exact route identity fallback
+- 곡 video ID, 채널 UC ID와 exact `@handle` 직접 차단
+
+### YouTube Music
+
+- 검색, 앨범, 플레이리스트와 아티스트의 지원되는 track row
+- 현재 재생곡 identity와 자동 건너뛰기
+- 곡 video ID와 확인된 아티스트 UC ID 사용자 규칙
+
+YouTube와 YouTube Music의 DOM이 변경되어 확인된 selector나 identity를 얻을 수 없으면 fail-closed로 아무 항목도 추측해 처리하지 않습니다.
+
+## 사용자 규칙
+
+규칙 우선순위는 다음과 같습니다.
+
+```text
+allowlist > direct blocklist > official disclosure
+```
+
+- 허용 목록에 있는 곡이나 아티스트는 직접 차단 또는 공식 표시가 있어도 필터링하거나 건너뛰지 않습니다.
+- 직접 차단 목록은 공식 표시나 lookup 결과와 관계없이 exact identity가 일치할 때 적용합니다.
+- 사용자 규칙이 없을 때만 기존 공식 disclosure 정책을 적용합니다.
 
 ## 개인정보와 권한
 
-- 시청 기록, 청취 기록, Google 계정 정보와 사용자 목록을 NoAI의 별도 서버로 전송하지 않습니다.
-- 설정, 허용 목록과 직접 차단 목록은 로컬에 저장합니다.
-- watch-page 확인 캐시는 video ID, 판정 상태, 최소 evidence와 시간만 `storage.local`에 제한적으로 보관합니다.
-- 확장 프로그램 권한은 기능에 필요한 최소 범위로 제한합니다.
-- 서버 기반 사용자 계정과 동기화는 1.0 범위에 포함하지 않습니다.
+NoAI는 별도 서버나 계정을 운영하지 않으며 analytics와 telemetry를 사용하지 않습니다. 설정, 사용자가 직접 추가한 허용·차단 identity와 최소 disclosure cache는 브라우저의 `storage.local`에 저장되며, NoAI 개발자 서버나 별도의 제3자 서비스로 전송·공유·판매되지 않습니다.
 
-## 1.0 목표
+단, 공식 표시를 추가로 확인할 때 background가 해당 video ID의 공개 YouTube watch page를 `credentials: omit`으로 요청할 수 있습니다. 요청은 YouTube에만 전송되며 NoAI 운영자나 별도 외부 API로 전송되지 않습니다.
 
-- YouTube의 홈, 검색, 관련 영상과 재생목록에서 공식 AI 표시가 확인된 콘텐츠 필터
-- YouTube Music의 홈, 검색과 재생목록에서 대상 음악 필터
-- YouTube Music 재생 중 대상 곡 자동 건너뛰기
-- 필터 전체 ON/OFF와 숨김·흐림·표시 모드
-- 필터 이유 표시
-- 곡·아티스트 허용 목록
-- 곡·아티스트·채널 직접 차단
-- 설정과 사용자 목록 로컬 저장
-- 한국어와 영어 지원
+현재 생성 manifest의 권한은 다음과 같습니다.
 
-YouTube와 YouTube Music의 DOM 의존성은 어댑터 계층 등으로 격리하고, SPA 페이지 전환과 동적 DOM 변경을 고려해 구현할 예정입니다.
+- `storage`: 설정, 사용자 규칙과 최소 판정 cache를 로컬에 저장
+- `https://www.youtube.com/*` host permission: background에서 검증된 video ID의 공개 watch page를 확인
+- YouTube·YouTube Music content-script matches: 각 사이트의 지원 카드·row와 player에 로컬 설정을 적용
 
-## 1.0에서 제외하는 기능
+자세한 내용은 [개인정보 처리방침 초안](docs/privacy.md)을 참고하세요.
 
-- 커뮤니티 AI 음악 데이터베이스 연동
-- 자체 AI 판별 모델
-- Firefox 지원
-- Spotify 등 다른 서비스 지원
-- 서버 기반 사용자 계정 및 동기화
+## 현재 상태
 
-## 개발 상태
-
-- 확장 플랫폼: Manifest V3
-- 언어·빌드: TypeScript, WXT
-- UI: React를 popup과 options에만 사용
-- 테스트: Vitest, Playwright
-- CI: GitHub Actions에서 lint, typecheck, Vitest, WXT production build, Playwright, npm audit와 whitespace 검증
-- 패키지 관리: npm
-- 우선 지원: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
+- 현재 버전: **0.9.0**
+- 상태: **1.0 release candidate**
+- 우선 검증 대상: desktop Chrome
+- Edge와 Whale: Chromium 호환 대상이며 1.0 전에 실제 브라우저 수동 검증 필요
 - Firefox: 1.0 이후 검토
-- 최소 지원 버전과 스토어별 배포 절차: 실제 브라우저 검증 후 확정
-- 라이선스: 미정
 
-기술 구조와 권한·테스트 설계는 [`docs/technical-design.md`](docs/technical-design.md), 개발 규칙과 상세 제품 원칙은 [`AGENTS.md`](AGENTS.md)를 따릅니다.
+자동 검증은 비식별 fixture와 bundled Chromium을 사용합니다. Live YouTube DOM, Chrome popup, Edge·Whale과 YouTube Music Premium 재생은 [릴리스 체크리스트](docs/release-checklist.md)에 따라 별도로 확인해야 합니다.
 
-현재 감지 범위, 조사 근거와 수동 검증 절차는 [`docs/youtube-disclosure-detection.md`](docs/youtube-disclosure-detection.md)에 기록되어 있습니다.
-
-홈·검색·관련·재생목록의 video ID 추출 계약과 현재 한계는 [`docs/youtube-video-id-extraction.md`](docs/youtube-video-id-extraction.md)에 기록되어 있습니다.
-
-YouTube Music의 재생 항목·현재 player identity 조사, selector와 URL 계약은 [`docs/youtube-music-identity.md`](docs/youtube-music-identity.md)에 기록되어 있습니다.
-
-YouTube Music 현재 재생 항목의 confirmed 공식 disclosure 자동 건너뛰기 조건, 중복·stale 방어와 수동 검증 절차는 [`docs/youtube-music-auto-skip.md`](docs/youtube-music-auto-skip.md)에 기록되어 있습니다.
-
-YouTube Music 검색·앨범·플레이리스트·아티스트 row의 confirmed 필터 조건, DOM 적용, stale·reuse 방어와 수동 검증 절차는 [`docs/youtube-music-card-filtering.md`](docs/youtube-music-card-filtering.md)에 기록되어 있습니다.
-
-video ID 기반 watch-page 확인, 요청 제한과 캐시 계약은 [`docs/youtube-watch-disclosure-lookup.md`](docs/youtube-watch-disclosure-lookup.md)에 기록되어 있습니다.
-
-카드 필터 정책, 설정 schema, 접근성 및 SPA 복구 방식은 [`docs/youtube-card-filtering.md`](docs/youtube-card-filtering.md)에 기록되어 있습니다.
-
-## 개발 명령
-
-곡·아티스트 allowlist의 안정적 identity, 우선순위, 저장 schema, UI와 지원 한계는 [`docs/allowlist.md`](docs/allowlist.md)에 기록되어 있습니다.
-
-곡·아티스트·채널 direct blocklist의 exact video ID·UC ID·YouTube `@handle` 규칙, surface별 identity 경계, 저장 schema와 auto-skip 동작은 [`docs/blocklist.md`](docs/blocklist.md)에 기록되어 있습니다.
+## 설치와 개발
 
 Node.js 22.13 이상과 npm이 필요합니다.
 
@@ -84,11 +85,35 @@ npm install
 npm run dev
 ```
 
-기본 검증과 Playwright를 포함한 전체 검증은 각각 다음 명령으로 실행합니다.
+production build와 zip은 다음 위치에 생성됩니다.
 
 ```sh
-npm run verify
+npm run build
+npm run zip
+```
+
+- unpacked extension: `.output/chrome-mv3`
+- 배포 zip: `.output/noai-music-0.9.0-chrome.zip`
+
+전체 자동 검증:
+
+```sh
 npm run verify:all
 ```
 
-Codex는 구현 뒤 전체 diff self-review와 로컬 검증을 거쳐 기본적으로 작업 브랜치 push와 PR 생성까지 수행합니다. 안전한 변경의 auto-merge 조건과 사람 확인이 필요한 위험 변경 기준은 [자동화 정책](.ai/policies/review-automation.md)에 기록되어 있습니다.
+## 문서
+
+- [기술 설계](docs/technical-design.md)
+- [YouTube disclosure 감지](docs/youtube-disclosure-detection.md)
+- [YouTube 카드 필터링](docs/youtube-card-filtering.md)
+- [YouTube Music identity](docs/youtube-music-identity.md)
+- [YouTube Music 카드 필터링](docs/youtube-music-card-filtering.md)
+- [YouTube Music 자동 건너뛰기](docs/youtube-music-auto-skip.md)
+- [허용 목록](docs/allowlist.md)
+- [직접 차단 목록](docs/blocklist.md)
+- [Chrome Web Store listing 초안](docs/store-listing.md)
+- [0.9.0 → 1.0.0 릴리스 체크리스트](docs/release-checklist.md)
+
+## 라이선스
+
+[MIT License](LICENSE)

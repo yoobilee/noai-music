@@ -1,39 +1,33 @@
 # 변경 기록
 
+이 프로젝트의 주요 사용자 영향 변경 사항을 기록합니다.
+
 ## Unreleased
 
-- `allowlist > direct blocklist > official disclosure` 우선순위에 따른 곡·아티스트·채널 직접 차단, popup 관리 UI와 YouTube Music 즉시 auto-skip 추가
-- 최신 YouTube 카드의 exact `@handle` 채널 링크를 direct block identity로 지원하고 percent-encoded 비라틴 handle 입력을 처리
-- 채널 `Videos` 탭에서 카드 channel metadata가 생략된 경우 exact `@handle` 또는 UC route identity로 direct channel block 적용
+0.9.0 이후에는 1.0 출시를 위한 회귀 수정과 검증 문서 변경만 예정되어 있습니다.
+
+## [0.9.0] - 2026-09-15
 
 ### 추가
 
-- 곡 video ID와 확인된 UC channel ID 기반 허용 목록, options 관리 UI, YouTube·YouTube Music 카드의 즉시 복구와 YouTube Music auto-skip 제외 정책 추가
-
-- Manifest V3, TypeScript, WXT와 제한적인 React UI를 사용하는 확장 프로그램 기반
-- Vitest 단위 테스트와 Playwright 확장 smoke test 구성
-- YouTube·YouTube Music 어댑터, 판정, 필터링과 로컬 저장소의 책임 계약
-- 영어·한국어 확장 metadata와 개발 단계 안내 문구
-- NoAI 1.0 기술 설계 문서
-- YouTube watch 페이지의 공식 AI disclosure evidence 추출과 순수 detector
-- 동적 DOM과 SPA 전환에 대응하는 개발 검증용 disclosure 배지
-- 개인정보를 제거한 YouTube fixture 기반 단위·확장 E2E 테스트
-- 읽기 전용 GitHub Actions CI와 Codex self-review·안전한 auto-merge 정책
-- 변경 파일 기반 fail-closed 병합 위험 판정 스크립트와 회귀 테스트
-- YouTube 홈·검색·관련·재생목록 영상 단위의 fail-closed video ID 추출
-- 순수 YouTube watch URL parser와 비식별 카드 fixture 기반 회귀 테스트
-- background service worker의 제한된 YouTube watch-page disclosure 추가 확인
-- 동시성·queue·timeout·중복 요청 제어와 versioned `storage.local` 판정 캐시
-- versioned `storage.local` 전역 설정과 popup/options의 hide·blur·mark 제어
-- confirmed 공식 disclosure 카드의 reversible 필터, 이유 표시와 SPA stale-result 방어
-- YouTube Music 검색·앨범·플레이리스트·아티스트 row와 player bar의 fail-closed video ID identity adapter
-- YouTube Music 현재 재생 항목의 confirmed 공식 disclosure 자동 건너뛰기, stale·중복 클릭 방어와 설정 toggle
-- YouTube Music 검색·앨범·플레이리스트·아티스트 row의 confirmed 공식 disclosure hide·blur·mark 필터와 stale·reuse·중복 방어
+- YouTube가 공식적으로 제공하는 AI·변경 콘텐츠 표시를 확인해 영상 카드를 숨기기, 흐리기 또는 표시만 할 수 있습니다.
+- YouTube 홈·검색·관련 영상·재생목록과 YouTube Music 검색·앨범·플레이리스트·아티스트 목록의 확인된 항목을 필터링합니다.
+- YouTube Music에서 정책 대상인 현재 재생곡을 자동으로 건너뜁니다.
+- exact video ID와 확인된 아티스트 UC ID를 사용하는 곡·아티스트 허용 목록을 제공합니다.
+- exact video ID, 아티스트·채널 UC ID와 YouTube `@handle`을 사용하는 곡·아티스트·채널 직접 차단 목록을 제공합니다.
+- 채널 `Videos` 경로에서 카드에 채널 정보가 생략된 경우 exact route identity를 안전하게 사용합니다.
+- 한국어·영어 popup/options UI와 로컬 목록 관리 기능을 제공합니다.
+- versioned `storage.local` 설정·사용자 규칙·최소 disclosure cache와 비식별 fixture 기반 회귀 테스트를 제공합니다.
 
 ### 변경
 
-- Chrome popup의 intrinsic width를 380px로 고정하고 내부 panel만 세로 스크롤하도록 조정해 좁은 폭과 resize 흔들림 회귀를 수정
-- popup의 핵심 설정과 사용자 규칙 정보 계층을 정돈하고, 같은 관리 컴포넌트를 재사용하는 넓은 options 레이아웃과 접근 가능한 form control 스타일을 적용
-- checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결
-- 허용 목록을 popup 안에서 compact하게 직접 관리하도록 바꾸고, nested rich-grid mutation에서 Blur·Mark가 즉시 해제되던 회귀를 수정
-- YouTube 카드 blur 대상을 안정적인 thumbnail·metadata 경계로 단순화하고 조상 path attribute와 강제 positioning을 제거
+- 정책 우선순위를 `allowlist > direct blocklist > official disclosure`로 확정했습니다.
+- popup에서 핵심 상태와 필터 방식을 먼저 확인하고 허용·차단 목록을 직접 관리할 수 있도록 정보 구조와 접근성을 정돈했습니다.
+- options에는 같은 저장·검증 로직을 재사용하는 넓은 목록 관리 화면을 제공합니다.
+- 확인 중이거나 판정할 수 없는 상태는 사용자 콘텐츠를 변경하지 않도록 fail-closed 동작을 유지합니다.
+
+### 수정
+
+- SPA 이동, DOM element 재사용과 늦게 도착한 lookup 결과가 다른 카드에 적용되지 않도록 stale·중복 처리를 보강했습니다.
+- YouTube hover 상태에서 badge와 blur가 카드 높이를 변경하거나 깜빡이지 않도록 overlay와 filter 경계를 안정화했습니다.
+- Chrome popup 폭을 380px로 고정하고 내부 panel만 스크롤하도록 해 좁은 폭과 resize 흔들림 회귀를 수정했습니다.
