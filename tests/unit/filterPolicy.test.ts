@@ -145,4 +145,21 @@ describe('YouTube card filter policy', () => {
     const identified = { ...identity, artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'], channelId: 'UCbbbbbbbbbbbbbbbbbbbbbb' };
     expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'mark' }, identity: identified, allowlist: DEFAULT_ALLOWLIST, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId: identified.artistIds[0]! }], channels: [{ identityType: 'channel-id', channelId: identified.channelId }] }, directBlockKinds: { artist: true, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'mark', reason: 'direct-block-artist' });
   });
+
+  it('prefers an exact handle channel rule over confirmed official disclosure', () => {
+    expect(
+      decideYouTubeCardFilter({
+        settings: { enabled: true, mode: 'blur' },
+        identity: { ...identity, channelHandle: '@example' },
+        allowlist: DEFAULT_ALLOWLIST,
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          channels: [{ identityType: 'handle', handle: '@example' }],
+        },
+        directBlockKinds: { artist: false, channel: true },
+        disclosureStatus: 'confirmed',
+        evidence: confirmedEvidence,
+      }),
+    ).toEqual({ action: 'blur', reason: 'direct-block-channel' });
+  });
 });

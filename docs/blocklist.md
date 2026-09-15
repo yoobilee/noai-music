@@ -10,10 +10,12 @@
 
 - 곡: 정확한 11자 YouTube video ID. raw ID와 지원되는 `youtube.com/watch`, `music.youtube.com/watch` URL을 받는다.
 - 아티스트: 정확한 `UC` channel ID 형식. YTM의 전용 artist link에서 확인된 ID에만 적용한다.
-- 채널: 정확한 `UC` channel ID 또는 exact YouTube `@handle`. 일반 YouTube 카드의 `/channel/UC…` 또는 `/@handle` link에서 확인된 identity에만 적용한다.
+- 채널: 정확한 `UC` channel ID 또는 exact YouTube `@handle`. 일반 YouTube 카드의 `/channel/UC…` 또는 `/@handle` metadata link에서 확인된 identity에 적용한다. 카드에 channel metadata가 반복되지 않는 채널 `Videos` 탭에서는 exact route identity를 제한적으로 사용한다.
 - raw `@handle`과 `https://www.youtube.com/@handle` URL을 받으며 percent-encoded 비라틴 handle URL은 URL parser로 decode한다. 이름과 제목 문자열은 identity로 사용하지 않고 handle을 UC ID로 변환하거나 추측하지 않는다. 새 네트워크 조회도 하지 않는다.
 
 YouTube의 channel link는 channel kind로만 평가한다. UC ID와 handle이 모두 확인되면 각 exact identity를 독립적으로 비교하며 둘 다 같은 `direct-block-channel` reason을 사용한다. UC ID가 handle보다 안정적이지만, 최신 카드에 UC link가 없으면 DOM에 노출된 exact handle을 사용할 수 있다. YTM의 search, album, playlist, artist row와 player는 전용 artist link의 UC ID를 artist kind로만 평가한다. 따라서 YouTube에서는 track/channel, YTM에서는 track/artist를 지원하며 불명확한 교차 kind는 fail-closed다.
+
+YouTube 채널의 `/<@handle>/videos`와 `/channel/<UC ID>/videos` route는 해당 채널 소유 영상 목록으로 한정해 해석한다. 이 surface에서 카드 내부에 유효한 channel identity가 전혀 없을 때만 route의 exact handle 또는 UC ID를 fallback으로 사용한다. card DOM의 UC ID, card DOM의 handle, Videos route fallback 순서이며, card에 하나라도 explicit identity가 있거나 여러 identity가 섞여 모호하면 route로 덮어쓰지 않는다. 채널 Home, Shorts, Streams, Playlists, Community와 기타 탭에는 fallback을 적용하지 않는다.
 
 ## 저장과 개인정보
 
@@ -50,14 +52,16 @@ popup의 compact 허용 목록 아래에 native `<details>/<summary>` 차단 목
 1. `npm run build` 후 `chrome://extensions`에서 unpacked extension을 reload한다.
 2. popup에서 허용·차단 summary를 키보드로 펼치고 곡·아티스트·채널 ID/URL 및 `@handle`의 추가, 오류, 중복, 삭제와 scroll을 확인한다.
 3. YouTube의 일반 카드 track/channel을 차단해 Hide/Blur/Mark 및 각 reason을 확인한다.
-4. 같은 identity를 allowlist에도 넣어 즉시 복원되는지, allow만 삭제해 direct block이 다시 적용되는지 확인한다.
-5. block을 삭제해 카드가 복원되거나 confirmed official disclosure 정책으로 재평가되는지 확인한다.
-6. SPA 이동, infinite render와 hover mutation 후 stale 상태나 badge 중복이 없는지 확인한다.
-7. Premium 환경이 있으면 YTM 지원 row의 track/artist 차단과 현재 곡의 lookup 없는 한 번 auto-skip, allow 우선, 설정 OFF를 확인한다.
+4. 차단한 `@handle`의 채널 `Videos` 탭으로 이동해 channel metadata가 없는 카드도 `직접 차단한 채널` reason으로 처리되는지 확인한다.
+5. 같은 identity를 allowlist에도 넣어 즉시 복원되는지, allow만 삭제해 direct block이 다시 적용되는지 확인한다.
+6. block을 삭제해 일반 카드는 복원되고 confirmed official disclosure 카드는 기존 official reason으로 재평가되는지 확인한다.
+7. 서로 다른 두 채널의 `Videos` 탭을 SPA 이동하고 infinite render와 hover mutation 후 stale 상태나 badge 중복이 없는지 확인한다.
+8. Premium 환경이 있으면 YTM 지원 row의 track/artist 차단과 현재 곡의 lookup 없는 한 번 auto-skip, allow 우선, 설정 OFF를 확인한다.
 
 ## 알려진 한계
 
 - YouTube에서 artist kind, YTM에서 channel kind는 현재 DOM 계약으로 의미를 확실히 구분할 수 없어 적용하지 않는다.
 - UC channel ID가 가장 안정적이다. handle rule은 현재 DOM의 exact handle에만 일치하며, 채널 소유자가 handle을 변경하면 기존 rule은 더 이상 일치하지 않을 수 있다. 이를 보완하는 handle→UC network/API lookup은 1.0에서 하지 않는다.
 - legacy custom URL이나 채널 표시 이름만 제공되는 경우는 지원하지 않는다.
+- route fallback은 현재 `Videos` 탭만 지원한다. ownership과 기존 video identity 계약을 함께 검증하지 않은 Home, Shorts, Streams 및 기타 탭은 fail-closed다.
 - live 사이트 DOM과 YTM Premium 재생은 자동 CI가 아닌 수동 검증이 필요하다. CI는 비식별 fixture와 bundled Chromium을 사용한다.

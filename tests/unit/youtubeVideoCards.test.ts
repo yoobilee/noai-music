@@ -17,6 +17,10 @@ const fixtureHtml = await readFile(
   resolve('tests/fixtures/youtube/video-cards.html'),
   'utf8',
 );
+const channelVideosFixtureHtml = await readFile(
+  resolve('tests/fixtures/youtube/channel-videos.html'),
+  'utf8',
+);
 
 const decision = (action: 'hide' | 'blur' | 'mark'): FilterDecision => ({
   action,
@@ -83,6 +87,105 @@ describe('YouTube video card identity extraction', () => {
     expect(handle?.snapshot.identity).toMatchObject({ channelHandle: '@example', artistIds: [] });
     expect(handle?.snapshot.identity.channelId).toBeUndefined();
     expect(korean?.snapshot.identity).toMatchObject({ channelHandle: '@블루레인', artistIds: [] });
+  });
+
+  it('uses the exact channel Videos route when a card omits channel metadata', () => {
+    document.documentElement.innerHTML = channelVideosFixtureHtml;
+    const candidate = createAdapter(
+      new URL(
+        'https://www.youtube.com/%40%EB%B8%94%EB%A3%A8%EB%A0%88%EC%9D%B8/videos',
+      ),
+    )
+      .collectCandidates(document)
+      .find(
+        ({ element }) =>
+          element.getAttribute('data-testid') === 'channel-route-video',
+      );
+
+    expect(candidate?.snapshot.identity.channelHandle).toBe('@블루레인');
+  });
+
+  it('uses a UC channel Videos route when a card omits channel metadata', () => {
+    document.documentElement.innerHTML = channelVideosFixtureHtml;
+    const channelId = 'UCabcdefghijklmnopqrstuv';
+    const candidate = createAdapter(
+      new URL(`https://www.youtube.com/channel/${channelId}/videos`),
+    )
+      .collectCandidates(document)
+      .find(
+        ({ element }) =>
+          element.getAttribute('data-testid') === 'channel-route-video',
+      );
+
+    expect(candidate?.snapshot.identity.channelId).toBe(channelId);
+    expect(candidate?.snapshot.identity.artistIds).toEqual([]);
+  });
+
+  it('does not use a channel route on unsupported tabs or over explicit card identity', () => {
+    document.documentElement.innerHTML = channelVideosFixtureHtml;
+    const videosCandidates = createAdapter(
+      new URL('https://www.youtube.com/@example/videos'),
+    ).collectCandidates(document);
+    const explicit = videosCandidates.find(
+      ({ element }) =>
+        element.getAttribute('data-testid') === 'explicit-other-channel-video',
+    );
+    const home = createAdapter(
+      new URL('https://www.youtube.com/@example'),
+    )
+      .collectCandidates(document)
+      .find(
+        ({ element }) =>
+          element.getAttribute('data-testid') === 'channel-route-video',
+      );
+
+    expect(explicit?.snapshot.identity.channelHandle).toBe('@other-channel');
+    expect(home?.snapshot.identity.channelHandle).toBeUndefined();
+    expect(home?.snapshot.identity.channelId).toBeUndefined();
+  });
+
+  it('does not fall back when card channel metadata is ambiguous', () => {
+    document.documentElement.innerHTML = channelVideosFixtureHtml;
+    const metadata = document.querySelector(
+      '[data-testid="explicit-other-channel-video"] yt-content-metadata-view-model',
+    );
+    metadata?.insertAdjacentHTML(
+      'beforeend',
+      '<a href="/@second-channel">Second channel</a>',
+    );
+    const explicit = createAdapter(
+      new URL('https://www.youtube.com/@example/videos'),
+    )
+      .collectCandidates(document)
+      .find(
+        ({ element }) =>
+          element.getAttribute('data-testid') === 'explicit-other-channel-video',
+      );
+
+    expect(explicit?.snapshot.identity.channelHandle).toBeUndefined();
+  });
+
+  it('reads the current route on every collection after SPA navigation', () => {
+    document.documentElement.innerHTML = channelVideosFixtureHtml;
+    let currentUrl = new URL('https://www.youtube.com/@channel-a/videos');
+    const adapter = createYouTubeAdapter({
+      document,
+      getCurrentUrl: () => currentUrl,
+      createMutationObserver: (callback) => new MutationObserver(callback),
+      requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+      cancelAnimationFrame: (handle) => cancelAnimationFrame(handle),
+    });
+    const readHandle = () =>
+      adapter
+        .collectCandidates(document)
+        .find(
+          ({ element }) =>
+            element.getAttribute('data-testid') === 'channel-route-video',
+        )?.snapshot.identity.channelHandle;
+
+    expect(readHandle()).toBe('@channel-a');
+    currentUrl = new URL('https://www.youtube.com/@channel-b/videos');
+    expect(readHandle()).toBe('@channel-b');
   });
 
   it('keeps the card filter overlay anchor inside the thumbnail surface', () => {

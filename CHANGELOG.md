@@ -4,6 +4,7 @@
 
 - `allowlist > direct blocklist > official disclosure` 우선순위에 따른 곡·아티스트·채널 직접 차단, popup 관리 UI와 YouTube Music 즉시 auto-skip 추가
 - 최신 YouTube 카드의 exact `@handle` 채널 링크를 direct block identity로 지원하고 percent-encoded 비라틴 handle 입력을 처리
+- 채널 `Videos` 탭에서 카드 channel metadata가 생략된 경우 exact `@handle` 또는 UC route identity로 direct channel block 적용
 
 ### 추가
 

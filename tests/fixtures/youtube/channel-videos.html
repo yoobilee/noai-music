@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube channel videos fixture</title>
+  </head>
+  <body>
+    <!-- Channel-owned Videos tabs omit repeated channel metadata on each card. -->
+    <ytd-rich-item-renderer data-testid="channel-route-video">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=ChannelOwn1">
+              <yt-thumbnail-view-model>
+                <div class="ytThumbnailViewModelImage"><img alt="" /></div>
+              </yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=ChannelOwn1">Channel video</a>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-testid="explicit-other-channel-video">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=External001">
+              <yt-thumbnail-view-model>
+                <div class="ytThumbnailViewModelImage"><img alt="" /></div>
+              </yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=External001">Explicit external video</a>
+              <yt-content-metadata-view-model>
+                <a href="/@other-channel">Other channel</a>
+              </yt-content-metadata-view-model>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+  </body>
+</html>
