@@ -6,6 +6,12 @@ import { expect, test } from './fixtures';
 interface GeneratedManifest {
   manifest_version: number;
   version: string;
+  icons?: Record<string, string>;
+  action?: {
+    default_icon?: Record<string, string>;
+    default_popup?: string;
+    default_title?: string;
+  };
   permissions?: string[];
   host_permissions?: string[];
   options_ui?: {
@@ -26,6 +32,20 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
 
   expect(manifest.manifest_version).toBe(3);
   expect(manifest.version).toBe('0.9.0');
+  expect(manifest.icons).toEqual({
+    16: 'icons/icon-16.png',
+    32: 'icons/icon-32.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  });
+  expect(manifest.action).toEqual({
+    default_icon: {
+      16: 'icons/icon-16.png',
+      32: 'icons/icon-32.png',
+    },
+    default_popup: 'popup.html',
+    default_title: 'NoAI',
+  });
   expect(manifest.permissions).toEqual(['storage']);
   expect(manifest.host_permissions).toEqual(['https://www.youtube.com/*']);
   expect(manifest.host_permissions).not.toContain('<all_urls>');

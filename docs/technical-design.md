@@ -47,7 +47,7 @@ WXT 공식 문서는 현재 React 모듈, MV3 대상 빌드, `srcDir`, manifest 
 | 원격 코드 | 사용하지 않음. React 등 실행 코드는 모두 패키지에 번들 |
 | CSP | WXT의 MV3 기본값을 유지하고 CDN script, `eval`, 원격 실행 코드를 추가하지 않음 |
 
-Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조에 맞는다. 0.9.0에는 기능, 개인정보·권한 설명과 제출 체크리스트가 준비되어 있지만 생성 manifest에는 아직 `icons`가 없고 Chrome Web Store가 요구하는 128×128 PNG도 포함하지 않았다. 사용자 승인 브랜드 icon, store promotional asset, 공개 Privacy policy URL과 최종 수동 브라우저 검증을 완료하기 전에는 스토어에 제출하지 않는다.
+Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조에 맞는다. 0.9.0에는 사용자 승인된 16/32/48/128 PNG icon, 개인정보·권한 설명과 제출 체크리스트가 준비되어 있다. Store promotional asset, 실제 screenshot, 공개 Privacy policy URL과 최종 수동 브라우저 검증을 완료하기 전에는 스토어에 제출하지 않는다.
 
 참고:
 
@@ -293,7 +293,7 @@ route별 content-script map과 background in-flight map이 중복을 줄이고, 
 
 - 확인되지 않은 언어·표시 변형
 - 라이브 YouTube E2E와 브라우저별 수동 검증
-- 사용자 승인 icon·store image 제작과 Chrome Web Store 제출
+- store promotional image·실제 screenshot 제작과 Chrome Web Store 제출
 - GitHub Release, tag와 스토어 자동 배포
 
 ## 15. 구현된 YouTube Music identity slice

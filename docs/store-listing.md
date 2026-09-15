@@ -105,14 +105,13 @@ Chrome 공식 문서는 현재 다음 asset을 안내한다.
 
 출처: [Extension icon 안내](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons), [Chrome Web Store 이미지 요구사항](https://developer.chrome.com/docs/webstore/images). Dashboard 요구사항은 제출 시점에 다시 확인한다.
 
-현재 저장소에는 확정된 NoAI icon 또는 store promotional asset이 없다. 임의 디자인을 추가하지 않았으며 다음 항목은 제출 전 TODO다.
+현재 저장소에는 사용자 승인된 16/32/48/128 PNG icon set이 있고 extension manifest와 package에 포함된다. Store promotional asset과 실제 screenshot은 다음 제출 전 TODO로 남는다.
 
 1. popup 기본 화면
 2. YouTube Blur 또는 Mark 적용 화면
 3. 허용·차단 목록을 펼친 popup
 4. options 관리 화면
 5. 가능한 경우 YouTube Music 자동 건너뛰기 설정 또는 실제 동작 화면
-6. 사용자 승인된 16/32/48/128 PNG icon set
-7. 텍스트 의존이 적고 light/dark 배경에서 식별 가능한 440×280 promotional image
+6. 텍스트 의존이 적고 light/dark 배경에서 식별 가능한 440×280 promotional image
 
 Screenshot은 실제 extension과 실제 지원 화면을 캡처하며 가짜 YouTube UI나 아직 검증하지 않은 동작을 사용하지 않는다. 한국어와 영어 listing에는 필요한 경우 locale별 screenshot을 별도로 준비한다.
