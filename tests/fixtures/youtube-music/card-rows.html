@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sanitized YouTube Music row filtering fixture</title>
+  </head>
+  <body>
+    <main id="fixture-root"></main>
+
+    <!-- Only supported renderer/link relationships and synthetic IDs are retained. -->
+    <template id="search-result">
+      <ytmusic-responsive-list-item-renderer data-testid="confirmed-row">
+        <div class="title">
+          <a href="/watch?v=SearchAI001">Synthetic confirmed search row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+      <ytmusic-responsive-list-item-renderer data-testid="ordinary-row">
+        <div class="title">
+          <a href="/watch?v=SearchOrd01">Synthetic ordinary search row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+    </template>
+
+    <template id="album-track">
+      <ytmusic-responsive-list-item-renderer data-testid="confirmed-row">
+        <div class="title">
+          <a href="/watch?v=AlbumAI0001">Synthetic confirmed album row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+      <ytmusic-responsive-list-item-renderer data-testid="ordinary-row">
+        <div class="title">
+          <a href="/watch?v=AlbumOrd001">Synthetic ordinary album row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+    </template>
+
+    <template id="playlist-track">
+      <ytmusic-responsive-list-item-renderer data-testid="confirmed-row">
+        <div class="title">
+          <a href="/watch?v=ListAI00001">Synthetic confirmed playlist row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+      <ytmusic-responsive-list-item-renderer data-testid="ordinary-row">
+        <div class="title">
+          <a href="/watch?v=ListOrd0001">Synthetic ordinary playlist row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+    </template>
+
+    <template id="artist-song">
+      <ytmusic-responsive-list-item-renderer data-testid="confirmed-row">
+        <div class="title">
+          <a href="/watch?v=ArtistAI001">Synthetic confirmed artist row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+      <ytmusic-responsive-list-item-renderer data-testid="ordinary-row">
+        <div class="title">
+          <a href="/watch?v=ArtistOrd01">Synthetic ordinary artist row</a>
+        </div>
+      </ytmusic-responsive-list-item-renderer>
+    </template>
+
+    <script>
+      (() => {
+        const surfaceFromPath = (path) => {
+          if (path.startsWith('/search')) return 'search-result';
+          if (path.startsWith('/browse/MPRE')) return 'album-track';
+          if (path.startsWith('/playlist')) return 'playlist-track';
+          if (path.startsWith('/channel/UC')) return 'artist-song';
+          return undefined;
+        };
+
+        window.activateFixtureSurface = (path) => {
+          const surface = surfaceFromPath(path);
+          const template = surface && document.getElementById(surface);
+          const root = document.getElementById('fixture-root');
+          history.pushState({}, '', path);
+          root.replaceChildren(
+            ...(template ? [template.content.cloneNode(true)] : []),
+          );
+          document.dispatchEvent(new Event('yt-navigate-finish'));
+        };
+
+        window.activateFixtureSurface(location.pathname + location.search);
+      })();
+    </script>
+  </body>
+</html>

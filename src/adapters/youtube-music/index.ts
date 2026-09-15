@@ -27,9 +27,11 @@ interface YouTubeMusicAdapterEnvironment {
 export interface YouTubeMusicAdapter {
   readonly site: 'youtube-music';
   getRouteKey(url: URL): string;
+  getCurrentUrl(): URL;
   collectCandidates(root: ParentNode): readonly YouTubeMusicMediaCandidate[];
   getNowPlayingCandidate(): YouTubeMusicMediaCandidate | undefined;
   clickNext(expectedVideoId: string): boolean;
+  observePage(onChange: (roots: readonly ParentNode[]) => void): () => void;
   observePlayer(onChange: () => void): () => void;
 }
 
@@ -157,6 +159,7 @@ export function createYouTubeMusicAdapter(
 ): YouTubeMusicAdapter {
   return {
     site: 'youtube-music',
+    getCurrentUrl: environment.getCurrentUrl,
     getRouteKey(url) {
       return `${url.pathname}${url.search}`;
     },
@@ -223,6 +226,77 @@ export function createYouTubeMusicAdapter(
       } catch {
         return false;
       }
+    },
+    observePage(onChange) {
+      const observedRoot =
+        environment.document.body ?? environment.document.documentElement;
+      if (!observedRoot) {
+        return () => undefined;
+      }
+
+      const pendingRoots = new Set<ParentNode>();
+      let animationFrame: number | undefined;
+
+      const flush = () => {
+        animationFrame = undefined;
+        if (pendingRoots.size === 0) {
+          return;
+        }
+
+        const roots = [...pendingRoots];
+        pendingRoots.clear();
+        onChange(roots);
+      };
+
+      const schedule = (root: ParentNode) => {
+        pendingRoots.add(root);
+        if (animationFrame === undefined) {
+          animationFrame = environment.requestAnimationFrame(flush);
+        }
+      };
+
+      const observer = environment.createMutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes') {
+            schedule(mutation.target as Element);
+            continue;
+          }
+
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              schedule(node as Element);
+            }
+          }
+
+          if (mutation.removedNodes.length > 0) {
+            schedule(mutation.target as Element);
+          }
+        }
+      });
+      const handleNavigation = () => schedule(environment.document);
+
+      observer.observe(observedRoot, {
+        attributeFilter: ['href'],
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+      environment.document.addEventListener(
+        'yt-navigate-finish',
+        handleNavigation,
+      );
+
+      return () => {
+        observer.disconnect();
+        environment.document.removeEventListener(
+          'yt-navigate-finish',
+          handleNavigation,
+        );
+        pendingRoots.clear();
+        if (animationFrame !== undefined) {
+          environment.cancelAnimationFrame(animationFrame);
+        }
+      };
     },
     observePlayer(onChange) {
       const observedRoot =
