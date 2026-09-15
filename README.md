@@ -54,9 +54,9 @@ allowlist > direct blocklist > official disclosure
 
 ## 개인정보와 권한
 
-NoAI는 별도 서버나 계정을 운영하지 않으며 analytics와 telemetry를 사용하지 않습니다. 설정, 사용자가 직접 추가한 허용·차단 identity와 최소 disclosure cache는 브라우저의 `storage.local`에 저장됩니다. 시청·청취 기록, Google 계정 정보와 사용자 목록을 NoAI 서버로 전송하지 않습니다.
+NoAI는 별도 서버나 계정을 운영하지 않으며 analytics와 telemetry를 사용하지 않습니다. 설정, 사용자가 직접 추가한 허용·차단 identity와 최소 disclosure cache는 브라우저의 `storage.local`에 저장되며, NoAI 개발자 서버나 별도의 제3자 서비스로 전송·공유·판매되지 않습니다.
 
-공식 표시를 추가로 확인할 때 background가 공개 YouTube watch page를 `credentials: omit`으로 요청할 수 있습니다. 요청은 YouTube에만 전송되며 NoAI 운영자나 별도 외부 API로 전송되지 않습니다.
+단, 공식 표시를 추가로 확인할 때 background가 해당 video ID의 공개 YouTube watch page를 `credentials: omit`으로 요청할 수 있습니다. 요청은 YouTube에만 전송되며 NoAI 운영자나 별도 외부 API로 전송되지 않습니다.
 
 현재 생성 manifest의 권한은 다음과 같습니다.
 

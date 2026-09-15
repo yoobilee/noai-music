@@ -61,10 +61,9 @@ If NoAI cannot confirm the page structure or identity, it does not guess and blo
 
 ## 개인정보 요약 / Privacy summary
 
-- 별도 NoAI 서버, 사용자 계정, analytics, telemetry 또는 광고가 없다.
-- 설정, 사용자가 직접 추가한 exact identity와 최소 disclosure cache는 `storage.local`에 보관한다.
-- 시청·청취 기록, Google 계정 정보나 사용자 목록을 개발자 또는 제3자에게 전송하지 않는다.
-- 공식 표시 추가 확인을 위해 public YouTube watch page를 `credentials: omit`으로 요청할 수 있다.
+- 별도 NoAI 서버나 사용자 계정이 없으며 광고, 맞춤형 광고, analytics와 telemetry를 사용하지 않는다.
+- 설정, 사용자가 직접 추가한 exact identity와 최소 disclosure cache는 `storage.local`에 보관하며 NoAI 개발자 서버나 별도의 제3자 서비스로 전송·공유·판매하지 않는다.
+- 단, 공식 표시 추가 확인을 위해 해당 video ID의 public YouTube watch page를 `credentials: omit`으로 YouTube에 요청할 수 있다.
 - 상세 내용은 [개인정보 처리방침 초안](privacy.md)에 기록한다.
 
 Chrome Web Store는 로컬 처리도 공개 대상이 될 수 있으며 Dashboard의 Privacy practices와 공개 정책이 일치해야 한다. 제출 시 [공식 Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)를 기준으로 다시 확인한다.
