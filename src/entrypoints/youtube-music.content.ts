@@ -5,8 +5,10 @@ import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import { YOUTUBE_MUSIC_MATCH_PATTERNS } from '@/shared/sites';
 import {
   ALLOWLIST_STORAGE_KEY,
+  BLOCKLIST_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
   type PersistedAllowlist,
+  type PersistedBlocklist,
   type PersistedSettings,
 } from '@/storage/contracts';
 import {
@@ -18,6 +20,13 @@ import {
   readAllowlistChange,
   saveAllowlist,
 } from '@/storage/allowlist';
+import {
+  hasUnsupportedBlocklistSchemaVersion,
+  isPersistedBlocklist,
+  loadBlocklist,
+  readBlocklistChange,
+  saveBlocklist,
+} from '@/storage/blocklist';
 import {
   isPersistedSettings,
   loadSettings,
@@ -33,10 +42,15 @@ export default defineContentScript({
   world: 'ISOLATED',
   async main(ctx) {
     const adapter = createYouTubeMusicAdapter();
-    let [settings, allowlist]: [PersistedSettings, PersistedAllowlist] =
+    let [settings, allowlist, blocklist]: [
+      PersistedSettings,
+      PersistedAllowlist,
+      PersistedBlocklist,
+    ] =
       await Promise.all([
         loadSettings(browser.storage.local),
         loadAllowlist(browser.storage.local),
+        loadBlocklist(browser.storage.local),
       ]);
     let allowlistWrite = Promise.resolve();
     const persistAllowlistUpdate = (
@@ -57,6 +71,7 @@ export default defineContentScript({
         adapter.getNowPlayingCandidate()?.snapshot.identity,
       getSettings: () => settings,
       getAllowlist: () => allowlist,
+      getBlocklist: () => blocklist,
       lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
       clickNext: (videoId) => adapter.clickNext(videoId),
     });
@@ -65,10 +80,18 @@ export default defineContentScript({
       document,
       getSettings: () => settings,
       getAllowlist: () => allowlist,
+      getBlocklist: () => blocklist,
       lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
-      reasonText:
-        browser.i18n.getMessage('youtubeDisclosureReason') ||
-        'NoAI · YouTube AI disclosure',
+      getReasonText: (reason) =>
+        browser.i18n.getMessage(
+          reason === 'direct-block-track'
+            ? 'directBlockTrackReason'
+            : reason === 'direct-block-artist'
+              ? 'directBlockArtistReason'
+              : reason === 'direct-block-channel'
+                ? 'directBlockChannelReason'
+                : 'youtubeDisclosureReason',
+        ) || 'NoAI · YouTube AI disclosure',
       allowTrackLabel:
         browser.i18n.getMessage('allowThisTrack') || 'Allow this track',
       allowArtistLabel:
@@ -99,6 +122,7 @@ export default defineContentScript({
     ) => {
       const changedSettings = readSettingsChange(changes, areaName);
       const changedAllowlist = readAllowlistChange(changes, areaName);
+      const changedBlocklist = readBlocklistChange(changes, areaName);
       if (changedSettings !== null) {
         settings = changedSettings;
         if (!isPersistedSettings(changes[SETTINGS_STORAGE_KEY]?.newValue)) {
@@ -120,7 +144,24 @@ export default defineContentScript({
           );
         }
       }
-      if (changedSettings === null && changedAllowlist === null) {
+      if (changedBlocklist !== null) {
+        blocklist = changedBlocklist;
+        if (
+          !isPersistedBlocklist(changes[BLOCKLIST_STORAGE_KEY]?.newValue) &&
+          !hasUnsupportedBlocklistSchemaVersion(
+            changes[BLOCKLIST_STORAGE_KEY]?.newValue,
+          )
+        ) {
+          void saveBlocklist(browser.storage.local, blocklist).catch(
+            () => undefined,
+          );
+        }
+      }
+      if (
+        changedSettings === null &&
+        changedAllowlist === null &&
+        changedBlocklist === null
+      ) {
         return;
       }
       controller.processCurrent();

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { BrowserContext } from '@playwright/test';
 
 import { setAllowlist } from './allowlistStorage';
+import { setBlocklist } from './blocklistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -49,6 +50,17 @@ async function setAutoSkip(
     });
   }, youtubeMusicAutoSkip);
 }
+
+test('direct blocked current track skips before disclosure lookup', async ({ context, page }) => {
+  const requested: string[] = [];
+  await setAutoSkip(context, true);
+  await setBlocklist(context, { tracks: [{ videoId: 'PlaybackA01' }] });
+  await context.route('https://music.youtube.com/**', (route) => route.fulfill({ body: playerHtml, contentType: 'text/html' }));
+  await context.route('https://www.youtube.com/**', (route) => { requested.push(new URL(route.request().url()).searchParams.get('v') ?? ''); return route.fulfill({ body: ordinaryHtml, contentType: 'text/html' }); });
+  await page.goto('https://music.youtube.com/watch?v=PlaybackA01');
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '1');
+  expect(requested).not.toContain('PlaybackA01');
+});
 
 test('skips sequential confirmed tracks once and keeps an ordinary track', async ({
   context,

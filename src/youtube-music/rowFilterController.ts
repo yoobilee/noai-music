@@ -3,11 +3,12 @@ import type {
   YouTubeMusicMediaCandidate,
 } from '@/adapters/youtube-music';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
-import { isMediaAllowed } from '@/filtering/allowlist';
-import type { FilterDecision } from '@/filtering/contracts';
+import { evaluateUserRules } from '@/filtering/userRules';
+import type { FilterDecision, FilterReason } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type { PersistedSettings } from '@/storage/contracts';
-import type { PersistedAllowlist } from '@/storage/contracts';
+import type { PersistedAllowlist, PersistedBlocklist } from '@/storage/contracts';
+import { DEFAULT_BLOCKLIST } from '@/storage/contracts';
 import {
   applyYouTubeMusicRowFilter,
   clearAllYouTubeMusicRowFilters,
@@ -30,8 +31,10 @@ interface YouTubeMusicRowFilterDependencies {
   document: Document;
   getSettings(): PersistedSettings;
   getAllowlist(): PersistedAllowlist;
+  getBlocklist?(): PersistedBlocklist;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
-  reasonText: string;
+  getReasonText?(reason: FilterReason): string;
+  reasonText?: string;
   allowTrackLabel?: string;
   allowArtistLabel?: string;
   onAllowTrack?(candidate: YouTubeMusicMediaCandidate): void;
@@ -104,6 +107,8 @@ export function createYouTubeMusicRowFilterController(
       settings,
       identity: candidate.snapshot.identity,
       allowlist: dependencies.getAllowlist(),
+      blocklist: dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
+      directBlockKinds: { artist: true, channel: false },
       disclosureStatus: result.status,
       evidence: result.evidence,
     });
@@ -174,7 +179,9 @@ export function createYouTubeMusicRowFilterController(
     applyYouTubeMusicRowFilter(
       candidate.element,
       decision,
-      dependencies.reasonText,
+      decision.action === 'none'
+        ? ''
+        : (dependencies.getReasonText?.(decision.reason) ?? dependencies.reasonText ?? ''),
       allowlistActions,
     );
     appliedFingerprints.set(candidate.element, fingerprint);
@@ -300,10 +307,29 @@ export function createYouTubeMusicRowFilterController(
         continue;
       }
 
-      if (isMediaAllowed(candidate.snapshot.identity, dependencies.getAllowlist())) {
+      const userRule = evaluateUserRules(
+        candidate.snapshot.identity,
+        dependencies.getAllowlist(),
+        dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
+        { artist: true, channel: false },
+      );
+      if (userRule === 'allow') {
         clearCandidate(candidate.element);
         expectedKeys.delete(candidate.element);
         candidateResults.delete(candidate.element);
+        continue;
+      }
+
+      if (userRule !== 'none') {
+        candidateResults.delete(candidate.element);
+        expectedKeys.delete(candidate.element);
+        renderResult(candidate, expectedKey, {
+          videoId: candidate.snapshot.identity.videoId!,
+          status: 'unknown-or-error',
+          evidence: [],
+          checkedAt: Date.now(),
+          source: 'network',
+        });
         continue;
       }
 

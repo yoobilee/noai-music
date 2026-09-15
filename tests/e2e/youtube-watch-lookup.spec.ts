@@ -6,6 +6,7 @@ import type { BrowserContext } from '@playwright/test';
 import type { FilterMode } from '@/filtering/contracts';
 
 import { readAllowlist, setAllowlist } from './allowlistStorage';
+import { setBlocklist } from './blocklistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -73,6 +74,7 @@ const cardPageHtml = `<!doctype html>
         <a id="thumbnail" href="/watch?v=Ordinary001">Thumbnail</a>
       </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Ordinary001">Ordinary fixture</a>
+      <ytd-channel-name id="channel-name"><a href="/channel/UCabcdefghijklmnopqrstuv">Synthetic channel</a></ytd-channel-name>
     </ytd-video-renderer>
     <ytd-video-renderer data-testid="non-video-card">
       <a id="video-title" href="/channel/sanitized">Channel link</a>
@@ -81,6 +83,36 @@ const cardPageHtml = `<!doctype html>
 </html>`;
 const filterAttribute = 'data-noai-filter-action';
 const reasonBadge = '[data-noai-filter-reason-badge]';
+
+test('direct track blocks ordinary YouTube cards without disclosure and allowlist wins', async ({ context, page }) => {
+  const requested: string[] = [];
+  await setSettings(context, true, 'mark');
+  await setBlocklist(context, { tracks: [{ videoId: 'Ordinary001' }] });
+  await context.route('https://www.youtube.com/**', async (route) => {
+    if (route.request().isNavigationRequest()) return route.fulfill({ body: cardPageHtml, contentType: 'text/html' });
+    requested.push(new URL(route.request().url()).searchParams.get('v') ?? '');
+    return route.fulfill({ body: ordinaryHtml, contentType: 'text/html' });
+  });
+  await page.goto('https://www.youtube.com/');
+  const card = page.getByTestId('ordinary-card');
+  await expect(card).toHaveAttribute(filterAttribute, 'mark');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
+  await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked track|직접 차단한 곡/);
+  expect(requested).not.toContain('Ordinary001');
+  await setAllowlist(context, { tracks: [{ videoId: 'Ordinary001' }] });
+  await expect(card).not.toHaveAttribute(filterAttribute);
+});
+
+test('direct channel block uses the stable YouTube channel identity', async ({ context, page }) => {
+  await setSettings(context, true, 'mark');
+  await setAllowlist(context, {});
+  await setBlocklist(context, { channels: [{ channelId: 'UCabcdefghijklmnopqrstuv' }] });
+  await context.route('https://www.youtube.com/**', (route) => route.fulfill({ body: route.request().isNavigationRequest() ? cardPageHtml : ordinaryHtml, contentType: 'text/html' }));
+  await page.goto('https://www.youtube.com/results?search_query=fixture');
+  const card = page.getByTestId('ordinary-card');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-channel');
+  await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked channel|직접 차단한 채널/);
+});
 
 async function setSettings(
   context: BrowserContext,

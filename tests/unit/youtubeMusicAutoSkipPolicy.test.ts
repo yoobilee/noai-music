@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
-import { DEFAULT_ALLOWLIST } from '@/storage/contracts';
+import { DEFAULT_ALLOWLIST, DEFAULT_BLOCKLIST } from '@/storage/contracts';
 
 const confirmedEvidence: OfficialDisclosureEvidence[] = [
   {
@@ -114,5 +114,13 @@ describe('YouTube Music auto-skip policy', () => {
         result: { ...result('confirmed'), videoId: 'invalid' },
       }),
     ).toBe(false);
+  });
+
+  it('skips direct blocked tracks and artists even when lookup failed, unless allowed', () => {
+    const failed = { ...result('unknown-or-error', []), failureReason: 'network-error' as const };
+    expect(decide({ blocklist: { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'PlaybackA01' }] }, result: failed })).toBe(true);
+    const artistId = 'UCaaaaaaaaaaaaaaaaaaaaaa';
+    expect(decide({ currentIdentity: { site: 'youtube-music', videoId: 'PlaybackA01', artistIds: [artistId] }, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId }] }, result: failed })).toBe(true);
+    expect(decide({ allowlist: { ...DEFAULT_ALLOWLIST, tracks: [{ videoId: 'PlaybackA01' }] }, blocklist: { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'PlaybackA01' }] }, result: failed })).toBe(false);
   });
 });

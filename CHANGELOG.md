@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `allowlist > direct blocklist > official disclosure` 우선순위에 따른 곡·아티스트·채널 직접 차단, popup 관리 UI와 YouTube Music 즉시 auto-skip 추가
+
 ### 추가
 
 - 곡 video ID와 확인된 UC channel ID 기반 허용 목록, options 관리 UI, YouTube·YouTube Music 카드의 즉시 복구와 YouTube Music auto-skip 제외 정책 추가

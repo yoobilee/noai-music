@@ -279,6 +279,7 @@ export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
                 )}
               </span>
             </span>
+            <span aria-hidden="true" className="allowlist-manager__chevron">⌄</span>
           </summary>
           <div className="allowlist-manager__compact-body">{contents}</div>
         </details>

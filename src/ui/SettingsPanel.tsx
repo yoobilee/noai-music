@@ -9,6 +9,7 @@ import {
   saveSettings,
 } from '@/storage/settings';
 import { AllowlistManager } from '@/ui/AllowlistManager';
+import { BlocklistManager } from '@/ui/BlocklistManager';
 
 type MessageKey =
   | 'extName'
@@ -34,11 +35,11 @@ function message(key: MessageKey): string {
 }
 
 interface SettingsPanelProps {
-  allowlistVariant?: 'compact' | 'full';
+  userListsVariant?: 'compact' | 'full';
 }
 
 export function SettingsPanel({
-  allowlistVariant,
+  userListsVariant,
 }: SettingsPanelProps) {
   const [settings, setSettings] = useState<PersistedSettings>(DEFAULT_SETTINGS);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'error'>(
@@ -155,8 +156,11 @@ export function SettingsPanel({
           {message('settingsSaveError')}
         </p>
       ) : null}
-      {allowlistVariant === undefined ? null : (
-        <AllowlistManager compact={allowlistVariant === 'compact'} />
+      {userListsVariant === undefined ? null : (
+        <>
+          <AllowlistManager compact={userListsVariant === 'compact'} />
+          <BlocklistManager compact={userListsVariant === 'compact'} />
+        </>
       )}
     </main>
   );

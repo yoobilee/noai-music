@@ -1,11 +1,13 @@
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
 import type { MediaIdentity } from '@/detection/contracts';
-import { isMediaAllowed } from '@/filtering/allowlist';
+import { evaluateUserRules } from '@/filtering/userRules';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type {
   PersistedAllowlist,
+  PersistedBlocklist,
   PersistedSettings,
 } from '@/storage/contracts';
+import { DEFAULT_BLOCKLIST } from '@/storage/contracts';
 
 interface PlaybackState {
   generation: number;
@@ -20,6 +22,7 @@ interface YouTubeMusicAutoSkipDependencies {
   getCurrentIdentity(): MediaIdentity | undefined;
   getSettings(): PersistedSettings;
   getAllowlist(): PersistedAllowlist;
+  getBlocklist?(): PersistedBlocklist;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   clickNext(expectedVideoId: string): boolean;
 }
@@ -72,15 +75,23 @@ export function createYouTubeMusicAutoSkipController(
 
     const currentPlayback = playback;
     const settings = dependencies.getSettings();
-    if (isMediaAllowed(currentIdentity, dependencies.getAllowlist())) {
+    const userRule = evaluateUserRules(
+      currentIdentity,
+      dependencies.getAllowlist(),
+      dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
+      { artist: true, channel: false },
+    );
+    if (userRule === 'allow') {
       currentPlayback.suppressedByAllowlist = true;
-    }
-    if (currentPlayback.suppressedByAllowlist) {
       return;
     }
-    if (!settings.enabled || !settings.youtubeMusicAutoSkip) {
+    if (!settings.enabled || !settings.youtubeMusicAutoSkip) return;
+    if (userRule === 'block-track' || userRule === 'block-artist') {
+      blockedUntilDifferentVideoId = currentPlayback.videoId;
+      dependencies.clickNext(currentPlayback.videoId);
       return;
     }
+    if (currentPlayback.suppressedByAllowlist) return;
 
     if (currentPlayback.result !== undefined) {
       if (currentPlayback.resultEvaluated) {
@@ -95,6 +106,7 @@ export function createYouTubeMusicAutoSkipController(
           currentVideoId,
           currentIdentity,
           allowlist: dependencies.getAllowlist(),
+          blocklist: dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
           result: currentPlayback.result,
         })
       ) {

@@ -62,8 +62,8 @@ test('popup manages the allowlist without opening another page', async ({
 }) => {
   await page.goto(`chrome-extension://${extensionId}/popup.html`);
   const initialPageCount = context.pages().length;
-  const disclosure = page.locator('.allowlist-manager__disclosure');
-  const summary = page.locator('.allowlist-manager__disclosure > summary');
+  const disclosure = page.locator('.allowlist-manager--compact:not(.blocklist-manager) .allowlist-manager__disclosure');
+  const summary = disclosure.locator('> summary');
 
   await expect(summary).toContainText(/Allowed tracks: 0|허용된 곡 0개/);
   await expect(summary).toContainText(/Allowed artists: 0|허용된 아티스트 0명/);
@@ -99,4 +99,35 @@ test('popup manages the allowlist without opening another page', async ({
 
   expect(context.pages()).toHaveLength(initialPageCount);
   await expect(page).toHaveURL(`chrome-extension://${extensionId}/popup.html`);
+});
+
+test('popup manages track, artist, and channel direct block rules', async ({ page, extensionId }) => {
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  const summary = page.locator('.blocklist-manager__disclosure > summary');
+  await expect(summary).toContainText(/Blocked tracks: 0|차단된 곡 0개/);
+  await expect(summary.locator('.allowlist-manager__chevron')).toBeVisible();
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.blocklist-manager__disclosure')).toHaveAttribute('open', '');
+
+  await page.locator('#blocklist-track-input').fill('TrackVideo1');
+  await page.locator('form:has(#blocklist-track-input) button').click();
+  await expect(summary).toContainText(/Blocked tracks: 1|차단된 곡 1개/);
+  await page.locator('#blocklist-track-input').fill('TrackVideo1');
+  await page.locator('form:has(#blocklist-track-input) button').click();
+  await expect(summary).toContainText(/Blocked tracks: 1|차단된 곡 1개/);
+  const channel = 'UCabcdefghijklmnopqrstuv';
+  await page.locator('#blocklist-artist-input').fill(channel);
+  await page.locator('form:has(#blocklist-artist-input) button').click();
+  await page.locator('#blocklist-channel-input').fill(`https://www.youtube.com/channel/${channel}`);
+  await page.locator('form:has(#blocklist-channel-input) button').click();
+  await expect(summary).toContainText(/Blocked artists: 1|차단된 아티스트 1명/);
+  await expect(summary).toContainText(/Blocked channels: 1|차단된 채널 1개/);
+  await expect(page.locator('body')).toHaveCSS('overflow-y', 'auto');
+
+  await page.locator('#blocklist-track-input').fill('not-an-id');
+  await page.locator('form:has(#blocklist-track-input) button').click();
+  await expect(page.locator('#blocklist-track-input')).toHaveAttribute('aria-invalid', 'true');
+  await page.getByRole('button', { name: /(?:Remove|삭제): TrackVideo1/ }).click();
+  await expect(summary).toContainText(/Blocked tracks: 0|차단된 곡 0개/);
 });
