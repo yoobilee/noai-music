@@ -18,25 +18,30 @@ import {
   DEFAULT_ALLOWLIST,
   type PersistedAllowlist,
 } from '@/storage/contracts';
+import {
+  RuleInputForm,
+  RuleListGroup,
+  UserRuleSection,
+} from '@/ui/UserRuleManager';
 
 type AllowlistMessageKey =
-  | 'allowlistHeading'
+  | 'addArtistAllowlist'
+  | 'addTrackAllowlist'
   | 'allowlistDescription'
-  | 'allowedTrackCount'
-  | 'allowedArtistCount'
-  | 'allowedTracksHeading'
+  | 'allowlistHeading'
+  | 'allowlistSaveError'
+  | 'allowlistSummaryCount'
+  | 'allowlistSummaryDescription'
   | 'allowedArtistsHeading'
-  | 'trackAllowlistInputLabel'
-  | 'trackAllowlistInputPlaceholder'
+  | 'allowedTracksHeading'
   | 'artistAllowlistInputLabel'
   | 'artistAllowlistInputPlaceholder'
-  | 'addTrackAllowlist'
-  | 'addArtistAllowlist'
-  | 'removeAllowlistItem'
   | 'emptyAllowlist'
-  | 'invalidTrackIdentity'
   | 'invalidArtistIdentity'
-  | 'allowlistSaveError';
+  | 'invalidTrackIdentity'
+  | 'removeAllowlistItem'
+  | 'trackAllowlistInputLabel'
+  | 'trackAllowlistInputPlaceholder';
 
 function message(
   key: AllowlistMessageKey,
@@ -70,9 +75,7 @@ export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
         }
       })
       .catch(() => {
-        if (active) {
-          setStatus('error');
-        }
+        if (active) setStatus('error');
       });
 
     const handleStorageChange = (
@@ -108,7 +111,6 @@ export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
       setTrackError(true);
       return;
     }
-
     setTrackError(false);
     setTrackInput('');
     persist(addAllowedTrack(allowlist, { videoId }));
@@ -121,129 +123,85 @@ export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
       setArtistError(true);
       return;
     }
-
     setArtistError(false);
     setArtistInput('');
     persist(addAllowedArtist(allowlist, { artistId }));
   };
 
   const disabled = status === 'loading' || status === 'saving';
+  const headingLevel = compact ? 'h3' : 'h4';
+  const removeText = message('removeAllowlistItem');
 
-  const contents = (
-    <>
-      <p className="settings-panel__description">
-        {message('allowlistDescription')}
-      </p>
-
-      <form className="allowlist-manager__form" onSubmit={addTrack}>
-        <label htmlFor="allowlist-track-input">
-          {message('trackAllowlistInputLabel')}
-        </label>
-        <div className="allowlist-manager__input-row">
-          <input
-            aria-describedby={trackError ? 'allowlist-track-error' : undefined}
-            aria-invalid={trackError}
-            disabled={disabled}
-            id="allowlist-track-input"
-            onChange={(event) => setTrackInput(event.currentTarget.value)}
-            placeholder={message('trackAllowlistInputPlaceholder')}
-            type="text"
-            value={trackInput}
-          />
-          <button disabled={disabled} type="submit">
-            {message('addTrackAllowlist')}
-          </button>
-        </div>
-        {trackError ? (
-          <p className="allowlist-manager__field-error" id="allowlist-track-error">
-            {message('invalidTrackIdentity')}
-          </p>
-        ) : null}
-      </form>
-
-      <form className="allowlist-manager__form" onSubmit={addArtist}>
-        <label htmlFor="allowlist-artist-input">
-          {message('artistAllowlistInputLabel')}
-        </label>
-        <div className="allowlist-manager__input-row">
-          <input
-            aria-describedby={artistError ? 'allowlist-artist-error' : undefined}
-            aria-invalid={artistError}
-            disabled={disabled}
-            id="allowlist-artist-input"
-            onChange={(event) => setArtistInput(event.currentTarget.value)}
-            placeholder={message('artistAllowlistInputPlaceholder')}
-            type="text"
-            value={artistInput}
-          />
-          <button disabled={disabled} type="submit">
-            {message('addArtistAllowlist')}
-          </button>
-        </div>
-        {artistError ? (
-          <p
-            className="allowlist-manager__field-error"
-            id="allowlist-artist-error"
-          >
-            {message('invalidArtistIdentity')}
-          </p>
-        ) : null}
-      </form>
-
-      <div className="allowlist-manager__list-group">
-        <h3>{message('allowedTracksHeading')}</h3>
-        {allowlist.tracks.length === 0 ? (
-          <p className="allowlist-manager__empty">{message('emptyAllowlist')}</p>
-        ) : (
-          <ul>
-            {allowlist.tracks.map((track) => (
-              <li key={track.videoId}>
-                <span className="allowlist-manager__identity">
-                  {track.title === undefined ? null : <span>{track.title}</span>}
-                  <code>{track.videoId}</code>
-                </span>
-                <button
-                  aria-label={`${message('removeAllowlistItem')}: ${track.title ?? track.videoId}`}
-                  disabled={disabled}
-                  onClick={() =>
-                    persist(removeAllowedTrack(allowlist, track.videoId))
-                  }
-                  type="button"
-                >
-                  {message('removeAllowlistItem')}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+  return (
+    <UserRuleSection
+      compact={compact}
+      description={message('allowlistDescription')}
+      heading={message('allowlistHeading')}
+      headingId="allowlist-heading"
+      summaryCount={message(
+        'allowlistSummaryCount',
+        String(allowlist.tracks.length + allowlist.artists.length),
+      )}
+      summaryDescription={message('allowlistSummaryDescription')}
+    >
+      <div className="user-rule-manager__forms">
+        <RuleInputForm
+          buttonLabel={message('addTrackAllowlist')}
+          disabled={disabled}
+          error={trackError}
+          errorId="allowlist-track-error"
+          errorMessage={message('invalidTrackIdentity')}
+          inputId="allowlist-track-input"
+          label={message('trackAllowlistInputLabel')}
+          onChange={setTrackInput}
+          onSubmit={addTrack}
+          placeholder={message('trackAllowlistInputPlaceholder')}
+          value={trackInput}
+        />
+        <RuleInputForm
+          buttonLabel={message('addArtistAllowlist')}
+          disabled={disabled}
+          error={artistError}
+          errorId="allowlist-artist-error"
+          errorMessage={message('invalidArtistIdentity')}
+          inputId="allowlist-artist-input"
+          label={message('artistAllowlistInputLabel')}
+          onChange={setArtistInput}
+          onSubmit={addArtist}
+          placeholder={message('artistAllowlistInputPlaceholder')}
+          value={artistInput}
+        />
       </div>
 
-      <div className="allowlist-manager__list-group">
-        <h3>{message('allowedArtistsHeading')}</h3>
-        {allowlist.artists.length === 0 ? (
-          <p className="allowlist-manager__empty">{message('emptyAllowlist')}</p>
-        ) : (
-          <ul>
-            {allowlist.artists.map((artist) => (
-              <li key={artist.artistId}>
-                <span className="allowlist-manager__identity">
-                  {artist.name === undefined ? null : <span>{artist.name}</span>}
-                  <code>{artist.artistId}</code>
-                </span>
-                <button
-                  aria-label={`${message('removeAllowlistItem')}: ${artist.name ?? artist.artistId}`}
-                  disabled={disabled}
-                  onClick={() =>
-                    persist(removeAllowedArtist(allowlist, artist.artistId))
-                  }
-                  type="button"
-                >
-                  {message('removeAllowlistItem')}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="user-rule-manager__lists">
+        <RuleListGroup
+          disabled={disabled}
+          emptyMessage={message('emptyAllowlist')}
+          heading={message('allowedTracksHeading')}
+          headingLevel={headingLevel}
+          items={allowlist.tracks.map((track) => ({
+            id: track.videoId,
+            label: track.title,
+            onRemove: () =>
+              persist(removeAllowedTrack(allowlist, track.videoId)),
+            removeLabel: `${removeText}: ${track.title ?? track.videoId}`,
+            removeText,
+          }))}
+        />
+        <RuleListGroup
+          disabled={disabled}
+          emptyMessage={message('emptyAllowlist')}
+          heading={message('allowedArtistsHeading')}
+          headingLevel={headingLevel}
+          items={allowlist.artists.map((artist) => ({
+            id: artist.artistId,
+            label: artist.name,
+            onRemove: () =>
+              persist(removeAllowedArtist(allowlist, artist.artistId)),
+            removeLabel: `${removeText}: ${artist.name ?? artist.artistId}`,
+            removeText,
+          }))}
+        />
       </div>
 
       {status === 'error' ? (
@@ -251,46 +209,6 @@ export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
           {message('allowlistSaveError')}
         </p>
       ) : null}
-    </>
-  );
-
-  if (compact) {
-    return (
-      <section
-        aria-labelledby="allowlist-heading"
-        className="allowlist-manager allowlist-manager--compact"
-      >
-        <details className="allowlist-manager__disclosure">
-          <summary>
-            <span
-              className="allowlist-manager__summary-heading"
-              id="allowlist-heading"
-            >
-              {message('allowlistHeading')}
-            </span>
-            <span aria-live="polite" className="allowlist-manager__counts">
-              <span>
-                {message('allowedTrackCount', String(allowlist.tracks.length))}
-              </span>
-              <span>
-                {message(
-                  'allowedArtistCount',
-                  String(allowlist.artists.length),
-                )}
-              </span>
-            </span>
-            <span aria-hidden="true" className="allowlist-manager__chevron">⌄</span>
-          </summary>
-          <div className="allowlist-manager__compact-body">{contents}</div>
-        </details>
-      </section>
-    );
-  }
-
-  return (
-    <section aria-labelledby="allowlist-heading" className="allowlist-manager">
-      <h2 id="allowlist-heading">{message('allowlistHeading')}</h2>
-      {contents}
-    </section>
+    </UserRuleSection>
   );
 }

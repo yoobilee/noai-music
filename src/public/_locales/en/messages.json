@@ -6,10 +6,19 @@
     "message": "Filter officially labeled AI or altered music content on YouTube and YouTube Music."
   },
   "enabledLabel": {
-    "message": "Use NoAI"
+    "message": "Enable filtering"
+  },
+  "enabledDescription": {
+    "message": "Apply NoAI on YouTube and YouTube Music."
   },
   "youtubeMusicAutoSkipLabel": {
-    "message": "Automatically skip on YouTube Music"
+    "message": "Auto-skip"
+  },
+  "youtubeMusicHeading": {
+    "message": "YouTube Music"
+  },
+  "youtubeMusicAutoSkipDescription": {
+    "message": "Skip matching tracks during playback."
   },
   "filterModeLabel": {
     "message": "Filter mode"
@@ -17,20 +26,29 @@
   "filterModeHide": {
     "message": "Hide"
   },
+  "filterModeHideDescription": {
+    "message": "Remove matching content from lists."
+  },
   "filterModeBlur": {
     "message": "Blur"
+  },
+  "filterModeBlurDescription": {
+    "message": "Keep content visible but blurred."
   },
   "filterModeMark": {
     "message": "Mark only"
   },
+  "filterModeMarkDescription": {
+    "message": "Keep content and show the reason."
+  },
   "filterScopeDescription": {
-    "message": "Applies user-defined allow/block rules first, then confirmed official YouTube AI disclosures. NoAI does not infer whether the music itself was AI-generated."
+    "message": "Manage YouTube's AI-labeled content in the way you choose."
   },
   "filterStateEnabled": {
-    "message": "Filtering is on."
+    "message": "On"
   },
   "filterStateDisabled": {
-    "message": "Filtering is off."
+    "message": "Off"
   },
   "settingsSaveError": {
     "message": "Settings could not be saved. Try again."
@@ -39,7 +57,18 @@
     "message": "NoAI · YouTube AI disclosure"
   },
   "allowlistHeading": {
-    "message": "Allowed music"
+    "message": "Allowlist"
+  },
+  "allowlistSummaryCount": {
+    "message": "$COUNT$ saved",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowlistSummaryDescription": {
+    "message": "Never filter or skip these items."
   },
   "allowedTrackCount": {
     "message": "Allowed tracks: $COUNT$",
@@ -108,8 +137,10 @@
   "directBlockTrackReason": { "message": "NoAI · Blocked track" },
   "directBlockArtistReason": { "message": "NoAI · Blocked artist" },
   "directBlockChannelReason": { "message": "NoAI · Blocked channel" },
-  "blocklistHeading": { "message": "Blocked music" },
-  "blocklistDescription": { "message": "These are user-defined rules, not AI detections. Allowed items take priority over blocked items." },
+  "blocklistHeading": { "message": "Blocklist" },
+  "blocklistDescription": { "message": "These are direct rules you chose, not AI detections." },
+  "blocklistSummaryCount": { "message": "$COUNT$ saved", "placeholders": { "count": { "content": "$1" } } },
+  "blocklistSummaryDescription": { "message": "Filter or skip items you choose." },
   "blockedTrackCount": { "message": "Blocked tracks: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
   "blockedArtistCount": { "message": "Blocked artists: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
   "blockedChannelCount": { "message": "Blocked channels: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
@@ -126,5 +157,8 @@
   "removeBlocklistItem": { "message": "Remove" },
   "emptyBlocklist": { "message": "No saved items." },
   "invalidChannelIdentity": { "message": "Enter an exact UC channel ID, @handle, or supported YouTube channel URL." },
-  "blocklistSaveError": { "message": "The blocked list could not be saved. Try again." }
+  "blocklistSaveError": { "message": "The blocked list could not be saved. Try again." },
+  "userRulesHeading": { "message": "User rules" },
+  "userRulesDescription": { "message": "Manage the exceptions and direct blocks you choose." },
+  "userRulesPriorityNote": { "message": "Allowlist rules take priority over blocklist rules." }
 }
