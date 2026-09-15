@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { DomMediaCandidate } from '@/adapters/contracts';
 import type { FilterDecision } from '@/filtering/contracts';
@@ -86,6 +86,25 @@ describe('YouTube card DOM filtering', () => {
     ).toHaveLength(1);
   });
 
+  it('renders keyboard-accessible allow actions without duplicating them', () => {
+    const candidate = createCandidate();
+    const allowTrack = vi.fn();
+    applyYouTubeCardFilter(candidate, decision('mark'), reasonText, {
+      track: { label: 'Allow this track', onActivate: allowTrack },
+    });
+
+    const button = candidate.element.querySelector('button');
+    expect(button?.textContent).toBe('Allow this track');
+    expect(button?.getAttribute('aria-label')).toBe('Allow this track');
+    button?.click();
+    expect(allowTrack).toHaveBeenCalledOnce();
+
+    applyYouTubeCardFilter(candidate, decision('mark'), reasonText, {
+      track: { label: 'Allow this track', onActivate: allowTrack },
+    });
+    expect(candidate.element.querySelectorAll('button')).toHaveLength(1);
+  });
+
   it('clears every applied state without changing card content', () => {
     const first = createCandidate();
     const second = createCandidate();
@@ -100,5 +119,19 @@ describe('YouTube card DOM filtering', () => {
     expect(document.querySelectorAll(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`)).toHaveLength(
       0,
     );
+  });
+
+  it('removes every stale badge if the DOM already contains duplicates', () => {
+    const candidate = createCandidate();
+    applyYouTubeCardFilter(candidate, decision('mark'), reasonText);
+    const duplicate = document.createElement('span');
+    duplicate.setAttribute(FILTER_REASON_BADGE_ATTRIBUTE, 'true');
+    candidate.element.append(duplicate);
+
+    applyYouTubeCardFilter(candidate, { action: 'none' }, reasonText);
+
+    expect(
+      candidate.element.querySelectorAll(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`),
+    ).toHaveLength(0);
   });
 });

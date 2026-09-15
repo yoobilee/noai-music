@@ -46,6 +46,25 @@ describe('YouTube video card identity extraction', () => {
     });
   });
 
+  it('extracts only stable UC channel identities from confirmed channel links', () => {
+    const candidates = createAdapter().collectCandidates(document);
+    const home = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'home-video',
+    );
+    const search = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'search-video',
+    );
+
+    expect(home?.snapshot.identity).toMatchObject({
+      channelId: 'UCabcdefghijklmnopqrstuv',
+      artistIds: ['UCabcdefghijklmnopqrstuv'],
+    });
+    expect(search?.snapshot.identity).toMatchObject({
+      channelId: 'UCzyxwvutsrqponmlkjihgfe',
+      artistIds: ['UCzyxwvutsrqponmlkjihgfe'],
+    });
+  });
+
   it('uses the title link before lower-priority conflicting watch links', () => {
     const candidate = createAdapter()
       .collectCandidates(document)

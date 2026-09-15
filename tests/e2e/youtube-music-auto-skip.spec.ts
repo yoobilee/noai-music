@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { BrowserContext } from '@playwright/test';
 
+import { setAllowlist } from './allowlistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -146,4 +147,52 @@ test('applies the auto-skip setting without reloading YouTube Music', async ({
 
   await setAutoSkip(context, true);
   await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '1');
+});
+
+test('does not skip an allowed track and applies removal on the next generation', async ({
+  context,
+  page,
+}) => {
+  await setAutoSkip(context, true);
+  await setAllowlist(context, { tracks: [{ videoId: 'PlaybackA01' }] });
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: playerHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', (route) =>
+    route.fulfill({ body: disclosedHtml, contentType: 'text/html' }),
+  );
+
+  await page.goto('https://music.youtube.com/watch?v=PlaybackA01');
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '0');
+
+  await setAllowlist(context, {});
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '0');
+
+  await page.getByTestId('current-track').evaluate((link) => {
+    link.setAttribute('href', '/watch?v=PlaybackB01');
+  });
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '1');
+});
+
+test('does not skip a track with an allowed stable artist identity', async ({
+  context,
+  page,
+}) => {
+  await setAutoSkip(context, true);
+  await setAllowlist(context, {
+    artists: [{ artistId: 'UCabcdefghijklmnopqrstuv' }],
+  });
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: playerHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', (route) =>
+    route.fulfill({ body: disclosedHtml, contentType: 'text/html' }),
+  );
+
+  await page.goto('https://music.youtube.com/watch?v=PlaybackA01');
+  await page.waitForTimeout(100);
+
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '0');
 });

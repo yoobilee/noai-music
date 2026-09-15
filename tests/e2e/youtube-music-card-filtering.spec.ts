@@ -5,6 +5,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 
 import type { FilterMode } from '@/filtering/contracts';
 
+import { readAllowlist, setAllowlist } from './allowlistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -112,7 +113,7 @@ test('filters all supported SPA row surfaces in every mode', async ({
         mode === 'hide' ? 0 : 1,
       );
       if (mode !== 'hide') {
-        await expect(confirmed.locator(reasonBadge)).toHaveText(
+        await expect(confirmed.locator(`${reasonBadge} > span`)).toHaveText(
           /^NoAI · YouTube AI (?:disclosure|표시)$/,
         );
       }
@@ -157,12 +158,12 @@ test('clears reused rows and rejects a stale confirmed callback', async ({
 
   await page.goto('https://music.youtube.com/search?q=fixture');
   const row = page.getByTestId('confirmed-row');
-  await row.locator('a').evaluate((link) => {
+  await row.locator('.title a').evaluate((link) => {
     link.setAttribute('href', '/watch?v=DelayedAI01');
   });
   await expect.poll(() => delayedRequests).toBe(1);
 
-  await row.locator('a').evaluate((link) => {
+  await row.locator('.title a').evaluate((link) => {
     link.setAttribute('href', '/watch?v=ReusedOrd01');
   });
   await expect(row).not.toHaveAttribute(filterAttribute, /.+/);
@@ -223,4 +224,47 @@ test('keeps one lookup and badge while applying live setting transitions', async
   await expect(row).toHaveAttribute(filterAttribute, 'mark');
   await expect(row.locator(reasonBadge)).toHaveCount(1);
   expect(requests.get('SearchAI001')).toBe(1);
+});
+
+test('restores a confirmed row when a track or stable artist is allowed', async ({
+  context,
+  page,
+}) => {
+  await setSettings(context, true, 'mark');
+  await setAllowlist(context, {});
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', (route) => {
+    const videoId = new URL(route.request().url()).searchParams.get('v') ?? '';
+    return route.fulfill({
+      body: confirmedIds.has(videoId) ? disclosedHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://music.youtube.com/search?q=fixture');
+  const row = page.getByTestId('confirmed-row');
+  await expect(row).toHaveAttribute(filterAttribute, 'mark');
+
+  await row.getByRole('button', { name: /Allow this track|이 곡 허용/ }).click();
+  await expect(row).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect.poll(() => readAllowlist(context)).toMatchObject({
+    tracks: [{ videoId: 'SearchAI001' }],
+  });
+
+  await setAllowlist(context, {});
+  await expect(row).toHaveAttribute(filterAttribute, 'mark');
+
+  await row
+    .getByRole('button', { name: /Allow this artist|이 아티스트 허용/ })
+    .click();
+  await expect(row).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect.poll(() => readAllowlist(context)).toMatchObject({
+    artists: [{ artistId: 'UCabcdefghijklmnopqrstuv' }],
+  });
+
+  await setAllowlist(context, {});
+  await expect(row).toHaveAttribute(filterAttribute, 'mark');
+  await expect(row.locator(reasonBadge)).toHaveCount(1);
 });

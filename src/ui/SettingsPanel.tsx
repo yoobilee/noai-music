@@ -8,6 +8,7 @@ import {
   readSettingsChange,
   saveSettings,
 } from '@/storage/settings';
+import { AllowlistManager } from '@/ui/AllowlistManager';
 
 type MessageKey =
   | 'extName'
@@ -32,7 +33,11 @@ function message(key: MessageKey): string {
   return browser.i18n.getMessage(key);
 }
 
-export function SettingsPanel() {
+interface SettingsPanelProps {
+  showAllowlist?: boolean;
+}
+
+export function SettingsPanel({ showAllowlist = false }: SettingsPanelProps) {
   const [settings, setSettings] = useState<PersistedSettings>(DEFAULT_SETTINGS);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'error'>(
     'loading',
@@ -148,6 +153,7 @@ export function SettingsPanel() {
           {message('settingsSaveError')}
         </p>
       ) : null}
+      {showAllowlist ? <AllowlistManager /> : null}
     </main>
   );
 }

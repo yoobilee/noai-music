@@ -17,6 +17,7 @@ export const YOUTUBE_SELECTORS = {
   playlistNavigationLink:
     'a[href^="/playlist?"], a[href^="https://www.youtube.com/playlist?"], a[href^="https://youtube.com/playlist?"]',
   title: 'h1 yt-formatted-string, #video-title',
+  artistLinks: '#channel-name a[href], ytd-channel-name a[href]',
   officialMetadataBadge:
     'ytd-badge-supported-renderer, yt-badge-view-model',
   howThisWasMade: 'how-this-was-made-section-view-model',

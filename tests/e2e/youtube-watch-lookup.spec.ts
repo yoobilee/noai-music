@@ -5,6 +5,7 @@ import type { BrowserContext } from '@playwright/test';
 
 import type { FilterMode } from '@/filtering/contracts';
 
+import { readAllowlist, setAllowlist } from './allowlistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -118,7 +119,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   await setSettings(context, true, 'mark');
   await expect(first).toHaveAttribute(filterAttribute, 'mark');
   await expect(first).toBeVisible();
-  await expect(first.locator(reasonBadge)).toHaveText(
+  await expect(first.locator(`${reasonBadge} > span`)).toHaveText(
     /^NoAI · YouTube AI (?:disclosure|표시)$/,
   );
 
@@ -192,4 +193,50 @@ test('reuses cache and clears a reused card before a stale result arrives', asyn
   releaseDisclosed?.();
   await expect.poll(() => disclosedRequests).toBe(1);
   await expect(reused).not.toHaveAttribute(filterAttribute, /.+/);
+});
+
+test('restores an allowed YouTube card and refilters it after removal', async ({
+  context,
+  page,
+}) => {
+  await setSettings(context, true, 'mark');
+  await setAllowlist(context, {});
+  await context.route('https://www.youtube.com/**', async (route) => {
+    const request = route.request();
+    const videoId = new URL(request.url()).searchParams.get('v') ?? '';
+    await route.fulfill({
+      body: request.isNavigationRequest()
+        ? cardPageHtml
+        : videoId === 'Disclose001' || videoId === 'OtherConf01'
+          ? disclosedHtml
+          : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://www.youtube.com/results?search_query=allowlist');
+  const first = page.getByTestId('disclosed-card-one');
+  const second = page.getByTestId('disclosed-card-two');
+  await expect(first).toHaveAttribute(filterAttribute, 'mark');
+  await expect(second).toHaveAttribute(filterAttribute, 'mark');
+
+  await first
+    .getByRole('button', { name: /Allow this track|이 곡 허용/ })
+    .click();
+  await expect(first).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect(second).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect.poll(() => readAllowlist(context)).toMatchObject({
+    tracks: [{ videoId: 'Disclose001' }],
+  });
+
+  await second.locator('#video-title').evaluate((link) => {
+    link.setAttribute('href', '/watch?v=OtherConf01');
+  });
+  await expect(second).toHaveAttribute(filterAttribute, 'mark');
+  await expect(first).not.toHaveAttribute(filterAttribute, /.+/);
+
+  await setAllowlist(context, {});
+  await expect(first).toHaveAttribute(filterAttribute, 'mark');
+  await expect(second).toHaveAttribute(filterAttribute, 'mark');
+  await expect(first.locator(reasonBadge)).toHaveCount(1);
 });

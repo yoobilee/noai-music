@@ -1,6 +1,11 @@
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
+import type { MediaIdentity } from '@/detection/contracts';
+import { isMediaAllowed } from '@/filtering/allowlist';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
-import type { PersistedSettings } from '@/storage/contracts';
+import type {
+  PersistedAllowlist,
+  PersistedSettings,
+} from '@/storage/contracts';
 
 interface PlaybackState {
   generation: number;
@@ -8,11 +13,13 @@ interface PlaybackState {
   lookupStarted: boolean;
   result?: WatchDisclosureLookupResult;
   resultEvaluated: boolean;
+  suppressedByAllowlist: boolean;
 }
 
 interface YouTubeMusicAutoSkipDependencies {
-  getCurrentVideoId(): string | undefined;
+  getCurrentIdentity(): MediaIdentity | undefined;
   getSettings(): PersistedSettings;
+  getAllowlist(): PersistedAllowlist;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   clickNext(expectedVideoId: string): boolean;
 }
@@ -35,8 +42,9 @@ export function createYouTubeMusicAutoSkipController(
       return;
     }
 
-    const currentVideoId = dependencies.getCurrentVideoId();
-    if (currentVideoId === undefined) {
+    const currentIdentity = dependencies.getCurrentIdentity();
+    const currentVideoId = currentIdentity?.videoId;
+    if (currentIdentity === undefined || currentVideoId === undefined) {
       if (playback !== undefined) {
         generation += 1;
         playback = undefined;
@@ -58,11 +66,18 @@ export function createYouTubeMusicAutoSkipController(
         videoId: currentVideoId,
         lookupStarted: false,
         resultEvaluated: false,
+        suppressedByAllowlist: false,
       };
     }
 
     const currentPlayback = playback;
     const settings = dependencies.getSettings();
+    if (isMediaAllowed(currentIdentity, dependencies.getAllowlist())) {
+      currentPlayback.suppressedByAllowlist = true;
+    }
+    if (currentPlayback.suppressedByAllowlist) {
+      return;
+    }
     if (!settings.enabled || !settings.youtubeMusicAutoSkip) {
       return;
     }
@@ -77,7 +92,9 @@ export function createYouTubeMusicAutoSkipController(
         !decideYouTubeMusicAutoSkip({
           settings,
           expectedVideoId: currentPlayback.videoId,
-          currentVideoId: dependencies.getCurrentVideoId(),
+          currentVideoId,
+          currentIdentity,
+          allowlist: dependencies.getAllowlist(),
           result: currentPlayback.result,
         })
       ) {
@@ -103,7 +120,7 @@ export function createYouTubeMusicAutoSkipController(
           disposed ||
           playback?.generation !== expectedGeneration ||
           playback.videoId !== expectedVideoId ||
-          dependencies.getCurrentVideoId() !== expectedVideoId
+          dependencies.getCurrentIdentity()?.videoId !== expectedVideoId
         ) {
           return;
         }

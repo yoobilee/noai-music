@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
+import { DEFAULT_ALLOWLIST } from '@/storage/contracts';
 
 const confirmedEvidence: OfficialDisclosureEvidence[] = [
   {
@@ -35,6 +36,12 @@ function decide(
     settings: { enabled: true, youtubeMusicAutoSkip: true },
     expectedVideoId: 'PlaybackA01',
     currentVideoId: 'PlaybackA01',
+    currentIdentity: {
+      site: 'youtube-music',
+      videoId: 'PlaybackA01',
+      artistIds: [],
+    },
+    allowlist: DEFAULT_ALLOWLIST,
     result: result('confirmed'),
     ...overrides,
   });
@@ -61,6 +68,30 @@ describe('YouTube Music auto-skip policy', () => {
 
   it('does not skip a confirmed result without supported official evidence', () => {
     expect(decide({ result: result('confirmed', []) })).toBe(false);
+  });
+
+  it('does not skip an allowed track or artist', () => {
+    expect(
+      decide({
+        allowlist: {
+          ...DEFAULT_ALLOWLIST,
+          tracks: [{ videoId: 'PlaybackA01' }],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      decide({
+        currentIdentity: {
+          site: 'youtube-music',
+          videoId: 'PlaybackA01',
+          artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'],
+        },
+        allowlist: {
+          ...DEFAULT_ALLOWLIST,
+          artists: [{ artistId: 'UCaaaaaaaaaaaaaaaaaaaaaa' }],
+        },
+      }),
+    ).toBe(false);
   });
 
   it('does not skip a failed, stale, or mismatched result', () => {

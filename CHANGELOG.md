@@ -4,6 +4,8 @@
 
 ### 추가
 
+- 곡 video ID와 확인된 UC channel ID 기반 허용 목록, options 관리 UI, YouTube·YouTube Music 카드의 즉시 복구와 YouTube Music auto-skip 제외 정책 추가
+
 - Manifest V3, TypeScript, WXT와 제한적인 React UI를 사용하는 확장 프로그램 기반
 - Vitest 단위 테스트와 Playwright 확장 smoke test 구성
 - YouTube·YouTube Music 어댑터, 판정, 필터링과 로컬 저장소의 책임 계약

@@ -43,6 +43,7 @@ describe('YouTube Music playable item identity extraction', () => {
       'https://music.youtube.com/search?q=synthetic',
       'search-result',
       'SearchSong1',
+      ['UCabcdefghijklmnopqrstuv'],
     ],
     [
       'search video row',
@@ -50,6 +51,7 @@ describe('YouTube Music playable item identity extraction', () => {
       'https://music.youtube.com/search?q=synthetic',
       'search-result',
       'SearchVid01',
+      [],
     ],
     [
       'album track row',
@@ -57,6 +59,7 @@ describe('YouTube Music playable item identity extraction', () => {
       'https://music.youtube.com/browse/MPREb_SANITIZED',
       'album-track',
       'AlbumTrack1',
+      ['UCzyxwvutsrqponmlkjihgfe'],
     ],
     [
       'playlist track row',
@@ -64,6 +67,7 @@ describe('YouTube Music playable item identity extraction', () => {
       'https://music.youtube.com/playlist?list=PL_SANITIZED',
       'playlist-track',
       'Playlist01A',
+      ['UCabcdefghijklmnopqrstuv'],
     ],
     [
       'artist song row',
@@ -71,10 +75,11 @@ describe('YouTube Music playable item identity extraction', () => {
       'https://music.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa',
       'artist-song',
       'ArtistSong1',
+      ['UCzyxwvutsrqponmlkjihgfe'],
     ],
   ])(
     'extracts a lookup-compatible identity from a %s',
-    (_name, testId, currentUrl, surface, videoId) => {
+    (_name, testId, currentUrl, surface, videoId, artistIds) => {
       const [candidate] = createAdapter(new URL(currentUrl)).collectCandidates(
         fixtureElement(testId),
       );
@@ -85,7 +90,7 @@ describe('YouTube Music playable item identity extraction', () => {
           identity: {
             site: 'youtube-music',
             videoId,
-            artistIds: [],
+            artistIds,
           },
           artistNames: [],
         },
@@ -154,6 +159,8 @@ describe('YouTube Music playable item identity extraction', () => {
         identity: {
           site: 'youtube-music',
           videoId: 'NowPlaying1',
+          channelId: 'UCabcdefghijklmnopqrstuv',
+          artistIds: ['UCabcdefghijklmnopqrstuv'],
         },
       },
     });

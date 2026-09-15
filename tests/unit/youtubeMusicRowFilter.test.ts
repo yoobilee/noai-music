@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FilterDecision } from '@/filtering/contracts';
 import {
@@ -98,5 +98,24 @@ describe('YouTube Music row DOM filtering', () => {
     expect(
       row.querySelectorAll(`[${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}]`),
     ).toHaveLength(0);
+  });
+
+  it('renders separate accessible track and artist allow actions', () => {
+    const row = createRow();
+    const allowTrack = vi.fn();
+    const allowArtist = vi.fn();
+    applyYouTubeMusicRowFilter(row, decision('blur'), reasonText, {
+      track: { label: 'Allow this track', onActivate: allowTrack },
+      artist: { label: 'Allow this artist', onActivate: allowArtist },
+    });
+
+    const buttons = row.querySelectorAll('button');
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]?.getAttribute('aria-label')).toBe('Allow this track');
+    expect(buttons[1]?.getAttribute('aria-label')).toBe('Allow this artist');
+    buttons[0]?.click();
+    buttons[1]?.click();
+    expect(allowTrack).toHaveBeenCalledOnce();
+    expect(allowArtist).toHaveBeenCalledOnce();
   });
 });

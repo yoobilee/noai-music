@@ -1,5 +1,9 @@
 import type { DomMediaCandidate } from '@/adapters/contracts';
 import type { FilterDecision } from '@/filtering/contracts';
+import {
+  appendFilterAllowlistActions,
+  type FilterAllowlistActions,
+} from '@/ui/filterAllowlistActions';
 
 export const FILTER_ACTION_ATTRIBUTE = 'data-noai-filter-action';
 export const FILTER_REASON_ATTRIBUTE = 'data-noai-filter-reason';
@@ -7,8 +11,12 @@ export const FILTER_REASON_BADGE_ATTRIBUTE = 'data-noai-filter-reason-badge';
 
 const FILTER_STYLE_ATTRIBUTE = 'data-noai-youtube-card-filter-styles';
 
-function findReasonBadge(element: Element): HTMLElement | null {
-  return element.querySelector<HTMLElement>(`[${FILTER_REASON_BADGE_ATTRIBUTE}]`);
+function findReasonBadges(element: Element): readonly HTMLElement[] {
+  return [
+    ...element.querySelectorAll<HTMLElement>(
+      `[${FILTER_REASON_BADGE_ATTRIBUTE}]`,
+    ),
+  ];
 }
 
 function ensureFilterStyles(currentDocument: Document): void {
@@ -29,13 +37,36 @@ function ensureFilterStyles(currentDocument: Document): void {
       background: #0f766e !important;
       border-radius: 4px !important;
       color: #ffffff !important;
-      display: inline-block !important;
+      align-items: center !important;
+      display: inline-flex !important;
+      flex-wrap: wrap !important;
+      gap: 4px !important;
       font-family: Roboto, Arial, sans-serif !important;
       font-size: 12px !important;
       font-weight: 600 !important;
       line-height: 16px !important;
       margin-block-start: 6px !important;
       padding: 3px 6px !important;
+    }
+    [${FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action {
+      background: #ffffff !important;
+      border: 0 !important;
+      border-radius: 3px !important;
+      color: #0f5f59 !important;
+      cursor: pointer !important;
+      font: inherit !important;
+      line-height: 16px !important;
+      padding: 1px 5px !important;
+    }
+    [${FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action:focus-visible {
+      outline: 2px solid #ffffff !important;
+      outline-offset: 2px !important;
+    }
+    [${FILTER_REASON_BADGE_ATTRIBUTE}] > span {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
     }
   `;
   currentDocument.head?.append(style);
@@ -44,13 +75,16 @@ function ensureFilterStyles(currentDocument: Document): void {
 export function clearYouTubeCardFilter(element: Element): void {
   element.removeAttribute(FILTER_ACTION_ATTRIBUTE);
   element.removeAttribute(FILTER_REASON_ATTRIBUTE);
-  findReasonBadge(element)?.remove();
+  for (const badge of findReasonBadges(element)) {
+    badge.remove();
+  }
 }
 
 export function applyYouTubeCardFilter(
   candidate: DomMediaCandidate,
   decision: FilterDecision,
   reasonText: string,
+  allowlistActions?: FilterAllowlistActions,
 ): void {
   clearYouTubeCardFilter(candidate.element);
   if (decision.action === 'none' || candidate.surface !== 'video-card') {
@@ -67,7 +101,15 @@ export function applyYouTubeCardFilter(
 
   const badge = candidate.element.ownerDocument.createElement('span');
   badge.setAttribute(FILTER_REASON_BADGE_ATTRIBUTE, 'true');
-  badge.textContent = reasonText;
+  const reason = candidate.element.ownerDocument.createElement('span');
+  reason.textContent = reasonText;
+  badge.append(reason);
+  appendFilterAllowlistActions(badge, allowlistActions);
+  badge.setAttribute(
+    'role',
+    badge.querySelector('button') === null ? 'note' : 'group',
+  );
+  badge.setAttribute('aria-label', reasonText);
   badge.title = reasonText;
   candidate.element.append(badge);
 }
@@ -77,16 +119,16 @@ export function isYouTubeCardFilterCurrent(
   decision: FilterDecision,
 ): boolean {
   const action = element.getAttribute(FILTER_ACTION_ATTRIBUTE);
-  const hasBadge = findReasonBadge(element) !== null;
+  const badgeCount = findReasonBadges(element).length;
 
   if (decision.action === 'none') {
-    return action === null && !hasBadge;
+    return action === null && badgeCount === 0;
   }
 
   return (
     action === decision.action &&
     element.getAttribute(FILTER_REASON_ATTRIBUTE) === decision.reason &&
-    (decision.action === 'hide' ? !hasBadge : hasBadge)
+    (decision.action === 'hide' ? badgeCount === 0 : badgeCount === 1)
   );
 }
 

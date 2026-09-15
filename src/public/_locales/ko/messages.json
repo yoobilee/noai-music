@@ -37,5 +37,56 @@
   },
   "youtubeDisclosureReason": {
     "message": "NoAI · YouTube AI 표시"
+  },
+  "allowlistHeading": {
+    "message": "허용된 음악"
+  },
+  "allowlistDescription": {
+    "message": "허용한 곡과 아티스트는 YouTube 공식 AI 표시가 확인되어도 필터링하거나 건너뛰지 않습니다. 사용자가 추가한 ID만 저장합니다."
+  },
+  "allowedTracksHeading": {
+    "message": "허용된 곡"
+  },
+  "allowedArtistsHeading": {
+    "message": "허용된 아티스트"
+  },
+  "trackAllowlistInputLabel": {
+    "message": "곡 video ID 또는 watch URL"
+  },
+  "trackAllowlistInputPlaceholder": {
+    "message": "Video ID 또는 YouTube watch URL"
+  },
+  "artistAllowlistInputLabel": {
+    "message": "아티스트 channel ID 또는 URL"
+  },
+  "artistAllowlistInputPlaceholder": {
+    "message": "UC… ID 또는 YouTube channel URL"
+  },
+  "addTrackAllowlist": {
+    "message": "곡 허용"
+  },
+  "addArtistAllowlist": {
+    "message": "아티스트 허용"
+  },
+  "allowThisTrack": {
+    "message": "이 곡 허용"
+  },
+  "allowThisArtist": {
+    "message": "이 아티스트 허용"
+  },
+  "removeAllowlistItem": {
+    "message": "삭제"
+  },
+  "emptyAllowlist": {
+    "message": "저장된 항목이 없습니다."
+  },
+  "invalidTrackIdentity": {
+    "message": "정확한 11자리 video ID 또는 지원되는 YouTube watch URL을 입력해 주세요."
+  },
+  "invalidArtistIdentity": {
+    "message": "정확한 UC channel ID 또는 지원되는 YouTube channel URL을 입력해 주세요."
+  },
+  "allowlistSaveError": {
+    "message": "허용 목록을 저장하지 못했습니다. 다시 시도해 주세요."
   }
 }
