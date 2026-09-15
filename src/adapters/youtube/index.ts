@@ -88,6 +88,14 @@ function getArtistIds(candidate: Element): readonly string[] {
   return [...artistIds].sort();
 }
 
+function getFilterOverlayAnchor(candidate: Element): HTMLElement | undefined {
+  return (
+    candidate.querySelector<HTMLElement>(
+      YOUTUBE_SELECTORS.filterOverlayAnchor,
+    ) ?? undefined
+  );
+}
+
 function createCandidate(
   element: Element,
   currentUrl: URL,
@@ -103,6 +111,7 @@ function createCandidate(
     surface: element.matches(YOUTUBE_SELECTORS.watchMetadata)
       ? 'watch-page'
       : 'video-card',
+    filterOverlayAnchor: getFilterOverlayAnchor(element),
     snapshot: {
       identity: {
         site: 'youtube',

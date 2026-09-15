@@ -29,3 +29,4 @@
 ### 변경
 
 - checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결
+- popup에서 기존 허용 목록 관리 화면으로 이동할 수 있게 하고, YouTube 카드 badge를 thumbnail overlay에 배치해 hover 시 grid layout 변동을 방지

@@ -65,6 +65,21 @@ describe('YouTube video card identity extraction', () => {
     });
   });
 
+  it('keeps the card filter overlay anchor inside the thumbnail surface', () => {
+    const candidates = createAdapter().collectCandidates(document);
+    const home = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'home-video',
+    );
+    const related = candidates.find(
+      ({ element }) => element.getAttribute('data-testid') === 'related-video',
+    );
+
+    expect(home?.filterOverlayAnchor?.tagName).toBe('YTD-THUMBNAIL');
+    expect(related?.filterOverlayAnchor?.tagName).toBe(
+      'YT-THUMBNAIL-VIEW-MODEL',
+    );
+  });
+
   it('uses the title link before lower-priority conflicting watch links', () => {
     const candidate = createAdapter()
       .collectCandidates(document)

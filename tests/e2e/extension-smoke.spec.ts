@@ -46,3 +46,24 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await expect(page.getByRole('heading', { name: 'NoAI' })).toBeVisible();
   await expect(page.locator('input[type="radio"][value="mark"]')).toBeChecked();
 });
+
+test('popup opens the existing allowlist management options page', async ({
+  context,
+  extensionId,
+  page,
+}) => {
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  const optionsPagePromise = context.waitForEvent('page');
+
+  await page
+    .getByRole('button', { name: /Manage allowlist|허용 목록 관리/ })
+    .click();
+  const optionsPage = await optionsPagePromise;
+
+  await optionsPage.waitForLoadState();
+  await expect(optionsPage).toHaveURL(
+    new RegExp(
+      `^(?:chrome-extension://${extensionId}/options\\.html|chrome://extensions/\\?options=${extensionId})$`,
+    ),
+  );
+});

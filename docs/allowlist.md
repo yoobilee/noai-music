@@ -51,9 +51,11 @@ ID 기준으로 중복을 제거하고 ASCII ID 순서로 안정적으로 정렬
 
 ## UI와 실시간 반영
 
-options의 “허용 목록”에서 곡 video ID·watch URL과 아티스트 UC channel ID·URL을 추가하고 각 항목을 삭제할 수 있다. 잘못된 identity는 저장하지 않고 연결된 오류 설명과 `aria-invalid`로 안내한다. popup은 현재 탭 identity를 읽기 위한 새 권한을 추가하지 않기 위해 기존 설정 UI만 유지한다.
+options의 “허용 목록”에서 곡 video ID·watch URL과 아티스트 UC channel ID·URL을 추가하고 각 항목을 삭제할 수 있다. 잘못된 identity는 저장하지 않고 연결된 오류 설명과 `aria-invalid`로 안내한다. popup의 “허용 목록 관리”는 `runtime.openOptionsPage()`로 기존 options 화면을 연다. 이 진입 경로에는 `tabs`나 `activeTab` permission이 필요하지 않으며, Chrome 설정에 따라 새 options 탭 또는 `chrome://extensions`의 options 컨테이너로 표시될 수 있다.
 
 Blur와 Mark 상태의 사유 badge에는 “이 곡 허용” 버튼을 표시한다. 단일 안정적 아티스트 ID가 있으면 “이 아티스트 허용”도 표시한다. 버튼은 실제 `button` 요소, 접근 가능한 이름과 키보드 focus 표시를 사용한다. Hide 상태는 row가 보이지 않으므로 options에서 URL 또는 ID로 추가한다.
+
+YouTube 카드 badge는 adapter가 확인한 thumbnail 요소에 absolute overlay로 mount한다. 카드 root의 일반 flow에 높이를 추가하지 않으며, thumbnail 자체와 metadata·menu 영역의 hover 동작을 막지 않는다. Blur는 overlay로 이어지는 DOM 경로를 제외한 카드 콘텐츠만 흐리게 해 사유와 버튼을 읽고 조작할 수 있게 한다. 확인된 thumbnail anchor가 없으면 Blur·Mark UI를 추측한 위치에 삽입하지 않는다.
 
 `storage.onChanged`가 YouTube와 YouTube Music content script의 목록 snapshot을 갱신한다. 추가하면 현재 filter attribute와 badge를 즉시 제거한다. 삭제하면 현재 DOM을 다시 평가하고 기존 confirmed 결과이면 현재 mode를 재적용한다. row의 video ID나 artist ID가 바뀌면 adapter가 현재 identity를 다시 읽으므로 이전 허용 상태가 남지 않는다. badge 버튼도 클릭 시 현재 DOM identity가 캡처한 identity와 같은지 재확인한다.
 
@@ -83,15 +85,17 @@ bundled Chromium E2E는 options의 추가·중복·삭제, YouTube와 YouTube Mu
 
 1. `npm run build`를 실행한다.
 2. `chrome://extensions`에서 `.output/chrome-mv3` unpacked extension을 reload한다.
-3. options에서 유효하지 않은 제목·아티스트 이름이 거부되는지 확인한다.
-4. 곡 video ID 또는 watch URL과 아티스트 UC channel ID 또는 URL을 추가·삭제하고 중복이 생기지 않는지 확인한다.
-5. YouTube confirmed 카드에서 Blur 또는 Mark로 전환하고 곡 허용 버튼, 가능한 경우 아티스트 허용 버튼을 누른 뒤 즉시 원복되는지 확인한다.
-6. options에서 해당 항목을 삭제하고 현재 mode가 다시 적용되는지 확인한다.
-7. Hide·Blur·Mark와 Enabled OFF/ON을 전환해 이전 attribute, class 또는 badge가 남지 않는지 확인한다.
-8. 카드 element가 다른 video ID로 재사용되거나 SPA 이동 후 이전 allowlist 상태가 남지 않는지 확인한다.
-9. YouTube Music Premium을 사용할 수 있으면 검색·앨범·플레이리스트·아티스트 row에서 같은 흐름을 확인한다.
-10. confirmed 현재 곡 또는 안정적 ID를 가진 아티스트를 허용했을 때 auto-skip되지 않고, 삭제 후 다음 재생 세대부터 기존 정책이 적용되는지 확인한다.
-11. 일반 항목은 계속 유지되고 allowlist와 `youtubeMusicAutoSkip` 설정이 서로 방해하지 않는지 확인한다.
+3. popup의 “허용 목록 관리”가 기존 options 화면을 여는지 확인한다.
+4. options에서 유효하지 않은 제목·아티스트 이름이 거부되는지 확인한다.
+5. 곡 video ID 또는 watch URL과 아티스트 UC channel ID 또는 URL을 추가·삭제하고 중복이 생기지 않는지 확인한다.
+6. YouTube confirmed 카드에서 Blur 또는 Mark로 전환하고 곡 허용 버튼, 가능한 경우 아티스트 허용 버튼을 누른 뒤 즉시 원복되는지 확인한다.
+7. 같은 카드에 hover해도 아래 grid row가 움직이지 않고 badge가 깜빡이거나 중복되지 않는지 확인한다.
+8. options에서 해당 항목을 삭제하고 현재 mode가 다시 적용되는지 확인한다.
+9. Hide·Blur·Mark와 Enabled OFF/ON을 전환해 이전 attribute, class 또는 badge가 남지 않는지 확인한다.
+10. 카드 element가 다른 video ID로 재사용되거나 SPA 이동 후 이전 allowlist 상태가 남지 않는지 확인한다.
+11. YouTube Music Premium을 사용할 수 있으면 검색·앨범·플레이리스트·아티스트 row에서 같은 흐름을 확인한다.
+12. confirmed 현재 곡 또는 안정적 ID를 가진 아티스트를 허용했을 때 auto-skip되지 않고, 삭제 후 다음 재생 세대부터 기존 정책이 적용되는지 확인한다.
+13. 일반 항목은 계속 유지되고 allowlist와 `youtubeMusicAutoSkip` 설정이 서로 방해하지 않는지 확인한다.
 
 한국 Premium 또는 안정적으로 찾을 수 있는 live confirmed 항목이 없으면, confirmed 적용은 fixture E2E 결과로 기록하고 live에서는 일반 항목 no-op, options 저장, SPA·설정 복구만 별도로 확인한다. fixture 결과를 live confirmed 검증처럼 보고하지 않는다.
 
@@ -100,5 +104,5 @@ bundled Chromium E2E는 options의 추가·중복·삭제, YouTube와 YouTube Mu
 - 제목, 아티스트 이름, `@handle`, custom URL만 있는 DOM에서는 아티스트 allowlist를 적용하지 않는다.
 - YouTube에서 안정적 channel 링크가 확인되지 않는 카드와 YouTube Music player bar에서 UC 링크가 없는 경우에는 곡 allowlist만 동작한다.
 - Hide 상태의 항목 내부 버튼은 보이지 않으므로 options에 video ID 또는 URL을 입력해야 한다.
-- popup에서 현재 탭 항목을 직접 추가하지 않는다. 이를 위해 `tabs`나 `activeTab` permission을 추가하지 않았다.
+- popup에서 현재 탭 항목을 직접 추가하지는 않지만 기존 options의 허용 목록 관리 화면으로 이동할 수 있다. 현재 항목 identity를 읽기 위한 `tabs`나 `activeTab` permission은 추가하지 않았다.
 - 실제 최신 로그인·비로그인 YouTube/YTM DOM, 작은 화면, Edge와 Whale은 수동 확인이 필요하다.

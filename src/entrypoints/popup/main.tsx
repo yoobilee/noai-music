@@ -13,8 +13,12 @@ if (!rootElement) {
 
 document.documentElement.lang = browser.i18n.getUILanguage();
 
+function openAllowlistManager(): void {
+  void browser.runtime.openOptionsPage().catch(() => undefined);
+}
+
 createRoot(rootElement).render(
   <StrictMode>
-    <SettingsPanel />
+    <SettingsPanel onManageAllowlist={openAllowlistManager} />
   </StrictMode>,
 );

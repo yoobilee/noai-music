@@ -8,6 +8,9 @@ import {
 export const FILTER_ACTION_ATTRIBUTE = 'data-noai-filter-action';
 export const FILTER_REASON_ATTRIBUTE = 'data-noai-filter-reason';
 export const FILTER_REASON_BADGE_ATTRIBUTE = 'data-noai-filter-reason-badge';
+export const FILTER_OVERLAY_ANCHOR_ATTRIBUTE =
+  'data-noai-filter-overlay-anchor';
+export const FILTER_OVERLAY_PATH_ATTRIBUTE = 'data-noai-filter-overlay-path';
 
 const FILTER_STYLE_ATTRIBUTE = 'data-noai-youtube-card-filter-styles';
 
@@ -30,8 +33,14 @@ function ensureFilterStyles(currentDocument: Document): void {
     [${FILTER_ACTION_ATTRIBUTE}="hide"] {
       display: none !important;
     }
-    [${FILTER_ACTION_ATTRIBUTE}="blur"] > :not([${FILTER_REASON_BADGE_ATTRIBUTE}]) {
+    [${FILTER_ACTION_ATTRIBUTE}="blur"] > :not([${FILTER_OVERLAY_PATH_ATTRIBUTE}]) {
       filter: blur(10px) !important;
+    }
+    [${FILTER_ACTION_ATTRIBUTE}="blur"] [${FILTER_OVERLAY_PATH_ATTRIBUTE}] > :not([${FILTER_OVERLAY_PATH_ATTRIBUTE}]):not([${FILTER_REASON_BADGE_ATTRIBUTE}]) {
+      filter: blur(10px) !important;
+    }
+    [${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}] {
+      position: relative !important;
     }
     [${FILTER_REASON_BADGE_ATTRIBUTE}] {
       background: #0f766e !important;
@@ -44,9 +53,15 @@ function ensureFilterStyles(currentDocument: Document): void {
       font-family: Roboto, Arial, sans-serif !important;
       font-size: 12px !important;
       font-weight: 600 !important;
+      inset-block-end: 6px !important;
+      inset-inline-start: 6px !important;
       line-height: 16px !important;
-      margin-block-start: 6px !important;
+      margin: 0 !important;
+      max-width: calc(100% - 12px) !important;
       padding: 3px 6px !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      z-index: 4 !important;
     }
     [${FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action {
       background: #ffffff !important;
@@ -57,6 +72,7 @@ function ensureFilterStyles(currentDocument: Document): void {
       font: inherit !important;
       line-height: 16px !important;
       padding: 1px 5px !important;
+      pointer-events: auto !important;
     }
     [${FILTER_REASON_BADGE_ATTRIBUTE}] .noai-filter-allowlist-action:focus-visible {
       outline: 2px solid #ffffff !important;
@@ -72,12 +88,44 @@ function ensureFilterStyles(currentDocument: Document): void {
   currentDocument.head?.append(style);
 }
 
+function clearOverlayMountState(element: Element): void {
+  for (const mounted of element.querySelectorAll(
+    `[${FILTER_OVERLAY_ANCHOR_ATTRIBUTE}], [${FILTER_OVERLAY_PATH_ATTRIBUTE}]`,
+  )) {
+    mounted.removeAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE);
+    mounted.removeAttribute(FILTER_OVERLAY_PATH_ATTRIBUTE);
+  }
+}
+
+function prepareOverlayMount(
+  card: Element,
+  anchor: HTMLElement,
+): boolean {
+  if (anchor === card || !card.contains(anchor)) {
+    return false;
+  }
+
+  let current: HTMLElement | null = anchor;
+  while (current !== card) {
+    current.setAttribute(FILTER_OVERLAY_PATH_ATTRIBUTE, 'true');
+    current = current.parentElement;
+    if (current === null) {
+      clearOverlayMountState(card);
+      return false;
+    }
+  }
+
+  anchor.setAttribute(FILTER_OVERLAY_ANCHOR_ATTRIBUTE, 'true');
+  return true;
+}
+
 export function clearYouTubeCardFilter(element: Element): void {
   element.removeAttribute(FILTER_ACTION_ATTRIBUTE);
   element.removeAttribute(FILTER_REASON_ATTRIBUTE);
   for (const badge of findReasonBadges(element)) {
     badge.remove();
   }
+  clearOverlayMountState(element);
 }
 
 export function applyYouTubeCardFilter(
@@ -99,6 +147,16 @@ export function applyYouTubeCardFilter(
     return;
   }
 
+  const overlayAnchor = candidate.filterOverlayAnchor;
+  if (
+    overlayAnchor === undefined ||
+    !prepareOverlayMount(candidate.element, overlayAnchor)
+  ) {
+    candidate.element.removeAttribute(FILTER_ACTION_ATTRIBUTE);
+    candidate.element.removeAttribute(FILTER_REASON_ATTRIBUTE);
+    return;
+  }
+
   const badge = candidate.element.ownerDocument.createElement('span');
   badge.setAttribute(FILTER_REASON_BADGE_ATTRIBUTE, 'true');
   const reason = candidate.element.ownerDocument.createElement('span');
@@ -111,7 +169,7 @@ export function applyYouTubeCardFilter(
   );
   badge.setAttribute('aria-label', reasonText);
   badge.title = reasonText;
-  candidate.element.append(badge);
+  overlayAnchor.append(badge);
 }
 
 export function isYouTubeCardFilterCurrent(
@@ -119,7 +177,8 @@ export function isYouTubeCardFilterCurrent(
   decision: FilterDecision,
 ): boolean {
   const action = element.getAttribute(FILTER_ACTION_ATTRIBUTE);
-  const badgeCount = findReasonBadges(element).length;
+  const badges = findReasonBadges(element);
+  const badgeCount = badges.length;
 
   if (decision.action === 'none') {
     return action === null && badgeCount === 0;
@@ -128,7 +187,12 @@ export function isYouTubeCardFilterCurrent(
   return (
     action === decision.action &&
     element.getAttribute(FILTER_REASON_ATTRIBUTE) === decision.reason &&
-    (decision.action === 'hide' ? badgeCount === 0 : badgeCount === 1)
+    (decision.action === 'hide'
+      ? badgeCount === 0
+      : badgeCount === 1 &&
+        badges[0]?.parentElement?.hasAttribute(
+          FILTER_OVERLAY_ANCHOR_ATTRIBUTE,
+        ) === true)
   );
 }
 

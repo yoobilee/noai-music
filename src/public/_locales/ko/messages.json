@@ -41,6 +41,9 @@
   "allowlistHeading": {
     "message": "허용된 음악"
   },
+  "manageAllowlist": {
+    "message": "허용 목록 관리"
+  },
   "allowlistDescription": {
     "message": "허용한 곡과 아티스트는 YouTube 공식 AI 표시가 확인되어도 필터링하거나 건너뛰지 않습니다. 사용자가 추가한 ID만 저장합니다."
   },

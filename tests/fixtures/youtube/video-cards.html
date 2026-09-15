@@ -11,7 +11,9 @@
     </ytd-watch-metadata>
 
     <ytd-rich-item-renderer data-testid="home-video">
-      <a id="thumbnail" href="/watch?v=HomeVid0001">Thumbnail</a>
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=HomeVid0001">Thumbnail</a>
+      </ytd-thumbnail>
       <a id="video-title" href="/watch?v=HomeVid0001&pp=sanitized">Home video</a>
       <ytd-channel-name id="channel-name">
         <a href="/channel/UCabcdefghijklmnopqrstuv">Channel</a>
@@ -19,6 +21,9 @@
     </ytd-rich-item-renderer>
 
     <ytd-video-renderer data-testid="search-video">
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=SearchVid01">Thumbnail</a>
+      </ytd-thumbnail>
       <ytd-channel-name id="channel-name">
         <a href="/channel/UCzyxwvutsrqponmlkjihgfe">Channel</a>
       </ytd-channel-name>
@@ -28,15 +33,19 @@
     </ytd-video-renderer>
 
     <yt-lockup-view-model data-testid="related-video">
-      <a href="/watch?v=Related0001">Related thumbnail</a>
+      <yt-thumbnail-view-model>
+        <a href="/watch?v=Related0001">Related thumbnail</a>
+      </yt-thumbnail-view-model>
       <a href="/watch?v=Related0001&pp=sanitized">Related title</a>
       <a href="/channel/UC_SANITIZED">Channel</a>
     </yt-lockup-view-model>
 
     <ytd-playlist-video-renderer data-testid="playlist-video">
-      <a id="thumbnail" href="/watch?v=Playlist001&list=PL_SANITIZED&index=1">
-        Playlist thumbnail
-      </a>
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=Playlist001&list=PL_SANITIZED&index=1">
+          Playlist thumbnail
+        </a>
+      </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Playlist001&list=PL_SANITIZED&index=1">
         Playlist video
       </a>

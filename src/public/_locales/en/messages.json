@@ -41,6 +41,9 @@
   "allowlistHeading": {
     "message": "Allowed music"
   },
+  "manageAllowlist": {
+    "message": "Manage allowlist"
+  },
   "allowlistDescription": {
     "message": "Allowed tracks and artists are not filtered or skipped, even when an official YouTube AI disclosure is confirmed. IDs are stored only when you add them."
   },

@@ -24,12 +24,21 @@ const cardPageHtml = `<!doctype html>
 <html lang="en">
   <body>
     <ytd-video-renderer data-testid="disclosed-card-one">
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=Disclose001">Thumbnail</a>
+      </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Disclose001">Disclosed fixture</a>
     </ytd-video-renderer>
     <ytd-video-renderer data-testid="disclosed-card-two">
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=Disclose001">Thumbnail</a>
+      </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Disclose001">Repeated fixture</a>
     </ytd-video-renderer>
     <ytd-video-renderer data-testid="ordinary-card">
+      <ytd-thumbnail>
+        <a id="thumbnail" href="/watch?v=Ordinary001">Thumbnail</a>
+      </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Ordinary001">Ordinary fixture</a>
     </ytd-video-renderer>
     <ytd-video-renderer data-testid="non-video-card">
@@ -122,6 +131,24 @@ test('filters only confirmed cards and switches modes without reloading', async 
   await expect(first.locator(`${reasonBadge} > span`)).toHaveText(
     /^NoAI · YouTube AI (?:disclosure|표시)$/,
   );
+  await expect(first.locator(reasonBadge)).toHaveCSS('position', 'absolute');
+  expect(
+    await first
+      .locator(reasonBadge)
+      .evaluate((badge) => badge.parentElement?.tagName),
+  ).toBe('YTD-THUMBNAIL');
+
+  await first.locator(reasonBadge).evaluate((badge) => {
+    badge.setAttribute('data-testid', 'stable-noai-badge');
+  });
+  await first.locator('ytd-thumbnail').evaluate((thumbnail) => {
+    const hoverOverlay = document.createElement('div');
+    hoverOverlay.setAttribute('data-testid', 'synthetic-hover-overlay');
+    thumbnail.append(hoverOverlay);
+  });
+  await expect(first.getByTestId('synthetic-hover-overlay')).toBeAttached();
+  await expect(first.getByTestId('stable-noai-badge')).toHaveCount(1);
+  await expect(first.locator(reasonBadge)).toHaveCount(1);
 
   await setSettings(context, true, 'blur');
   await expect(first).toHaveAttribute(filterAttribute, 'blur');
