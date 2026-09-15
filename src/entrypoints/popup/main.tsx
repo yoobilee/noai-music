@@ -12,7 +12,6 @@ if (!rootElement) {
 }
 
 document.documentElement.lang = browser.i18n.getUILanguage();
-document.body.classList.add('noai-popup');
 
 createRoot(rootElement).render(
   <StrictMode>

@@ -6,10 +6,19 @@
     "message": "YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 음악 콘텐츠를 필터링합니다."
   },
   "enabledLabel": {
-    "message": "NoAI 사용"
+    "message": "필터 사용"
+  },
+  "enabledDescription": {
+    "message": "YouTube와 YouTube Music에 NoAI를 적용합니다."
   },
   "youtubeMusicAutoSkipLabel": {
-    "message": "YouTube Music 자동 건너뛰기"
+    "message": "자동 건너뛰기"
+  },
+  "youtubeMusicHeading": {
+    "message": "YouTube Music"
+  },
+  "youtubeMusicAutoSkipDescription": {
+    "message": "재생 중 정책에 해당하는 곡을 다음 곡으로 넘깁니다."
   },
   "filterModeLabel": {
     "message": "필터 방식"
@@ -17,20 +26,29 @@
   "filterModeHide": {
     "message": "숨기기"
   },
+  "filterModeHideDescription": {
+    "message": "대상 콘텐츠를 목록에서 숨깁니다."
+  },
   "filterModeBlur": {
     "message": "흐리기"
+  },
+  "filterModeBlurDescription": {
+    "message": "콘텐츠는 남기고 내용을 흐립니다."
   },
   "filterModeMark": {
     "message": "표시만"
   },
+  "filterModeMarkDescription": {
+    "message": "콘텐츠는 그대로 두고 이유만 표시합니다."
+  },
   "filterScopeDescription": {
-    "message": "사용자가 지정한 허용·차단 규칙을 먼저 적용하고, 그 외에는 확인된 YouTube 공식 AI 표시만 사용합니다. 음악 자체의 AI 생성 여부를 추정하지 않습니다."
+    "message": "YouTube의 AI 표시 콘텐츠를 원하는 방식으로 관리합니다."
   },
   "filterStateEnabled": {
-    "message": "필터가 켜져 있습니다."
+    "message": "켜짐"
   },
   "filterStateDisabled": {
-    "message": "필터가 꺼져 있습니다."
+    "message": "꺼짐"
   },
   "settingsSaveError": {
     "message": "설정을 저장하지 못했습니다. 다시 시도해 주세요."
@@ -39,7 +57,18 @@
     "message": "NoAI · YouTube AI 표시"
   },
   "allowlistHeading": {
-    "message": "허용된 음악"
+    "message": "허용 목록"
+  },
+  "allowlistSummaryCount": {
+    "message": "$COUNT$개 저장됨",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowlistSummaryDescription": {
+    "message": "필터링과 건너뛰기에서 제외합니다."
   },
   "allowedTrackCount": {
     "message": "허용된 곡 $COUNT$개",
@@ -109,7 +138,9 @@
   "directBlockArtistReason": { "message": "NoAI · 직접 차단한 아티스트" },
   "directBlockChannelReason": { "message": "NoAI · 직접 차단한 채널" },
   "blocklistHeading": { "message": "차단 목록" },
-  "blocklistDescription": { "message": "AI 판정이 아닌 사용자 지정 규칙입니다. 허용 목록이 차단 목록보다 우선합니다." },
+  "blocklistDescription": { "message": "AI 판정이 아닌 사용자가 직접 지정한 규칙입니다." },
+  "blocklistSummaryCount": { "message": "$COUNT$개 저장됨", "placeholders": { "count": { "content": "$1" } } },
+  "blocklistSummaryDescription": { "message": "직접 지정한 항목을 필터링합니다." },
   "blockedTrackCount": { "message": "차단된 곡 $COUNT$개", "placeholders": { "count": { "content": "$1" } } },
   "blockedArtistCount": { "message": "차단된 아티스트 $COUNT$명", "placeholders": { "count": { "content": "$1" } } },
   "blockedChannelCount": { "message": "차단된 채널 $COUNT$개", "placeholders": { "count": { "content": "$1" } } },
@@ -126,5 +157,8 @@
   "removeBlocklistItem": { "message": "삭제" },
   "emptyBlocklist": { "message": "저장된 항목이 없습니다." },
   "invalidChannelIdentity": { "message": "정확한 UC 채널 ID, @handle 또는 지원되는 YouTube 채널 URL을 입력해 주세요." },
-  "blocklistSaveError": { "message": "차단 목록을 저장하지 못했습니다. 다시 시도해 주세요." }
+  "blocklistSaveError": { "message": "차단 목록을 저장하지 못했습니다. 다시 시도해 주세요." },
+  "userRulesHeading": { "message": "사용자 규칙" },
+  "userRulesDescription": { "message": "필터 예외와 직접 차단 항목을 관리합니다." },
+  "userRulesPriorityNote": { "message": "허용 목록이 차단 목록보다 우선합니다." }
 }

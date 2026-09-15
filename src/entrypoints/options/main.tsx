@@ -12,6 +12,7 @@ if (!rootElement) {
 }
 
 document.documentElement.lang = browser.i18n.getUILanguage();
+document.body.classList.add('noai-options');
 
 createRoot(rootElement).render(
   <StrictMode>
