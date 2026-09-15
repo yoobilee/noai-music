@@ -93,9 +93,9 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 
 ## Store asset와 listing
 
-- [ ] 사용자 승인된 NoAI 브랜드 원본 확보
-- [ ] 16×16, 32×32, 48×48, 128×128 PNG icon 제작·manifest 등록
-- [ ] 128×128 icon이 실제 extension zip에 포함됨
+- [x] 사용자 승인된 NoAI 브랜드 원본 확보
+- [x] 16×16, 32×32, 48×48, 128×128 PNG icon 확보·manifest 등록
+- [x] 128×128 icon이 실제 extension zip에 포함됨
 - [ ] 440×280 small promotional image 준비
 - [ ] 실제 기능 screenshot 최소 1개, 권장 5개 준비
 - [ ] 한국어·영어 상세 설명과 screenshot locale 확인
