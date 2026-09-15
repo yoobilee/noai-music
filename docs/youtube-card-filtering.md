@@ -1,8 +1,8 @@
 # YouTube confirmed disclosure 카드 필터링
 
 - 설계·구현일: 2026-09-09
-- 범위: 데스크톱 YouTube 영상 카드의 전역 필터와 hide/blur/mark 모드
-- 제외: Shorts, YouTube Music, 허용·차단 목록, 자동 skip
+- 범위: 데스크톱 YouTube 영상 카드의 전역 필터, 사용자 규칙과 hide/blur/mark 모드
+- 제외: Shorts, YouTube Music과 자동 skip. YouTube Music은 별도 문서에서 다룬다.
 
 ## 적용 조건과 정책
 
@@ -62,8 +62,8 @@ Vitest는 순수 policy의 confirmed/non-confirmed 경계, 설정 기본값·저
 
 ## 현재 한계
 
-- 현재 YouTube 영상 카드만 처리하며 Shorts와 YouTube Music은 지원하지 않는다.
+- 이 문서의 controller는 YouTube 영상 카드만 처리한다. Shorts는 지원하지 않으며 YouTube Music은 별도 controller가 지원한다.
 - hide 모드는 카드별 복구 버튼이나 숨김 개수 UI를 제공하지 않는다.
-- 사용자 허용 목록과 직접 차단 목록은 아직 정책에 연결하지 않았다.
+- 곡·아티스트 허용 목록과 곡·아티스트·채널 직접 차단은 안정적인 identity를 얻은 surface에서만 적용하며 이름 문자열로 우회하지 않는다.
 - 실제 Chrome·Edge·Whale의 라이브 화면 수동 검증은 자동 fixture 검증과 별도로 필요하다.
 - YouTube가 renderer나 링크 구조를 바꾸면 adapter가 candidate를 반환하지 않아 필터가 적용되지 않는다. 이 경우 추측으로 차단하지 않는다.

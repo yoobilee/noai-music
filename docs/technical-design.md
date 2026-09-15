@@ -1,7 +1,7 @@
 # NoAI 1.0 기술 설계
 
-- 상태: 기술 기반 확정, YouTube 공식 disclosure 감지·카드 video ID 추출·watch-page 확인/캐시·confirmed 카드 필터, YouTube Music identity·현재 재생 auto-skip·목록 row 필터 vertical slice 구현
-- 기준일: 2026-09-14
+- 상태: 0.9.0 release candidate 구현 동결. 사용자 규칙, popup/options와 자동 회귀 검증 포함
+- 기준일: 2026-09-15
 - 대상: 데스크톱 Chrome, Edge, Whale의 현재 안정 버전
 
 ## 1. 기술 선택
@@ -47,7 +47,7 @@ WXT 공식 문서는 현재 React 모듈, MV3 대상 빌드, `srcDir`, manifest 
 | 원격 코드 | 사용하지 않음. React 등 실행 코드는 모두 패키지에 번들 |
 | CSP | WXT의 MV3 기본값을 유지하고 CDN script, `eval`, 원격 실행 코드를 추가하지 않음 |
 
-Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조에 맞는다. 다만 현재 뼈대는 제출 가능한 제품이 아니다. 생성 manifest에는 아직 `icons`가 없으며 Chrome Web Store가 요구하는 128×128 PNG도 포함하지 않았다. 실제 기능, 브랜드 확정 후 제작한 아이콘과 스토어 자산, 개인정보 처리 설명, 지원 URL, 최종 권한 사유와 수동 브라우저 검증은 출시 전에 별도로 완료해야 한다.
+Chrome Web Store 관점에서 MV3, 자체 포함 코드와 최소 권한 구조에 맞는다. 0.9.0에는 기능, 개인정보·권한 설명과 제출 체크리스트가 준비되어 있지만 생성 manifest에는 아직 `icons`가 없고 Chrome Web Store가 요구하는 128×128 PNG도 포함하지 않았다. 사용자 승인 브랜드 icon, store promotional asset, 공개 Privacy policy URL과 최종 수동 브라우저 검증을 완료하기 전에는 스토어에 제출하지 않는다.
 
 참고:
 
@@ -120,8 +120,8 @@ Edge 공식 문서는 Chrome의 지원 API와 manifest key가 대체로 코드 �
 | YouTube content script | 어댑터 시작, 페이지·DOM 변경 전달, 설정 snapshot에 따른 표시 적용 | 계정 조회, 원격 전송, 자체 AI 추측 |
 | YouTube Music content script | YouTube Music 어댑터 시작, 목록 표시와 현재 곡 변경 전달, 최종 결정에 따른 skip | 장기 상태 보관, 네트워크 차단 |
 | background service worker | 저장 schema·캐시, context 메시지, video ID로 제한된 watch-page fetch와 요청 queue | DOM 접근, 임의 URL fetch, 쿠키·계정 접근, 영구 in-memory 상태 가정 |
-| popup | 전체 ON/OFF, 현재 mode와 상태의 빠른 제어 | 복잡한 목록 편집 |
-| options | 필터 mode, 허용·차단 목록, 언어와 설명 관리 | 페이지 DOM 직접 접근 |
+| popup | 전체 ON/OFF, 현재 mode·auto-skip과 compact 허용·차단 목록 관리 | 페이지 DOM 직접 접근 |
+| options | popup과 같은 저장·validation logic을 쓰는 넓은 허용·차단 목록 관리 | 페이지 DOM 직접 접근 |
 | adapters | 사이트별 selector, DOM 탐색, 공식 표시 evidence 추출, DOM 표현·player 제어 | evidence 의미 판정, 사용자 정책 우선순위 결정 |
 | detection | adapter가 넘긴 구조화 evidence를 공식 표시 규칙과 비교해 판정 | DOM query, 오디오 분석, 제목 기반 추측 |
 | filtering | 판정 결과와 사용자 설정·규칙을 조합해 순수 `FilterDecision` 생성 | DOM 변경, 저장 API 호출 |
@@ -148,13 +148,20 @@ src/
   filtering/
     contracts.ts
     decideYouTubeCardFilter.ts
+    userRules.ts
   storage/
     contracts.ts
     settings.ts
+    allowlist.ts
+    blocklist.ts
+    youtubeDisclosureCache.ts
   shared/
     sites.ts
   ui/
     SettingsPanel.tsx
+    AllowlistManager.tsx
+    BlocklistManager.tsx
+    UserRuleManager.tsx
     youtubeCardFilter.ts
   public/
     _locales/
@@ -200,23 +207,22 @@ history 메서드 monkey patch, 고빈도 polling과 매 mutation 전체 문서 
 filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순위는 다음 원칙으로 고정한다.
 
 1. 전체 필터 OFF면 변경하지 않는다.
-2. 사용자 규칙은 대상 구체성(`track` > `artist` > `channel`)이 높은 것을 우선한다.
-3. 같은 대상·구체성의 충돌은 allow를 우선해 사용자가 오탐을 복구할 수 있게 한다.
-4. 사용자 block이 있으면 선택한 mode로 필터한다.
-5. 공식 표시 판정이 있고 allow가 없으면 선택한 mode로 필터한다.
-6. 그 외와 판정 불가는 변경하지 않는다.
+2. 곡 또는 아티스트 allowlist가 일치하면 항상 허용한다.
+3. allow가 없고 direct block이 일치하면 `track > artist > channel` 순서로 선택한 mode를 적용한다.
+4. 사용자 규칙이 없고 confirmed 공식 표시 판정이 있으면 선택한 mode를 적용한다.
+5. 그 외와 판정 불가는 변경하지 않는다.
 
-`mark` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. 현재 vertical slice는 사용자 규칙을 아직 구현하지 않으며, YouTube와 YouTube Music 목록 필터 및 YouTube Music 자동 skip은 `confirmed` 상태와 detector가 재확인한 공식 evidence가 함께 있을 때만 동작한다.
+`mark` mode는 콘텐츠를 제거하지 않고 이유 표시만 제공한다. 공식 disclosure 정책은 `confirmed` 상태와 detector가 재확인한 공식 evidence가 함께 있을 때만 동작한다. Direct block은 AI 판정이 아닌 exact identity 사용자 규칙이므로 disclosure 결과와 관계없이 적용되고, allowlist는 direct block과 official disclosure보다 우선한다.
 
 ## 9. 저장과 캐시
 
 지속 데이터는 `storage.local`만 사용한다. `storage.sync`는 Google 계정 기반 동기화를 만들 수 있으므로 1.0에서 사용하지 않는다.
 
 - `settingsV1`: schema version, 전체 활성화와 `hide | blur | mark` mode
-- `rules`: 사용자가 만든 allow/block entity 목록
-- entity: site, `track | artist | channel`, 가능한 경우 YouTube의 안정 ID, 사용자 확인용 label
+- `allowlistV1`: 사용자가 추가한 곡 video ID와 아티스트 UC ID, 선택적인 최소 표시 metadata
+- `blocklistV1`: 사용자가 추가한 곡 video ID, 아티스트·채널 UC ID와 exact channel `@handle`, 선택적인 최소 표시 metadata
 
-저장 schema에는 version을 두고 background 시작 시 순수 migration 함수를 거친다. 쓰기는 전체 객체 덮어쓰기보다 단일 저장소 계층에서 검증·정규화한 뒤 수행한다. 목록 상한과 중복 제거 규칙은 실제 목록 기능 구현 때 확정한다.
+각 저장 schema에는 version을 두며 읽기·쓰기에서 exact ID validation, 중복 제거, deterministic sort와 손상 값 정규화를 적용한다. 알 수 없는 미래 schema version은 덮어쓰지 않고 fail-closed로 처리한다.
 
 watch-page 추가 확인 결과는 schema version 1의 `youtubeDisclosureCacheV1` 객체로 `storage.local`에 둔다. 항목은 video ID, `confirmed | not-detected | unknown-or-error`, 최소 구조화 evidence, 확인 시각, 만료 시각과 필요한 경우 오류 범주만 저장한다. URL 전체, 제목, 채널명, 검색어, 원문 HTML, 계정 정보는 저장하지 않는다.
 
@@ -283,13 +289,12 @@ route별 content-script map과 background in-flight map이 중복을 줄이고, 
 
 순수 policy는 `confirmed` 상태와 detector가 확인한 공식 evidence가 모두 있을 때만 mode를 반환한다. UI 계층은 NoAI 전용 data attribute로 카드를 제거하지 않고 숨기며, blur와 mark에는 `NoAI · YouTube AI disclosure` 이유를 표시한다. 모든 상태는 설정, route 또는 video ID 변경 때 되돌릴 수 있다. 상세 계약은 [`youtube-card-filtering.md`](youtube-card-filtering.md)에 기록한다.
 
-## 14. 아직 구현하지 않는 것
+## 14. 1.0 전 남은 작업과 제외 범위
 
 - 확인되지 않은 언어·표시 변형
-- 사용자 허용·차단 규칙 저장과 정책 연결
-- popup/options의 목록 관리와 최종 디자인
 - 라이브 YouTube E2E와 브라우저별 수동 검증
-- 스토어 제출과 자동 배포
+- 사용자 승인 icon·store image 제작과 Chrome Web Store 제출
+- GitHub Release, tag와 스토어 자동 배포
 
 ## 15. 구현된 YouTube Music identity slice
 
