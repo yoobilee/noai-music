@@ -6,9 +6,9 @@
 
 ## 우선순위와 판정 정책
 
-현재 실제 우선순위는 `allowlist > official disclosure`다. 유효한 곡 video ID 또는 확인된 아티스트 ID가 허용 목록과 일치하면, 공식 YouTube AI disclosure가 confirmed여도 필터링하거나 건너뛰지 않는다. allowlist가 아니면 기존의 confirmed status, 공식 evidence 재검증, expected video ID 일치 조건을 그대로 적용한다.
+현재 실제 우선순위는 `allowlist > direct blocklist > official disclosure`다. 유효한 곡 video ID 또는 확인된 아티스트 ID가 허용 목록과 일치하면, 같은 identity가 직접 차단 목록에 있거나 공식 YouTube AI disclosure가 confirmed여도 필터링하거나 건너뛰지 않는다.
 
-향후 직접 blocklist가 추가되더라도 목표 우선순위는 `allowlist > direct blocklist > official disclosure`다. direct blocklist는 이 변경에 포함하지 않는다. allowlist 판정은 DOM 함수가 아니라 `src/filtering/allowlist.ts`의 순수 정책을 YouTube 카드, YouTube Music row와 auto-skip이 함께 사용한다.
+allowlist와 direct blocklist의 충돌 판정은 DOM 함수가 아니라 공통 순수 정책을 YouTube 카드, YouTube Music row와 auto-skip이 함께 사용한다.
 
 ## identity
 

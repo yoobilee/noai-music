@@ -24,7 +24,7 @@
     "message": "Mark only"
   },
   "filterScopeDescription": {
-    "message": "Applies only when YouTube's official AI disclosure is confirmed. NoAI does not infer whether the music itself was AI-generated."
+    "message": "Applies user-defined allow/block rules first, then confirmed official YouTube AI disclosures. NoAI does not infer whether the music itself was AI-generated."
   },
   "filterStateEnabled": {
     "message": "Filtering is on."
@@ -104,5 +104,27 @@
   },
   "allowlistSaveError": {
     "message": "The allowed list could not be saved. Try again."
-  }
+  },
+  "directBlockTrackReason": { "message": "NoAI · Blocked track" },
+  "directBlockArtistReason": { "message": "NoAI · Blocked artist" },
+  "directBlockChannelReason": { "message": "NoAI · Blocked channel" },
+  "blocklistHeading": { "message": "Blocked music" },
+  "blocklistDescription": { "message": "These are user-defined rules, not AI detections. Allowed items take priority over blocked items." },
+  "blockedTrackCount": { "message": "Blocked tracks: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
+  "blockedArtistCount": { "message": "Blocked artists: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
+  "blockedChannelCount": { "message": "Blocked channels: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
+  "blockedTracksHeading": { "message": "Blocked tracks" },
+  "blockedArtistsHeading": { "message": "Blocked artists" },
+  "blockedChannelsHeading": { "message": "Blocked channels" },
+  "trackBlocklistInputLabel": { "message": "Track video ID or watch URL" },
+  "artistBlocklistInputLabel": { "message": "Artist channel ID or URL" },
+  "channelBlocklistInputLabel": { "message": "Channel ID, @handle, or URL" },
+  "channelBlocklistInputPlaceholder": { "message": "UC channel ID, @handle, or YouTube channel URL" },
+  "addTrackBlocklist": { "message": "Block track" },
+  "addArtistBlocklist": { "message": "Block artist" },
+  "addChannelBlocklist": { "message": "Block channel" },
+  "removeBlocklistItem": { "message": "Remove" },
+  "emptyBlocklist": { "message": "No saved items." },
+  "invalidChannelIdentity": { "message": "Enter an exact UC channel ID, @handle, or supported YouTube channel URL." },
+  "blocklistSaveError": { "message": "The blocked list could not be saved. Try again." }
 }

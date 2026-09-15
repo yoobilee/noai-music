@@ -2,7 +2,7 @@
 
 NoAI는 YouTube와 YouTube Music에서 사용자가 원하지 않는 AI 표시 음악 콘텐츠를 숨기거나 자동으로 건너뛸 수 있게 하는 오픈소스 브라우저 확장 프로그램입니다.
 
-현재 YouTube 영상 카드와 YouTube Music의 검색·앨범·플레이리스트·아티스트 row에서 video ID를 얻어 background의 watch page 공식 AI disclosure를 확인하고 제한된 로컬 캐시에 저장합니다. 공식 evidence가 `confirmed`인 항목만 사용자의 전역 설정에 따라 숨김·흐림·표시하며, 판정 불가나 오류 결과는 필터링하지 않습니다. YouTube Music 현재 재생 항목도 같은 lookup을 사용해 공식 evidence가 `confirmed`일 때만 다음 항목으로 한 번 건너뜁니다.
+현재 YouTube 영상 카드와 YouTube Music의 검색·앨범·플레이리스트·아티스트 row에서 안정적인 identity를 얻어 사용자가 직접 지정한 허용·차단 규칙을 먼저 적용합니다. 우선순위는 `allowlist > direct blocklist > official disclosure`이며, 직접 차단은 AI 판정이 아닙니다. 사용자 규칙이 없으면 background의 watch page 공식 AI disclosure를 확인하고, 공식 evidence가 `confirmed`인 항목만 숨김·흐림·표시하거나 YouTube Music에서 건너뜁니다.
 
 ## 판정 원칙
 
@@ -74,6 +74,8 @@ video ID 기반 watch-page 확인, 요청 제한과 캐시 계약은 [`docs/yout
 ## 개발 명령
 
 곡·아티스트 allowlist의 안정적 identity, 우선순위, 저장 schema, UI와 지원 한계는 [`docs/allowlist.md`](docs/allowlist.md)에 기록되어 있습니다.
+
+곡·아티스트·채널 direct blocklist의 exact video ID·UC ID·YouTube `@handle` 규칙, surface별 identity 경계, 저장 schema와 auto-skip 동작은 [`docs/blocklist.md`](docs/blocklist.md)에 기록되어 있습니다.
 
 Node.js 22.13 이상과 npm이 필요합니다.
 

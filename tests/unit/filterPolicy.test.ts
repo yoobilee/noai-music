@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
-import { DEFAULT_ALLOWLIST } from '@/storage/contracts';
+import { DEFAULT_ALLOWLIST, DEFAULT_BLOCKLIST } from '@/storage/contracts';
 
 const confirmedEvidence: OfficialDisclosureEvidence[] = [
   {
@@ -133,5 +133,33 @@ describe('YouTube card filter policy', () => {
         evidence: [],
       }),
     ).toEqual({ action: 'none' });
+  });
+
+  it('applies direct track blocks without disclosure and lets allowlist win', () => {
+    const blocked = { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'AllowedVid1' }] };
+    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'blur' }, identity, allowlist: DEFAULT_ALLOWLIST, blocklist: blocked, directBlockKinds: { artist: false, channel: true }, disclosureStatus: 'not-detected', evidence: [] })).toEqual({ action: 'blur', reason: 'direct-block-track' });
+    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'blur' }, identity, allowlist: { ...DEFAULT_ALLOWLIST, tracks: [{ videoId: 'AllowedVid1' }] }, blocklist: blocked, directBlockKinds: { artist: false, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'none' });
+  });
+
+  it('prefers direct artist and channel reasons over official disclosure', () => {
+    const identified = { ...identity, artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'], channelId: 'UCbbbbbbbbbbbbbbbbbbbbbb' };
+    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'mark' }, identity: identified, allowlist: DEFAULT_ALLOWLIST, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId: identified.artistIds[0]! }], channels: [{ identityType: 'channel-id', channelId: identified.channelId }] }, directBlockKinds: { artist: true, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'mark', reason: 'direct-block-artist' });
+  });
+
+  it('prefers an exact handle channel rule over confirmed official disclosure', () => {
+    expect(
+      decideYouTubeCardFilter({
+        settings: { enabled: true, mode: 'blur' },
+        identity: { ...identity, channelHandle: '@example' },
+        allowlist: DEFAULT_ALLOWLIST,
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          channels: [{ identityType: 'handle', handle: '@example' }],
+        },
+        directBlockKinds: { artist: false, channel: true },
+        disclosureStatus: 'confirmed',
+        evidence: confirmedEvidence,
+      }),
+    ).toEqual({ action: 'blur', reason: 'direct-block-channel' });
   });
 });

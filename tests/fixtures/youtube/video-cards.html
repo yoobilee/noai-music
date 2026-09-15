@@ -30,6 +30,30 @@
       </div>
     </ytd-rich-item-renderer>
 
+    <ytd-rich-item-renderer data-testid="handle-video">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=HandleVid01">
+              <yt-thumbnail-view-model><div class="ytThumbnailViewModelImage"><img alt="" /></div></yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=HandleVid01">Handle video</a>
+              <yt-content-metadata-view-model><a href="/@example">Handle channel</a></yt-content-metadata-view-model>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-video-renderer data-testid="korean-handle-video">
+      <ytd-thumbnail><a id="thumbnail" href="/watch?v=KoreanHan01">Thumbnail</a></ytd-thumbnail>
+      <div id="details">
+        <a id="video-title" href="/watch?v=KoreanHan01">Korean handle video</a>
+        <ytd-channel-name id="channel-name"><a href="/@블루레인">Korean handle channel</a></ytd-channel-name>
+      </div>
+    </ytd-video-renderer>
+
     <ytd-video-renderer data-testid="search-video">
       <ytd-thumbnail>
         <a id="thumbnail" href="/watch?v=SearchVid01">Thumbnail</a>

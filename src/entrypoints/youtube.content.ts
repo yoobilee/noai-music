@@ -3,16 +3,18 @@ import type { Browser } from 'wxt/browser';
 import type { DomMediaCandidate } from '@/adapters/contracts';
 import { createYouTubeAdapter } from '@/adapters/youtube';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
-import { isMediaAllowed } from '@/filtering/allowlist';
+import { evaluateUserRules } from '@/filtering/userRules';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
-import type { FilterDecision } from '@/filtering/contracts';
+import type { FilterDecision, FilterReason } from '@/filtering/contracts';
 import { YOUTUBE_MATCH_PATTERNS } from '@/shared/sites';
 import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import {
   ALLOWLIST_STORAGE_KEY,
+  BLOCKLIST_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
   type PersistedAllowlist,
+  type PersistedBlocklist,
   type PersistedSettings,
 } from '@/storage/contracts';
 import {
@@ -24,6 +26,13 @@ import {
   readAllowlistChange,
   saveAllowlist,
 } from '@/storage/allowlist';
+import {
+  hasUnsupportedBlocklistSchemaVersion,
+  isPersistedBlocklist,
+  loadBlocklist,
+  readBlocklistChange,
+  saveBlocklist,
+} from '@/storage/blocklist';
 import {
   isPersistedSettings,
   loadSettings,
@@ -57,6 +66,7 @@ function decisionFingerprint(
     mode: settings.mode,
     videoId: candidate.snapshot.identity.videoId,
     channelId: candidate.snapshot.identity.channelId,
+    channelHandle: candidate.snapshot.identity.channelHandle,
     artistIds: candidate.snapshot.identity.artistIds,
   });
 }
@@ -67,10 +77,15 @@ export default defineContentScript({
   world: 'ISOLATED',
   async main(ctx) {
     const adapter = createYouTubeAdapter();
-    let [settings, allowlist]: [PersistedSettings, PersistedAllowlist] =
+    let [settings, allowlist, blocklist]: [
+      PersistedSettings,
+      PersistedAllowlist,
+      PersistedBlocklist,
+    ] =
       await Promise.all([
         loadSettings(browser.storage.local),
         loadAllowlist(browser.storage.local),
+        loadBlocklist(browser.storage.local),
       ]);
     let routeKey = adapter.getRouteKey(adapter.getCurrentUrl());
     let allowlistWrite = Promise.resolve();
@@ -78,9 +93,16 @@ export default defineContentScript({
     let candidateResults = new WeakMap<Element, CandidateResult>();
     let appliedFingerprints = new WeakMap<Element, string>();
     let routeLookups = new Map<string, Promise<WatchDisclosureLookupResult>>();
-    const reasonText =
-      browser.i18n.getMessage('youtubeDisclosureReason') ||
-      'NoAI · YouTube AI disclosure';
+    const getReasonText = (reason: FilterReason) =>
+      browser.i18n.getMessage(
+        reason === 'direct-block-track'
+          ? 'directBlockTrackReason'
+          : reason === 'direct-block-artist'
+            ? 'directBlockArtistReason'
+            : reason === 'direct-block-channel'
+              ? 'directBlockChannelReason'
+              : 'youtubeDisclosureReason',
+      ) || 'NoAI · YouTube AI disclosure';
 
     const persistAllowlistUpdate = (
       update: (current: PersistedAllowlist) => PersistedAllowlist,
@@ -105,6 +127,8 @@ export default defineContentScript({
         settings,
         identity: candidate.snapshot.identity,
         allowlist,
+        blocklist,
+        directBlockKinds: { artist: false, channel: true },
         disclosureStatus: result.status,
         evidence: result.evidence,
       });
@@ -132,7 +156,11 @@ export default defineContentScript({
           ? currentArtistIds.values().next().value
           : undefined;
       const candidateVideoId = candidate.snapshot.identity.videoId;
-      applyYouTubeCardFilter(candidate, decision, reasonText, {
+      applyYouTubeCardFilter(
+        candidate,
+        decision,
+        decision.action === 'none' ? '' : getReasonText(decision.reason),
+        {
         track:
           candidateVideoId === undefined
             ? undefined
@@ -181,7 +209,8 @@ export default defineContentScript({
                   }
                 },
               },
-      });
+        },
+      );
       appliedFingerprints.set(candidate.element, fingerprint);
     };
 
@@ -265,11 +294,27 @@ export default defineContentScript({
           continue;
         }
 
-        if (isMediaAllowed(candidate.snapshot.identity, allowlist)) {
+        const userRule = evaluateUserRules(
+          candidate.snapshot.identity,
+          allowlist,
+          blocklist,
+          { artist: false, channel: true },
+        );
+        if (userRule === 'allow') {
           clearYouTubeCardFilter(candidate.element);
           expectedLookupKeys.delete(candidate.element);
           candidateResults.delete(candidate.element);
           appliedFingerprints.delete(candidate.element);
+          continue;
+        }
+
+        if (userRule !== 'none') {
+          expectedLookupKeys.delete(candidate.element);
+          candidateResults.delete(candidate.element);
+          renderResult(candidate, lookupKey, {
+            status: 'unknown-or-error',
+            evidence: [],
+          });
           continue;
         }
 
@@ -303,6 +348,7 @@ export default defineContentScript({
     ) => {
       const changedSettings = readSettingsChange(changes, areaName);
       const changedAllowlist = readAllowlistChange(changes, areaName);
+      const changedBlocklist = readBlocklistChange(changes, areaName);
       if (changedSettings !== null) {
         settings = changedSettings;
         if (!isPersistedSettings(changes[SETTINGS_STORAGE_KEY]?.newValue)) {
@@ -324,7 +370,24 @@ export default defineContentScript({
           );
         }
       }
-      if (changedSettings === null && changedAllowlist === null) {
+      if (changedBlocklist !== null) {
+        blocklist = changedBlocklist;
+        if (
+          !isPersistedBlocklist(changes[BLOCKLIST_STORAGE_KEY]?.newValue) &&
+          !hasUnsupportedBlocklistSchemaVersion(
+            changes[BLOCKLIST_STORAGE_KEY]?.newValue,
+          )
+        ) {
+          void saveBlocklist(browser.storage.local, blocklist).catch(
+            () => undefined,
+          );
+        }
+      }
+      if (
+        changedSettings === null &&
+        changedAllowlist === null &&
+        changedBlocklist === null
+      ) {
         return;
       }
       processRoots([document]);

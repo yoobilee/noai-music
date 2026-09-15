@@ -6,6 +6,7 @@ import type { BrowserContext } from '@playwright/test';
 import type { FilterMode } from '@/filtering/contracts';
 
 import { readAllowlist, setAllowlist } from './allowlistStorage';
+import { setBlocklist } from './blocklistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -73,14 +74,251 @@ const cardPageHtml = `<!doctype html>
         <a id="thumbnail" href="/watch?v=Ordinary001">Thumbnail</a>
       </ytd-thumbnail>
       <a id="video-title" href="/watch?v=Ordinary001">Ordinary fixture</a>
+      <ytd-channel-name id="channel-name"><a href="/channel/UCabcdefghijklmnopqrstuv">Synthetic channel</a></ytd-channel-name>
     </ytd-video-renderer>
+    <ytd-rich-item-renderer data-testid="handle-card">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=HandleVid01">
+              <yt-thumbnail-view-model><div class="ytThumbnailViewModelImage">Thumbnail</div></yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=HandleVid01">Handle fixture</a>
+              <ytd-channel-name id="channel-name"><a href="/@example">Handle channel</a></ytd-channel-name>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
     <ytd-video-renderer data-testid="non-video-card">
       <a id="video-title" href="/channel/sanitized">Channel link</a>
     </ytd-video-renderer>
   </body>
 </html>`;
+const channelVideosPageHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <style>
+      ytd-rich-item-renderer { display: block; margin-block-end: 16px; }
+      yt-thumbnail-view-model { display: block; min-block-size: 80px; position: relative; }
+    </style>
+  </head>
+  <body>
+    <ytd-rich-item-renderer data-testid="channel-ordinary-card">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=ChannelOwn1">
+              <yt-thumbnail-view-model><div class="ytThumbnailViewModelImage">Thumbnail</div></yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=ChannelOwn1">Channel ordinary fixture</a>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+    <ytd-rich-item-renderer data-testid="channel-disclosed-card">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=ChannelAI01">
+              <yt-thumbnail-view-model><div class="ytThumbnailViewModelImage">Thumbnail</div></yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=ChannelAI01">Channel disclosed fixture</a>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
+  </body>
+</html>`;
 const filterAttribute = 'data-noai-filter-action';
 const reasonBadge = '[data-noai-filter-reason-badge]';
+
+test('direct track blocks ordinary YouTube cards without disclosure and allowlist wins', async ({ context, page }) => {
+  const requested: string[] = [];
+  await setSettings(context, true, 'mark');
+  await setBlocklist(context, { tracks: [{ videoId: 'Ordinary001' }] });
+  await context.route('https://www.youtube.com/**', async (route) => {
+    if (route.request().isNavigationRequest()) return route.fulfill({ body: cardPageHtml, contentType: 'text/html' });
+    requested.push(new URL(route.request().url()).searchParams.get('v') ?? '');
+    return route.fulfill({ body: ordinaryHtml, contentType: 'text/html' });
+  });
+  await page.goto('https://www.youtube.com/');
+  const card = page.getByTestId('ordinary-card');
+  await expect(card).toHaveAttribute(filterAttribute, 'mark');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
+  await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked track|직접 차단한 곡/);
+  expect(requested).not.toContain('Ordinary001');
+  await setAllowlist(context, { tracks: [{ videoId: 'Ordinary001' }] });
+  await expect(card).not.toHaveAttribute(filterAttribute);
+});
+
+test('direct channel block uses the stable YouTube channel identity', async ({ context, page }) => {
+  await setSettings(context, true, 'mark');
+  await setAllowlist(context, {});
+  await setBlocklist(context, { channels: [{ identityType: 'channel-id', channelId: 'UCabcdefghijklmnopqrstuv' }] });
+  await context.route('https://www.youtube.com/**', (route) => route.fulfill({ body: route.request().isNavigationRequest() ? cardPageHtml : ordinaryHtml, contentType: 'text/html' }));
+  await page.goto('https://www.youtube.com/results?search_query=fixture');
+  const card = page.getByTestId('ordinary-card');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-channel');
+  await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked channel|직접 차단한 채널/);
+});
+
+test('exact handle channel block survives modes and hover mutation, then restores on removal', async ({ context, page }) => {
+  await setAllowlist(context, {});
+  await setSettings(context, true, 'hide');
+  await setBlocklist(context, { channels: [{ identityType: 'handle', handle: '@example' }] });
+  await context.route('https://www.youtube.com/**', (route) => route.fulfill({ body: route.request().isNavigationRequest() ? cardPageHtml : ordinaryHtml, contentType: 'text/html' }));
+  await page.goto('https://www.youtube.com/');
+  const card = page.getByTestId('handle-card');
+  await expect(card).toHaveAttribute(filterAttribute, 'hide');
+
+  await setSettings(context, true, 'blur');
+  await expect(card).toHaveAttribute(filterAttribute, 'blur');
+  const badge = card.locator(reasonBadge);
+  await expect(badge.locator('> span')).toContainText(/Blocked channel|직접 차단한 채널/);
+  const badgeIdentity = await badge.evaluate((element) => {
+    (window as typeof window & { noaiHandleBadge?: Element }).noaiHandleBadge = element;
+    return true;
+  });
+  expect(badgeIdentity).toBe(true);
+  await card.locator('.ytThumbnailViewModelImage').evaluate((element) => element.append(document.createElement('span')));
+  await expect.poll(() => card.evaluate((element) => element.querySelector('[data-noai-filter-reason-badge]') === (window as typeof window & { noaiHandleBadge?: Element }).noaiHandleBadge)).toBe(true);
+  await expect(card.locator(reasonBadge)).toHaveCount(1);
+
+  await setSettings(context, true, 'mark');
+  await expect(card).toHaveAttribute(filterAttribute, 'mark');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-channel');
+  await setBlocklist(context, {});
+  await expect(card).not.toHaveAttribute(filterAttribute);
+  await expect(card.locator(reasonBadge)).toHaveCount(0);
+});
+
+test('channel Videos route fallback applies direct reason and restores official policy after removal', async ({ context, page }) => {
+  const watchRequests: string[] = [];
+  await setAllowlist(context, {});
+  await setSettings(context, true, 'hide');
+  await setBlocklist(context, {
+    channels: [{ identityType: 'handle', handle: '@example' }],
+  });
+  await context.route('https://www.youtube.com/**', async (route) => {
+    const request = route.request();
+    if (request.isNavigationRequest()) {
+      await route.fulfill({
+        body: channelVideosPageHtml,
+        contentType: 'text/html',
+      });
+      return;
+    }
+    const videoId = new URL(request.url()).searchParams.get('v') ?? '';
+    watchRequests.push(videoId);
+    await route.fulfill({
+      body: videoId === 'ChannelAI01' ? disclosedHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://www.youtube.com/@example/videos');
+  const ordinary = page.getByTestId('channel-ordinary-card');
+  const disclosed = page.getByTestId('channel-disclosed-card');
+  await expect(ordinary).toHaveAttribute(filterAttribute, 'hide');
+  await expect(disclosed).toHaveAttribute(filterAttribute, 'hide');
+  await expect(ordinary).toHaveAttribute(
+    'data-noai-filter-reason',
+    'direct-block-channel',
+  );
+  expect(watchRequests).toEqual([]);
+
+  await setSettings(context, true, 'blur');
+  await expect(ordinary).toHaveAttribute(filterAttribute, 'blur');
+  await expect(ordinary.locator(`${reasonBadge} > span`)).toContainText(
+    /Blocked channel|직접 차단한 채널/,
+  );
+  const badge = ordinary.locator(reasonBadge);
+  await badge.evaluate((element) => {
+    (window as typeof window & { noaiRouteBadge?: Element }).noaiRouteBadge =
+      element;
+  });
+  await ordinary
+    .locator('.ytThumbnailViewModelImage')
+    .evaluate((element) => element.append(document.createElement('span')));
+  await expect
+    .poll(() =>
+      ordinary.evaluate(
+        (element) =>
+          element.querySelector('[data-noai-filter-reason-badge]') ===
+          (window as typeof window & { noaiRouteBadge?: Element })
+            .noaiRouteBadge,
+      ),
+    )
+    .toBe(true);
+  await expect(ordinary.locator(reasonBadge)).toHaveCount(1);
+
+  await setSettings(context, true, 'mark');
+  await expect(ordinary).toHaveAttribute(filterAttribute, 'mark');
+  await expect(disclosed).toHaveAttribute(
+    'data-noai-filter-reason',
+    'direct-block-channel',
+  );
+
+  await setBlocklist(context, {});
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect(disclosed).toHaveAttribute(filterAttribute, 'mark');
+  await expect(disclosed).toHaveAttribute(
+    'data-noai-filter-reason',
+    'youtube-official-ai-disclosure',
+  );
+  await expect(disclosed.locator(`${reasonBadge} > span`)).toHaveText(
+    /^NoAI · YouTube AI (?:disclosure|표시)$/,
+  );
+  await expect.poll(() => [...watchRequests].sort()).toEqual([
+    'ChannelAI01',
+    'ChannelOwn1',
+  ]);
+});
+
+test('channel Videos route fallback follows SPA route changes without stale identity', async ({ context, page }) => {
+  await setAllowlist(context, {});
+  await setSettings(context, true, 'mark');
+  await setBlocklist(context, {
+    channels: [{ identityType: 'handle', handle: '@channel-a' }],
+  });
+  await context.route('https://www.youtube.com/**', (route) =>
+    route.fulfill({
+      body: route.request().isNavigationRequest()
+        ? channelVideosPageHtml
+        : ordinaryHtml,
+      contentType: 'text/html',
+    }),
+  );
+
+  await page.goto('https://www.youtube.com/@channel-a/videos');
+  const card = page.getByTestId('channel-ordinary-card');
+  await expect(card).toHaveAttribute(
+    'data-noai-filter-reason',
+    'direct-block-channel',
+  );
+
+  await page.evaluate(() => {
+    history.pushState({}, '', '/@channel-b/videos');
+    document.dispatchEvent(new Event('yt-navigate-finish'));
+  });
+  await expect(card).not.toHaveAttribute(filterAttribute, /.+/);
+
+  await page.evaluate(() => {
+    history.pushState({}, '', '/@channel-a/videos');
+    document.dispatchEvent(new Event('yt-navigate-finish'));
+  });
+  await expect(card).toHaveAttribute(
+    'data-noai-filter-reason',
+    'direct-block-channel',
+  );
+  await expect(card.locator(reasonBadge)).toHaveCount(1);
+});
 
 async function setSettings(
   context: BrowserContext,
@@ -148,6 +386,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   expect(watchRequests).toEqual(
     new Map([
       ['Disclose001', 1],
+      ['HandleVid01', 1],
       ['Ordinary001', 1],
     ]),
   );
@@ -290,6 +529,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   expect(watchRequests).toEqual(
     new Map([
       ['Disclose001', 1],
+      ['HandleVid01', 1],
       ['Ordinary001', 1],
     ]),
   );

@@ -6,6 +6,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import type { FilterMode } from '@/filtering/contracts';
 
 import { readAllowlist, setAllowlist } from './allowlistStorage';
+import { setBlocklist } from './blocklistStorage';
 import { expect, test } from './fixtures';
 
 const disclosedHtml = await readFile(
@@ -36,6 +37,21 @@ const confirmedIds = new Set([
   'ArtistAI001',
   'DelayedAI01',
 ]);
+
+test('direct track block filters an ordinary YTM row without disclosure lookup', async ({ context, page }) => {
+  const requested: string[] = [];
+  await setSettings(context, true, 'mark');
+  await setBlocklist(context, { tracks: [{ videoId: 'SearchOrd01' }] });
+  await context.route('https://music.youtube.com/**', (route) => route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }));
+  await context.route('https://www.youtube.com/**', (route) => { requested.push(new URL(route.request().url()).searchParams.get('v') ?? ''); return route.fulfill({ body: ordinaryHtml, contentType: 'text/html' }); });
+  await page.goto('https://music.youtube.com/search?q=fixture');
+  const row = page.getByTestId('ordinary-row');
+  await expect(row).toHaveAttribute(filterAttribute, 'mark');
+  await expect(row).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
+  expect(requested).not.toContain('SearchOrd01');
+  await setBlocklist(context, {});
+  await expect(row).not.toHaveAttribute(filterAttribute);
+});
 
 async function setSettings(
   context: BrowserContext,

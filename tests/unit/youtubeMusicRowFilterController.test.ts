@@ -8,8 +8,10 @@ import type { FilterMode } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import {
   DEFAULT_ALLOWLIST,
+  DEFAULT_BLOCKLIST,
   DEFAULT_SETTINGS,
   type PersistedAllowlist,
+  type PersistedBlocklist,
   type PersistedSettings,
 } from '@/storage/contracts';
 import {
@@ -62,6 +64,7 @@ interface SetupOptions {
   rowHtml?: string;
   settings?: PersistedSettings;
   allowlist?: PersistedAllowlist;
+  blocklist?: PersistedBlocklist;
   lookup?: (videoId: string) => Promise<WatchDisclosureLookupResult>;
 }
 
@@ -71,6 +74,7 @@ function setup(options: SetupOptions = {}) {
   );
   let settings = options.settings ?? { ...DEFAULT_SETTINGS };
   let allowlist = options.allowlist ?? DEFAULT_ALLOWLIST;
+  let blocklist = options.blocklist ?? DEFAULT_BLOCKLIST;
   document.body.innerHTML =
     options.rowHtml ??
     `<ytmusic-responsive-list-item-renderer data-testid="row">
@@ -91,8 +95,10 @@ function setup(options: SetupOptions = {}) {
     document,
     getSettings: () => settings,
     getAllowlist: () => allowlist,
+    getBlocklist: () => blocklist,
     lookup,
     reasonText: 'NoAI · YouTube AI disclosure',
+    getReasonText: (reason) => reason,
   });
   const row = document.querySelector('[data-testid="row"]');
   if (!row) {
@@ -109,6 +115,9 @@ function setup(options: SetupOptions = {}) {
     setAllowlist(next: PersistedAllowlist) {
       allowlist = next;
     },
+    setBlocklist(next: PersistedBlocklist) {
+      blocklist = next;
+    },
     setUrl(next: string) {
       currentUrl = new URL(next);
     },
@@ -119,6 +128,31 @@ describe('YouTube Music row filter lifecycle', () => {
   beforeEach(() => {
     document.head.innerHTML = '';
     document.body.innerHTML = '';
+  });
+
+  it('filters direct blocked tracks without lookup and restores on removal', () => {
+    const state = setup({ blocklist: { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'SurfaceAI01' }] } });
+    state.controller.processRoots([document]);
+    expect(state.lookup).not.toHaveBeenCalled();
+    expect(state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe('hide');
+    expect(state.row.getAttribute('data-noai-filter-reason')).toBe('direct-block-track');
+    state.setBlocklist(DEFAULT_BLOCKLIST);
+    state.controller.processRoots([document]);
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(false);
+    expect(state.lookup).toHaveBeenCalledOnce();
+  });
+
+  it('filters a direct blocked stable artist but not a YTM channel rule', () => {
+    const artistId = 'UCabcdefghijklmnopqrstuv';
+    const html = `<ytmusic-responsive-list-item-renderer data-testid="row"><div class="title"><a href="/watch?v=SurfaceAI01">Track</a></div><a href="/browse/${artistId}">Artist</a></ytmusic-responsive-list-item-renderer>`;
+    const state = setup({ rowHtml: html, settings: { ...DEFAULT_SETTINGS, mode: 'mark' }, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId }] } });
+    state.controller.processRoots([document]);
+    expect(state.row.getAttribute('data-noai-filter-reason')).toBe('direct-block-artist');
+    expect(state.lookup).not.toHaveBeenCalled();
+    state.setBlocklist({ ...DEFAULT_BLOCKLIST, channels: [{ identityType: 'channel-id', channelId: artistId }, { identityType: 'handle', handle: '@example' }] });
+    state.controller.processRoots([document]);
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(false);
+    expect(state.lookup).toHaveBeenCalledOnce();
   });
 
   it.each([

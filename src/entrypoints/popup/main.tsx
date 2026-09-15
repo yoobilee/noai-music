@@ -16,6 +16,6 @@ document.body.classList.add('noai-popup');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <SettingsPanel allowlistVariant="compact" />
+    <SettingsPanel userListsVariant="compact" />
   </StrictMode>,
 );

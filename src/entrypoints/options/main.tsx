@@ -15,6 +15,6 @@ document.documentElement.lang = browser.i18n.getUILanguage();
 
 createRoot(rootElement).render(
   <StrictMode>
-    <SettingsPanel allowlistVariant="full" />
+    <SettingsPanel userListsVariant="full" />
   </StrictMode>,
 );

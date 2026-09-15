@@ -4,6 +4,7 @@ import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import {
   DEFAULT_ALLOWLIST,
+  DEFAULT_BLOCKLIST,
   DEFAULT_SETTINGS,
   type PersistedAllowlist,
 } from '@/storage/contracts';
@@ -60,6 +61,53 @@ async function flushPromises() {
 }
 
 describe('YouTube Music auto-skip playback lifecycle', () => {
+  it('skips direct blocked tracks without starting disclosure lookup and allowlist wins', () => {
+    let allowlist = DEFAULT_ALLOWLIST;
+    const lookup = vi.fn(async (videoId: string) => lookupResult(videoId));
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => allowlist,
+      getBlocklist: () => ({ ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'PlaybackA01' }] }),
+      lookup,
+      clickNext,
+    });
+    controller.processCurrent();
+    expect(clickNext).toHaveBeenCalledOnce();
+    expect(lookup).not.toHaveBeenCalled();
+    controller.processCurrent();
+    expect(clickNext).toHaveBeenCalledOnce();
+
+    const second = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => allowlist,
+      getBlocklist: () => ({ ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'PlaybackA01' }] }),
+      lookup,
+      clickNext,
+    });
+    allowlist = { ...DEFAULT_ALLOWLIST, tracks: [{ videoId: 'PlaybackA01' }] };
+    second.processCurrent();
+    expect(clickNext).toHaveBeenCalledOnce();
+  });
+
+  it('skips an unambiguously direct blocked artist without lookup', () => {
+    const artistId = 'UCabcdefghijklmnopqrstuv';
+    const lookup = vi.fn(async (videoId: string) => lookupResult(videoId));
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01', [artistId]),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
+      getBlocklist: () => ({ ...DEFAULT_BLOCKLIST, artists: [{ artistId }] }),
+      lookup,
+      clickNext,
+    });
+    controller.processCurrent();
+    expect(clickNext).toHaveBeenCalledWith('PlaybackA01');
+    expect(lookup).not.toHaveBeenCalled();
+  });
   it('clicks once per playback generation and allows sequential confirmed tracks', async () => {
     let currentVideoId: string | undefined = 'PlaybackA01';
     const pending = new Map<

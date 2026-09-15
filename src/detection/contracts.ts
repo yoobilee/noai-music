@@ -4,6 +4,7 @@ export interface MediaIdentity {
   site: SupportedSite;
   videoId?: string;
   channelId?: string;
+  channelHandle?: string;
   artistIds: readonly string[];
 }
 

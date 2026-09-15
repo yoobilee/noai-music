@@ -5,6 +5,8 @@ export const STORAGE_SCHEMA_VERSION = 1;
 export const SETTINGS_STORAGE_KEY = 'settingsV1';
 export const ALLOWLIST_SCHEMA_VERSION = 1;
 export const ALLOWLIST_STORAGE_KEY = 'allowlistV1';
+export const BLOCKLIST_SCHEMA_VERSION = 1;
+export const BLOCKLIST_STORAGE_KEY = 'blocklistV1';
 
 export interface StoredEntityReference {
   site: SupportedSite;
@@ -53,4 +55,42 @@ export const DEFAULT_ALLOWLIST: PersistedAllowlist = {
   schemaVersion: ALLOWLIST_SCHEMA_VERSION,
   tracks: [],
   artists: [],
+};
+
+export interface BlockedTrack {
+  videoId: string;
+  title?: string;
+}
+
+export interface BlockedArtist {
+  artistId: string;
+  name?: string;
+}
+
+export interface BlockedChannelId {
+  identityType: 'channel-id';
+  channelId: string;
+  name?: string;
+}
+
+export interface BlockedChannelHandle {
+  identityType: 'handle';
+  handle: string;
+  name?: string;
+}
+
+export type BlockedChannel = BlockedChannelId | BlockedChannelHandle;
+
+export interface PersistedBlocklist {
+  schemaVersion: typeof BLOCKLIST_SCHEMA_VERSION;
+  tracks: readonly BlockedTrack[];
+  artists: readonly BlockedArtist[];
+  channels: readonly BlockedChannel[];
+}
+
+export const DEFAULT_BLOCKLIST: PersistedBlocklist = {
+  schemaVersion: BLOCKLIST_SCHEMA_VERSION,
+  tracks: [],
+  artists: [],
+  channels: [],
 };
