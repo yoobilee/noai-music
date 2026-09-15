@@ -45,21 +45,34 @@ export function BlocklistManager({ compact = false }: { compact?: boolean }) {
   };
   const add = (kind: Kind, event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const parser = kind === 'track' ? parseBlocklistTrackInput : kind === 'artist' ? parseBlocklistArtistInput : parseBlocklistChannelInput;
-    const id = parser(inputs[kind]);
-    if (!id) { setErrors((value) => ({ ...value, [kind]: true })); return; }
+    const next = (() => {
+      if (kind === 'track') {
+        const videoId = parseBlocklistTrackInput(inputs.track);
+        return videoId === null
+          ? null
+          : addBlockedTrack(blocklist, { videoId });
+      }
+      if (kind === 'artist') {
+        const artistId = parseBlocklistArtistInput(inputs.artist);
+        return artistId === null
+          ? null
+          : addBlockedArtist(blocklist, { artistId });
+      }
+      const channel = parseBlocklistChannelInput(inputs.channel);
+      return channel === null ? null : addBlockedChannel(blocklist, channel);
+    })();
+    if (!next) { setErrors((value) => ({ ...value, [kind]: true })); return; }
     setErrors((value) => ({ ...value, [kind]: false }));
     setInputs((value) => ({ ...value, [kind]: '' }));
-    persist(kind === 'track' ? addBlockedTrack(blocklist, { videoId: id }) : kind === 'artist' ? addBlockedArtist(blocklist, { artistId: id }) : addBlockedChannel(blocklist, { channelId: id }));
+    persist(next);
   };
   const disabled = status === 'loading' || status === 'saving';
   const lists = {
-    track: blocklist.tracks.map((item) => ({ id: item.videoId, label: item.title })),
-    artist: blocklist.artists.map((item) => ({ id: item.artistId, label: item.name })),
-    channel: blocklist.channels.map((item) => ({ id: item.channelId, label: item.name })),
+    track: blocklist.tracks.map((item) => ({ id: item.videoId, label: item.title, remove: () => persist(removeBlockedTrack(blocklist, item.videoId)) })),
+    artist: blocklist.artists.map((item) => ({ id: item.artistId, label: item.name, remove: () => persist(removeBlockedArtist(blocklist, item.artistId)) })),
+    channel: blocklist.channels.map((item) => ({ id: item.identityType === 'channel-id' ? item.channelId : item.handle, label: item.name, remove: () => persist(removeBlockedChannel(blocklist, item)) })),
   };
   const headings = { track: 'blockedTracksHeading', artist: 'blockedArtistsHeading', channel: 'blockedChannelsHeading' } as const;
-  const remove = (kind: Kind, id: string) => persist(kind === 'track' ? removeBlockedTrack(blocklist, id) : kind === 'artist' ? removeBlockedArtist(blocklist, id) : removeBlockedChannel(blocklist, id));
   const contents = <>
     <p className="settings-panel__description">{message('blocklistDescription')}</p>
     {(['track', 'artist', 'channel'] as const).map((kind) => <form className="allowlist-manager__form" key={kind} onSubmit={(event) => add(kind, event)}>
@@ -74,7 +87,7 @@ export function BlocklistManager({ compact = false }: { compact?: boolean }) {
       <h3>{message(headings[kind])}</h3>
       {lists[kind].length === 0 ? <p className="allowlist-manager__empty">{message('emptyBlocklist')}</p> : <ul>{lists[kind].map((item) => <li key={item.id}>
         <span className="allowlist-manager__identity">{item.label ? <span>{item.label}</span> : null}<code>{item.id}</code></span>
-        <button aria-label={`${message('removeBlocklistItem')}: ${item.label ?? item.id}`} disabled={disabled} onClick={() => remove(kind, item.id)} type="button">{message('removeBlocklistItem')}</button>
+        <button aria-label={`${message('removeBlocklistItem')}: ${item.label ?? item.id}`} disabled={disabled} onClick={item.remove} type="button">{message('removeBlocklistItem')}</button>
       </li>)}</ul>}
     </div>)}
     {status === 'error' ? <p className="settings-panel__error" role="alert">{message('blocklistSaveError')}</p> : null}

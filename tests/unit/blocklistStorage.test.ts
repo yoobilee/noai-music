@@ -17,7 +17,7 @@ describe('versioned local direct blocklist', () => {
     expect(storage.data[BLOCKLIST_STORAGE_KEY]).toEqual(DEFAULT_BLOCKLIST);
   });
   it('normalizes, trims, deduplicates, rejects malformed IDs, and sorts deterministically', () => {
-    expect(normalizeBlocklist({ schemaVersion: 1, tracks: [{ videoId: 'TrackVideo2', title: `  ${'x'.repeat(210)} ` }, { videoId: 'TrackVideo1' }, { videoId: 'TrackVideo1', title: 'duplicate' }, { videoId: 'bad' }], artists: [{ artistId: artistA, name: `  Artist   A  ` }, { artistId: 'handle' }], channels: [{ channelId: channelB }, { channelId: channelB, name: 'duplicate' }] })).toEqual({ schemaVersion: 1, tracks: [{ videoId: 'TrackVideo1' }, { videoId: 'TrackVideo2', title: 'x'.repeat(200) }], artists: [{ artistId: artistA, name: 'Artist A' }], channels: [{ channelId: channelB }] });
+    expect(normalizeBlocklist({ schemaVersion: 1, tracks: [{ videoId: 'TrackVideo2', title: `  ${'x'.repeat(210)} ` }, { videoId: 'TrackVideo1' }, { videoId: 'TrackVideo1', title: 'duplicate' }, { videoId: 'bad' }], artists: [{ artistId: artistA, name: `  Artist   A  ` }, { artistId: 'handle' }], channels: [{ channelId: channelB }, { identityType: 'channel-id', channelId: channelB, name: 'duplicate' }, { identityType: 'handle', handle: '@example' }, { identityType: 'handle', handle: '@example', name: 'duplicate' }, { identityType: 'handle', handle: '@' }] })).toEqual({ schemaVersion: 1, tracks: [{ videoId: 'TrackVideo1' }, { videoId: 'TrackVideo2', title: 'x'.repeat(200) }], artists: [{ artistId: artistA, name: 'Artist A' }], channels: [{ identityType: 'channel-id', channelId: channelB }, { identityType: 'handle', handle: '@example' }] });
   });
   it('recovers corrupt values but preserves an unsupported future schema', async () => {
     const corrupt = memory({ [BLOCKLIST_STORAGE_KEY]: 'bad' });
@@ -36,8 +36,9 @@ describe('versioned local direct blocklist', () => {
     expect(removeBlockedTrack(tracks, 'TrackVideo1')).toEqual(DEFAULT_BLOCKLIST);
     const artists = addBlockedArtist(DEFAULT_BLOCKLIST, { artistId: artistA });
     expect(removeBlockedArtist(artists, artistA)).toEqual(DEFAULT_BLOCKLIST);
-    const channels = addBlockedChannel(DEFAULT_BLOCKLIST, { channelId: channelB });
-    expect(removeBlockedChannel(channels, channelB)).toEqual(DEFAULT_BLOCKLIST);
+    const channel = { identityType: 'channel-id' as const, channelId: channelB };
+    const channels = addBlockedChannel(DEFAULT_BLOCKLIST, channel);
+    expect(removeBlockedChannel(channels, channel)).toEqual(DEFAULT_BLOCKLIST);
   });
   it('parses local storage changes only', () => {
     const value = { schemaVersion: 1, tracks: [{ videoId: 'TrackVideo1' }], artists: [], channels: [] };

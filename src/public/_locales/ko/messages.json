@@ -118,13 +118,13 @@
   "blockedChannelsHeading": { "message": "차단된 채널" },
   "trackBlocklistInputLabel": { "message": "곡 video ID 또는 watch URL" },
   "artistBlocklistInputLabel": { "message": "아티스트 channel ID 또는 URL" },
-  "channelBlocklistInputLabel": { "message": "채널 ID 또는 URL" },
-  "channelBlocklistInputPlaceholder": { "message": "UC… ID 또는 YouTube channel URL" },
+  "channelBlocklistInputLabel": { "message": "채널 ID, @handle 또는 URL" },
+  "channelBlocklistInputPlaceholder": { "message": "UC 채널 ID, @handle 또는 YouTube 채널 URL" },
   "addTrackBlocklist": { "message": "곡 차단" },
   "addArtistBlocklist": { "message": "아티스트 차단" },
   "addChannelBlocklist": { "message": "채널 차단" },
   "removeBlocklistItem": { "message": "삭제" },
   "emptyBlocklist": { "message": "저장된 항목이 없습니다." },
-  "invalidChannelIdentity": { "message": "정확한 UC channel ID 또는 지원되는 YouTube channel URL을 입력해 주세요." },
+  "invalidChannelIdentity": { "message": "정확한 UC 채널 ID, @handle 또는 지원되는 YouTube 채널 URL을 입력해 주세요." },
   "blocklistSaveError": { "message": "차단 목록을 저장하지 못했습니다. 다시 시도해 주세요." }
 }

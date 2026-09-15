@@ -143,6 +143,6 @@ describe('YouTube card filter policy', () => {
 
   it('prefers direct artist and channel reasons over official disclosure', () => {
     const identified = { ...identity, artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'], channelId: 'UCbbbbbbbbbbbbbbbbbbbbbb' };
-    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'mark' }, identity: identified, allowlist: DEFAULT_ALLOWLIST, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId: identified.artistIds[0]! }], channels: [{ channelId: identified.channelId }] }, directBlockKinds: { artist: true, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'mark', reason: 'direct-block-artist' });
+    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'mark' }, identity: identified, allowlist: DEFAULT_ALLOWLIST, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId: identified.artistIds[0]! }], channels: [{ identityType: 'channel-id', channelId: identified.channelId }] }, directBlockKinds: { artist: true, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'mark', reason: 'direct-block-artist' });
   });
 });

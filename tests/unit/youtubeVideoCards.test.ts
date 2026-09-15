@@ -76,6 +76,15 @@ describe('YouTube video card identity extraction', () => {
     });
   });
 
+  it('extracts exact ASCII and Unicode handles without a UC link', () => {
+    const candidates = createAdapter().collectCandidates(document);
+    const handle = candidates.find(({ element }) => element.getAttribute('data-testid') === 'handle-video');
+    const korean = candidates.find(({ element }) => element.getAttribute('data-testid') === 'korean-handle-video');
+    expect(handle?.snapshot.identity).toMatchObject({ channelHandle: '@example', artistIds: [] });
+    expect(handle?.snapshot.identity.channelId).toBeUndefined();
+    expect(korean?.snapshot.identity).toMatchObject({ channelHandle: '@블루레인', artistIds: [] });
+  });
+
   it('keeps the card filter overlay anchor inside the thumbnail surface', () => {
     const candidates = createAdapter().collectCandidates(document);
     const home = candidates.find(

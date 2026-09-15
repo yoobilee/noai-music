@@ -2,6 +2,7 @@ import type { MediaIdentity } from '@/detection/contracts';
 import { isMediaAllowed } from '@/filtering/allowlist';
 import { isYouTubeArtistId } from '@/shared/youtubeArtistId';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
+import { isYouTubeChannelHandle } from '@/shared/youtubeChannelHandle';
 import type { PersistedAllowlist, PersistedBlocklist } from '@/storage/contracts';
 
 import type { DirectBlockKinds } from './contracts';
@@ -28,8 +29,29 @@ export function evaluateUserRules(
     const blocked = new Set(blocklist.artists.map((item) => item.artistId));
     if (identity.artistIds.some((id) => isYouTubeArtistId(id) && blocked.has(id))) return 'block-artist';
   }
-  if (directBlockKinds.channel && identity.channelId !== undefined && isYouTubeArtistId(identity.channelId) && blocklist.channels.some((item) => item.channelId === identity.channelId)) {
-    return 'block-channel';
+  if (directBlockKinds.channel) {
+    if (
+      identity.channelId !== undefined &&
+      isYouTubeArtistId(identity.channelId) &&
+      blocklist.channels.some(
+        (item) =>
+          item.identityType === 'channel-id' &&
+          item.channelId === identity.channelId,
+      )
+    ) {
+      return 'block-channel';
+    }
+    if (
+      identity.channelHandle !== undefined &&
+      isYouTubeChannelHandle(identity.channelHandle) &&
+      blocklist.channels.some(
+        (item) =>
+          item.identityType === 'handle' &&
+          item.handle === identity.channelHandle,
+      )
+    ) {
+      return 'block-channel';
+    }
   }
   return 'none';
 }

@@ -25,7 +25,8 @@ export const YOUTUBE_SELECTORS = {
     '#meta',
     '.ytLockupViewModelMetadata',
   ],
-  artistLinks: '#channel-name a[href], ytd-channel-name a[href]',
+  channelIdentityLinks:
+    '#channel-name a[href], ytd-channel-name a[href], yt-content-metadata-view-model a[href]',
   officialMetadataBadge:
     'ytd-badge-supported-renderer, yt-badge-view-model',
   howThisWasMade: 'how-this-was-made-section-view-model',

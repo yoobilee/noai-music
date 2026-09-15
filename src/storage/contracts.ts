@@ -67,10 +67,19 @@ export interface BlockedArtist {
   name?: string;
 }
 
-export interface BlockedChannel {
+export interface BlockedChannelId {
+  identityType: 'channel-id';
   channelId: string;
   name?: string;
 }
+
+export interface BlockedChannelHandle {
+  identityType: 'handle';
+  handle: string;
+  name?: string;
+}
+
+export type BlockedChannel = BlockedChannelId | BlockedChannelHandle;
 
 export interface PersistedBlocklist {
   schemaVersion: typeof BLOCKLIST_SCHEMA_VERSION;

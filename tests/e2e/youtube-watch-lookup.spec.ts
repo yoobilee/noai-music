@@ -76,6 +76,21 @@ const cardPageHtml = `<!doctype html>
       <a id="video-title" href="/watch?v=Ordinary001">Ordinary fixture</a>
       <ytd-channel-name id="channel-name"><a href="/channel/UCabcdefghijklmnopqrstuv">Synthetic channel</a></ytd-channel-name>
     </ytd-video-renderer>
+    <ytd-rich-item-renderer data-testid="handle-card">
+      <div id="content">
+        <yt-lockup-view-model>
+          <div class="ytLockupViewModelHost">
+            <a class="ytLockupViewModelContentImage" href="/watch?v=HandleVid01">
+              <yt-thumbnail-view-model><div class="ytThumbnailViewModelImage">Thumbnail</div></yt-thumbnail-view-model>
+            </a>
+            <div class="ytLockupViewModelMetadata">
+              <a id="video-title" href="/watch?v=HandleVid01">Handle fixture</a>
+              <ytd-channel-name id="channel-name"><a href="/@example">Handle channel</a></ytd-channel-name>
+            </div>
+          </div>
+        </yt-lockup-view-model>
+      </div>
+    </ytd-rich-item-renderer>
     <ytd-video-renderer data-testid="non-video-card">
       <a id="video-title" href="/channel/sanitized">Channel link</a>
     </ytd-video-renderer>
@@ -106,12 +121,42 @@ test('direct track blocks ordinary YouTube cards without disclosure and allowlis
 test('direct channel block uses the stable YouTube channel identity', async ({ context, page }) => {
   await setSettings(context, true, 'mark');
   await setAllowlist(context, {});
-  await setBlocklist(context, { channels: [{ channelId: 'UCabcdefghijklmnopqrstuv' }] });
+  await setBlocklist(context, { channels: [{ identityType: 'channel-id', channelId: 'UCabcdefghijklmnopqrstuv' }] });
   await context.route('https://www.youtube.com/**', (route) => route.fulfill({ body: route.request().isNavigationRequest() ? cardPageHtml : ordinaryHtml, contentType: 'text/html' }));
   await page.goto('https://www.youtube.com/results?search_query=fixture');
   const card = page.getByTestId('ordinary-card');
   await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-channel');
   await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked channel|직접 차단한 채널/);
+});
+
+test('exact handle channel block survives modes and hover mutation, then restores on removal', async ({ context, page }) => {
+  await setAllowlist(context, {});
+  await setSettings(context, true, 'hide');
+  await setBlocklist(context, { channels: [{ identityType: 'handle', handle: '@example' }] });
+  await context.route('https://www.youtube.com/**', (route) => route.fulfill({ body: route.request().isNavigationRequest() ? cardPageHtml : ordinaryHtml, contentType: 'text/html' }));
+  await page.goto('https://www.youtube.com/');
+  const card = page.getByTestId('handle-card');
+  await expect(card).toHaveAttribute(filterAttribute, 'hide');
+
+  await setSettings(context, true, 'blur');
+  await expect(card).toHaveAttribute(filterAttribute, 'blur');
+  const badge = card.locator(reasonBadge);
+  await expect(badge.locator('> span')).toContainText(/Blocked channel|직접 차단한 채널/);
+  const badgeIdentity = await badge.evaluate((element) => {
+    (window as typeof window & { noaiHandleBadge?: Element }).noaiHandleBadge = element;
+    return true;
+  });
+  expect(badgeIdentity).toBe(true);
+  await card.locator('.ytThumbnailViewModelImage').evaluate((element) => element.append(document.createElement('span')));
+  await expect.poll(() => card.evaluate((element) => element.querySelector('[data-noai-filter-reason-badge]') === (window as typeof window & { noaiHandleBadge?: Element }).noaiHandleBadge)).toBe(true);
+  await expect(card.locator(reasonBadge)).toHaveCount(1);
+
+  await setSettings(context, true, 'mark');
+  await expect(card).toHaveAttribute(filterAttribute, 'mark');
+  await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-channel');
+  await setBlocklist(context, {});
+  await expect(card).not.toHaveAttribute(filterAttribute);
+  await expect(card.locator(reasonBadge)).toHaveCount(0);
 });
 
 async function setSettings(
@@ -180,6 +225,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   expect(watchRequests).toEqual(
     new Map([
       ['Disclose001', 1],
+      ['HandleVid01', 1],
       ['Ordinary001', 1],
     ]),
   );
@@ -322,6 +368,7 @@ test('filters only confirmed cards and switches modes without reloading', async 
   expect(watchRequests).toEqual(
     new Map([
       ['Disclose001', 1],
+      ['HandleVid01', 1],
       ['Ordinary001', 1],
     ]),
   );

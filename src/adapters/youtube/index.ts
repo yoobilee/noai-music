@@ -5,6 +5,7 @@ import { readYouTubeOfficialDisclosures } from './officialDisclosure';
 import { YOUTUBE_SELECTORS } from './selectors';
 import { parseYouTubeWatchVideoId } from './videoId';
 import { parseYouTubeArtistHref } from '@/shared/youtubeArtistId';
+import { parseYouTubeChannelHandleHref } from '@/shared/youtubeChannelHandle';
 
 interface YouTubeAdapterEnvironment {
   document: Document;
@@ -75,7 +76,7 @@ function getCandidateTitle(candidate: Element): string | undefined {
 function getArtistIds(candidate: Element): readonly string[] {
   const artistIds = new Set<string>();
   for (const anchor of candidate.querySelectorAll<HTMLAnchorElement>(
-    YOUTUBE_SELECTORS.artistLinks,
+    YOUTUBE_SELECTORS.channelIdentityLinks,
   )) {
     const artistId = parseYouTubeArtistHref(
       anchor.getAttribute('href'),
@@ -86,6 +87,17 @@ function getArtistIds(candidate: Element): readonly string[] {
     }
   }
   return [...artistIds].sort();
+}
+
+function getChannelHandles(candidate: Element): readonly string[] {
+  const handles = new Set<string>();
+  for (const anchor of candidate.querySelectorAll<HTMLAnchorElement>(
+    YOUTUBE_SELECTORS.channelIdentityLinks,
+  )) {
+    const handle = parseYouTubeChannelHandleHref(anchor.getAttribute('href'));
+    if (handle !== null) handles.add(handle);
+  }
+  return [...handles].sort();
 }
 
 function getFilterOverlayAnchor(candidate: Element): HTMLElement | undefined {
@@ -105,6 +117,7 @@ function createCandidate(
     return undefined;
   }
   const artistIds = getArtistIds(element);
+  const channelHandles = getChannelHandles(element);
 
   return {
     element,
@@ -117,6 +130,8 @@ function createCandidate(
         site: 'youtube',
         videoId,
         channelId: artistIds.length === 1 ? artistIds[0] : undefined,
+        channelHandle:
+          channelHandles.length === 1 ? channelHandles[0] : undefined,
         artistIds,
       },
       title: getCandidateTitle(element),

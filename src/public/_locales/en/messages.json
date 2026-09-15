@@ -118,13 +118,13 @@
   "blockedChannelsHeading": { "message": "Blocked channels" },
   "trackBlocklistInputLabel": { "message": "Track video ID or watch URL" },
   "artistBlocklistInputLabel": { "message": "Artist channel ID or URL" },
-  "channelBlocklistInputLabel": { "message": "Channel ID or URL" },
-  "channelBlocklistInputPlaceholder": { "message": "UC… ID or YouTube channel URL" },
+  "channelBlocklistInputLabel": { "message": "Channel ID, @handle, or URL" },
+  "channelBlocklistInputPlaceholder": { "message": "UC channel ID, @handle, or YouTube channel URL" },
   "addTrackBlocklist": { "message": "Block track" },
   "addArtistBlocklist": { "message": "Block artist" },
   "addChannelBlocklist": { "message": "Block channel" },
   "removeBlocklistItem": { "message": "Remove" },
   "emptyBlocklist": { "message": "No saved items." },
-  "invalidChannelIdentity": { "message": "Enter an exact UC channel ID or a supported YouTube channel URL." },
+  "invalidChannelIdentity": { "message": "Enter an exact UC channel ID, @handle, or supported YouTube channel URL." },
   "blocklistSaveError": { "message": "The blocked list could not be saved. Try again." }
 }

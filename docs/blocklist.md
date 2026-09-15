@@ -10,10 +10,10 @@
 
 - 곡: 정확한 11자 YouTube video ID. raw ID와 지원되는 `youtube.com/watch`, `music.youtube.com/watch` URL을 받는다.
 - 아티스트: 정확한 `UC` channel ID 형식. YTM의 전용 artist link에서 확인된 ID에만 적용한다.
-- 채널: 정확한 `UC` channel ID 형식. 일반 YouTube 카드의 channel link에서 확인된 ID에만 적용한다.
-- `@handle`, 이름, 제목 문자열은 ID로 추측하거나 변환하지 않는다. 새 네트워크 조회도 하지 않는다.
+- 채널: 정확한 `UC` channel ID 또는 exact YouTube `@handle`. 일반 YouTube 카드의 `/channel/UC…` 또는 `/@handle` link에서 확인된 identity에만 적용한다.
+- raw `@handle`과 `https://www.youtube.com/@handle` URL을 받으며 percent-encoded 비라틴 handle URL은 URL parser로 decode한다. 이름과 제목 문자열은 identity로 사용하지 않고 handle을 UC ID로 변환하거나 추측하지 않는다. 새 네트워크 조회도 하지 않는다.
 
-YouTube의 channel link는 UC ID는 안정적이지만 음악 아티스트 의미까지 보장하지 않으므로 직접 차단에서는 channel kind로만 평가한다. YTM의 search, album, playlist, artist row와 player는 전용 artist link의 UC ID를 artist kind로만 평가한다. 따라서 YouTube에서는 track/channel, YTM에서는 track/artist를 지원하며 불명확한 교차 kind는 fail-closed다.
+YouTube의 channel link는 channel kind로만 평가한다. UC ID와 handle이 모두 확인되면 각 exact identity를 독립적으로 비교하며 둘 다 같은 `direct-block-channel` reason을 사용한다. UC ID가 handle보다 안정적이지만, 최신 카드에 UC link가 없으면 DOM에 노출된 exact handle을 사용할 수 있다. YTM의 search, album, playlist, artist row와 player는 전용 artist link의 UC ID를 artist kind로만 평가한다. 따라서 YouTube에서는 track/channel, YTM에서는 track/artist를 지원하며 불명확한 교차 kind는 fail-closed다.
 
 ## 저장과 개인정보
 
@@ -24,11 +24,16 @@ YouTube의 channel link는 UC ID는 안정적이지만 음악 아티스트 의�
   "schemaVersion": 1,
   "tracks": [{ "videoId": "…", "title": "선택적 표시명" }],
   "artists": [{ "artistId": "UC…", "name": "선택적 표시명" }],
-  "channels": [{ "channelId": "UC…", "name": "선택적 표시명" }]
+  "channels": [
+    { "identityType": "channel-id", "channelId": "UC…", "name": "선택적 표시명" },
+    { "identityType": "handle", "handle": "@example", "name": "선택적 표시명" }
+  ]
 }
 ```
 
 잘못된 값은 정규화하고 ID 중복을 제거해 결정적인 ID 순서로 저장한다. title은 200자, name은 120자로 제한한다. 현재 빌드가 모르는 future schema version은 빈 목록처럼 안전하게 처리하되 원본 저장 값을 덮어쓰지 않는다. 사용자가 추가한 ID와 최소 표시 metadata 외에 시청·청취 기록, 검색어, queue나 계정 정보는 저장하지 않는다. 외부 전송, sync, telemetry가 없다.
+
+PR 개발 중 사용한 legacy `{ "channelId": "UC…" }` 항목은 같은 schema version에서 명시적인 `identityType: "channel-id"` 항목으로 정규화한다. 한 channel entry에 ID와 handle을 동시에 저장하지 않으며 각 identity type 안에서 exact 값으로 중복 제거하고 정렬한다.
 
 ## 카드와 auto-skip
 
@@ -43,7 +48,7 @@ popup의 compact 허용 목록 아래에 native `<details>/<summary>` 차단 목
 ## 수동 검증
 
 1. `npm run build` 후 `chrome://extensions`에서 unpacked extension을 reload한다.
-2. popup에서 허용·차단 summary를 키보드로 펼치고 곡·아티스트·채널 ID/URL의 추가, 오류, 중복, 삭제와 scroll을 확인한다.
+2. popup에서 허용·차단 summary를 키보드로 펼치고 곡·아티스트·채널 ID/URL 및 `@handle`의 추가, 오류, 중복, 삭제와 scroll을 확인한다.
 3. YouTube의 일반 카드 track/channel을 차단해 Hide/Blur/Mark 및 각 reason을 확인한다.
 4. 같은 identity를 allowlist에도 넣어 즉시 복원되는지, allow만 삭제해 direct block이 다시 적용되는지 확인한다.
 5. block을 삭제해 카드가 복원되거나 confirmed official disclosure 정책으로 재평가되는지 확인한다.
@@ -53,5 +58,6 @@ popup의 compact 허용 목록 아래에 native `<details>/<summary>` 차단 목
 ## 알려진 한계
 
 - YouTube에서 artist kind, YTM에서 channel kind는 현재 DOM 계약으로 의미를 확실히 구분할 수 없어 적용하지 않는다.
-- handle/custom URL/이름만 제공되는 경우는 지원하지 않는다.
+- UC channel ID가 가장 안정적이다. handle rule은 현재 DOM의 exact handle에만 일치하며, 채널 소유자가 handle을 변경하면 기존 rule은 더 이상 일치하지 않을 수 있다. 이를 보완하는 handle→UC network/API lookup은 1.0에서 하지 않는다.
+- legacy custom URL이나 채널 표시 이름만 제공되는 경우는 지원하지 않는다.
 - live 사이트 DOM과 YTM Premium 재생은 자동 CI가 아닌 수동 검증이 필요하다. CI는 비식별 fixture와 bundled Chromium을 사용한다.

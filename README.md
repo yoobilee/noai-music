@@ -75,7 +75,7 @@ video ID 기반 watch-page 확인, 요청 제한과 캐시 계약은 [`docs/yout
 
 곡·아티스트 allowlist의 안정적 identity, 우선순위, 저장 schema, UI와 지원 한계는 [`docs/allowlist.md`](docs/allowlist.md)에 기록되어 있습니다.
 
-곡·아티스트·채널 direct blocklist의 사용자 규칙, surface별 identity 경계, 저장 schema와 auto-skip 동작은 [`docs/blocklist.md`](docs/blocklist.md)에 기록되어 있습니다.
+곡·아티스트·채널 direct blocklist의 exact video ID·UC ID·YouTube `@handle` 규칙, surface별 identity 경계, 저장 schema와 auto-skip 동작은 [`docs/blocklist.md`](docs/blocklist.md)에 기록되어 있습니다.
 
 Node.js 22.13 이상과 npm이 필요합니다.
 

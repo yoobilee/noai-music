@@ -1,5 +1,6 @@
 import { isYouTubeArtistId } from '@/shared/youtubeArtistId';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
+import { isYouTubeChannelHandle } from '@/shared/youtubeChannelHandle';
 
 import {
   BLOCKLIST_SCHEMA_VERSION,
@@ -38,9 +39,37 @@ function normalizeArtist(value: unknown): BlockedArtist | undefined {
 }
 
 function normalizeChannel(value: unknown): BlockedChannel | undefined {
-  if (!isObject(value) || typeof value.channelId !== 'string' || !isYouTubeArtistId(value.channelId)) return undefined;
+  if (!isObject(value)) return undefined;
   const name = normalizeText(value.name, MAX_NAME_LENGTH);
-  return { channelId: value.channelId, ...(name ? { name } : {}) };
+  if (
+    (value.identityType === 'channel-id' || value.identityType === undefined) &&
+    typeof value.channelId === 'string' &&
+    isYouTubeArtistId(value.channelId)
+  ) {
+    return {
+      identityType: 'channel-id',
+      channelId: value.channelId,
+      ...(name ? { name } : {}),
+    };
+  }
+  if (
+    value.identityType === 'handle' &&
+    typeof value.handle === 'string' &&
+    isYouTubeChannelHandle(value.handle)
+  ) {
+    return {
+      identityType: 'handle',
+      handle: value.handle,
+      ...(name ? { name } : {}),
+    };
+  }
+  return undefined;
+}
+
+export function blockedChannelKey(channel: BlockedChannel): string {
+  return channel.identityType === 'channel-id'
+    ? `channel-id:${channel.channelId}`
+    : `handle:${channel.handle}`;
 }
 
 function normalizeUnique<T>(values: readonly unknown[], normalize: (value: unknown) => T | undefined, id: (value: T) => string): readonly T[] {
@@ -64,7 +93,7 @@ export function normalizeBlocklist(value: unknown): PersistedBlocklist {
     schemaVersion: BLOCKLIST_SCHEMA_VERSION,
     tracks: normalizeUnique(value.tracks, normalizeTrack, (item) => item.videoId),
     artists: normalizeUnique(value.artists, normalizeArtist, (item) => item.artistId),
-    channels: normalizeUnique(value.channels, normalizeChannel, (item) => item.channelId),
+    channels: normalizeUnique(value.channels, normalizeChannel, blockedChannelKey),
   };
 }
 
@@ -77,7 +106,7 @@ export const removeBlockedTrack = (list: PersistedBlocklist, videoId: string) =>
 export const addBlockedArtist = (list: PersistedBlocklist, item: BlockedArtist) => normalizeBlocklist({ ...list, artists: [...list.artists, item] });
 export const removeBlockedArtist = (list: PersistedBlocklist, artistId: string) => { const normalized = normalizeBlocklist(list); return { ...normalized, artists: normalized.artists.filter((item) => item.artistId !== artistId) }; };
 export const addBlockedChannel = (list: PersistedBlocklist, item: BlockedChannel) => normalizeBlocklist({ ...list, channels: [...list.channels, item] });
-export const removeBlockedChannel = (list: PersistedBlocklist, channelId: string) => { const normalized = normalizeBlocklist(list); return { ...normalized, channels: normalized.channels.filter((item) => item.channelId !== channelId) }; };
+export const removeBlockedChannel = (list: PersistedBlocklist, channel: BlockedChannel) => { const normalized = normalizeBlocklist(list); const key = blockedChannelKey(channel); return { ...normalized, channels: normalized.channels.filter((item) => blockedChannelKey(item) !== key) }; };
 
 export async function loadBlocklist(storage: SettingsStorageArea): Promise<PersistedBlocklist> {
   const stored = await storage.get(BLOCKLIST_STORAGE_KEY);

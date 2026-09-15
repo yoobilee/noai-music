@@ -66,6 +66,7 @@ function decisionFingerprint(
     mode: settings.mode,
     videoId: candidate.snapshot.identity.videoId,
     channelId: candidate.snapshot.identity.channelId,
+    channelHandle: candidate.snapshot.identity.channelHandle,
     artistIds: candidate.snapshot.identity.artistIds,
   });
 }

@@ -149,7 +149,7 @@ describe('YouTube Music row filter lifecycle', () => {
     state.controller.processRoots([document]);
     expect(state.row.getAttribute('data-noai-filter-reason')).toBe('direct-block-artist');
     expect(state.lookup).not.toHaveBeenCalled();
-    state.setBlocklist({ ...DEFAULT_BLOCKLIST, channels: [{ channelId: artistId }] });
+    state.setBlocklist({ ...DEFAULT_BLOCKLIST, channels: [{ identityType: 'channel-id', channelId: artistId }, { identityType: 'handle', handle: '@example' }] });
     state.controller.processRoots([document]);
     expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(false);
     expect(state.lookup).toHaveBeenCalledOnce();

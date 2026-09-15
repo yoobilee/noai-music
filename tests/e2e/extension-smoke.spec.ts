@@ -119,10 +119,11 @@ test('popup manages track, artist, and channel direct block rules', async ({ pag
   const channel = 'UCabcdefghijklmnopqrstuv';
   await page.locator('#blocklist-artist-input').fill(channel);
   await page.locator('form:has(#blocklist-artist-input) button').click();
-  await page.locator('#blocklist-channel-input').fill(`https://www.youtube.com/channel/${channel}`);
+  await page.locator('#blocklist-channel-input').fill('https://www.youtube.com/%40%EB%B8%94%EB%A3%A8%EB%A0%88%EC%9D%B8');
   await page.locator('form:has(#blocklist-channel-input) button').click();
   await expect(summary).toContainText(/Blocked artists: 1|차단된 아티스트 1명/);
   await expect(summary).toContainText(/Blocked channels: 1|차단된 채널 1개/);
+  await expect(page.locator('.blocklist-manager code', { hasText: '@블루레인' })).toHaveCount(1);
   await expect(page.locator('body')).toHaveCSS('overflow-y', 'auto');
 
   await page.locator('#blocklist-track-input').fill('not-an-id');

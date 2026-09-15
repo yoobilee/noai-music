@@ -67,6 +67,7 @@ function decisionFingerprint(
     enabled: settings.enabled,
     mode: settings.mode,
     channelId: candidate.snapshot.identity.channelId,
+    channelHandle: candidate.snapshot.identity.channelHandle,
     artistIds: candidate.snapshot.identity.artistIds,
   });
 }
