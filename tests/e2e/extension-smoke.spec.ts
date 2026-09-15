@@ -41,6 +41,110 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
   ]);
 });
 
+test('popup defines a stable intrinsic width and its own scroll container', async ({
+  extensionId,
+  page,
+}) => {
+  await page.setViewportSize({ height: 600, width: 190 });
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  await expect(page.getByRole('heading', { name: 'NoAI' })).toBeVisible();
+
+  const intrinsicWidths = await page.evaluate(() => ({
+    body: getComputedStyle(document.body).inlineSize,
+    document: getComputedStyle(document.documentElement).inlineSize,
+    panel: getComputedStyle(
+      document.querySelector<HTMLElement>('.settings-panel--compact')!,
+    ).inlineSize,
+    root: getComputedStyle(document.querySelector<HTMLElement>('#root')!)
+      .inlineSize,
+  }));
+  expect(intrinsicWidths).toEqual({
+    body: '380px',
+    document: '380px',
+    panel: '380px',
+    root: '380px',
+  });
+
+  await page.setViewportSize({ height: 600, width: 380 });
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'NoAI' })).toBeVisible();
+
+  const modeCards = page.locator('.mode-option');
+  const cardBoxes = await modeCards.evaluateAll((cards) =>
+    cards.map((card) => {
+      const rect = card.getBoundingClientRect();
+      return { top: rect.top, width: rect.width };
+    }),
+  );
+  expect(cardBoxes.every((box) => box.width > 90)).toBe(true);
+  expect(new Set(cardBoxes.map((box) => Math.round(box.top))).size).toBe(1);
+  expect(
+    await page
+      .locator('.settings-panel__header > div')
+      .evaluate((copy) => copy.clientWidth),
+  ).toBeGreaterThan(200);
+
+  const sampleWidths = () =>
+    page.evaluate(async () => {
+      const values: number[][] = [];
+      for (let index = 0; index < 16; index += 1) {
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
+        values.push([
+          document.documentElement.getBoundingClientRect().width,
+          document.body.getBoundingClientRect().width,
+          document.querySelector('#root')!.getBoundingClientRect().width,
+          document
+            .querySelector('.settings-panel--compact')!
+            .getBoundingClientRect().width,
+        ]);
+      }
+      return values;
+    });
+
+  const collapsedWidths = await sampleWidths();
+  expect(new Set(collapsedWidths.map((sample) => sample.join(':'))).size).toBe(
+    1,
+  );
+  expect(collapsedWidths[0]).toEqual([380, 380, 380, 380]);
+
+  await page.locator('.user-rule-manager__disclosure').evaluateAll((items) => {
+    for (const item of items) (item as HTMLDetailsElement).open = true;
+  });
+  const expandedWidths = await sampleWidths();
+  expect(new Set(expandedWidths.map((sample) => sample.join(':'))).size).toBe(1);
+  expect(expandedWidths[0]).toEqual([380, 380, 380, 380]);
+
+  await page.locator('#allowlist-track-input').fill('TrackVideo1');
+  await page.locator('#allowlist-track-input').press('Enter');
+  await expect(page.locator('.user-rule-manager code')).toContainText(
+    'TrackVideo1',
+  );
+  await page.locator('#noai-enabled').uncheck();
+  const updatedWidths = await sampleWidths();
+  expect(new Set(updatedWidths.map((sample) => sample.join(':'))).size).toBe(1);
+  expect(updatedWidths[0]).toEqual([380, 380, 380, 380]);
+
+  await page
+    .getByRole('button', { name: /(?:Remove|삭제): TrackVideo1/ })
+    .click();
+  const removedWidths = await sampleWidths();
+  expect(new Set(removedWidths.map((sample) => sample.join(':'))).size).toBe(1);
+  expect(removedWidths[0]).toEqual([380, 380, 380, 380]);
+
+  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+  await expect(page.locator('.settings-panel--compact')).toHaveCSS(
+    'overflow-y',
+    'auto',
+  );
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+});
+
 test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await page.setViewportSize({ height: 600, width: 380 });
   await page.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -205,7 +309,10 @@ test('popup manages track, artist, and channel direct block rules', async ({ pag
   await page.locator('form:has(#blocklist-channel-input) button').click();
   await expect(summary).toContainText(/3 saved|3개 저장됨/);
   await expect(page.locator('.blocklist-manager code', { hasText: '@블루레인' })).toHaveCount(1);
-  await expect(page.locator('body')).toHaveCSS('overflow-y', 'auto');
+  await expect(page.locator('.settings-panel--compact')).toHaveCSS(
+    'overflow-y',
+    'auto',
+  );
 
   const longHandle = '@abcdefghijklmnopqrstuvwxyz1234';
   await page.locator('#blocklist-channel-input').fill(longHandle);
@@ -236,19 +343,11 @@ test('popup manages track, artist, and channel direct block rules', async ({ pag
   await page.keyboard.press('Enter');
   await expect(disclosure).toHaveAttribute('open', '');
 
-  const scrollMetrics = await page.evaluate(() => ({
-    clientHeight: document.body.clientHeight,
-    scrollHeight: document.body.scrollHeight,
-  }));
+  const scrollMetrics = await page
+    .locator('.settings-panel--compact')
+    .evaluate((panel) => ({
+      clientHeight: panel.clientHeight,
+      scrollHeight: panel.scrollHeight,
+    }));
   expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight);
-
-  await page.setViewportSize({ height: 600, width: 300 });
-  const narrowOverflow = await page.evaluate(() => ({
-    clientWidth: document.documentElement.clientWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-  }));
-  expect(narrowOverflow.scrollWidth).toBeLessThanOrEqual(
-    narrowOverflow.clientWidth,
-  );
-  await expect(summary).toBeVisible();
 });

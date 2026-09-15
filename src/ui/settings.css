@@ -32,12 +32,22 @@ body {
   overflow-x: hidden;
 }
 
+html.noai-popup-document,
+body.noai-popup,
+body.noai-popup > #root {
+  inline-size: 380px;
+  max-inline-size: 380px;
+  min-inline-size: 380px;
+}
+
+html.noai-popup-document,
 body.noai-popup {
-  inline-size: min(380px, 100vw);
   max-block-size: 600px;
-  min-inline-size: 0;
-  overscroll-behavior: contain;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+body.noai-popup > #root {
+  max-block-size: 600px;
 }
 
 body.noai-options {
@@ -67,7 +77,12 @@ button {
 .settings-panel--compact {
   gap: 14px;
   max-inline-size: 380px;
+  max-block-size: 600px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px;
+  scrollbar-gutter: stable;
 }
 
 .settings-panel h1,
@@ -659,34 +674,6 @@ button {
 
   .settings-panel--full .mode-option__surface {
     min-block-size: auto;
-  }
-}
-
-@media (max-width: 340px) {
-  .settings-panel--compact {
-    padding: 14px;
-  }
-
-  .settings-panel--compact .settings-panel__modes {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-panel--compact .mode-option__surface {
-    align-items: start;
-    grid-template-columns: auto minmax(0, 1fr);
-    min-block-size: auto;
-  }
-
-  .settings-panel--compact .settings-panel__music-section {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-panel--compact .switch-control--compact {
-    justify-content: space-between;
-  }
-
-  .settings-panel--compact .user-rule-manager__input-row {
-    grid-template-columns: 1fr;
   }
 }
 

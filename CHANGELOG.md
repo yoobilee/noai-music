@@ -32,6 +32,7 @@
 
 ### 변경
 
+- Chrome popup의 intrinsic width를 380px로 고정하고 내부 panel만 세로 스크롤하도록 조정해 좁은 폭과 resize 흔들림 회귀를 수정
 - popup의 핵심 설정과 사용자 규칙 정보 계층을 정돈하고, 같은 관리 컴포넌트를 재사용하는 넓은 options 레이아웃과 접근 가능한 form control 스타일을 적용
 - checking·not-detected·unknown 개발 상태 배지를 제거하고 confirmed 결과만 제품 필터 정책에 연결
 - 허용 목록을 popup 안에서 compact하게 직접 관리하도록 바꾸고, nested rich-grid mutation에서 Blur·Mark가 즉시 해제되던 회귀를 수정
