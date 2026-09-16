@@ -33,11 +33,8 @@ function ensureFilterStyles(currentDocument: Document): void {
   const style = currentDocument.createElement('style');
   style.setAttribute(FILTER_STYLE_ATTRIBUTE, 'true');
   style.textContent = `
-    [${YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE}="hide"]:not([${YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE}="queue-item"]) {
+    [${YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE}="hide"] {
       display: none !important;
-    }
-    [${YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE}="queue-item"][${YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE}="hide"] {
-      visibility: hidden !important;
     }
     [${YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE}="blur"],
     [${YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE}="mark"] {

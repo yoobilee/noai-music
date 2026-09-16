@@ -9,6 +9,7 @@
 - 사용자 승인된 16×16, 32×32, 48×48, 128×128 PNG 아이콘을 extension과 toolbar action에 적용했습니다.
 - Premium live DOM에서 확인한 exact video ID로 YouTube Music 재생 queue의 항목을 필터링합니다.
 - 플레이리스트에서 재생 화면으로 이동했다가 돌아올 때 기존 row 필터가 간헐적으로 풀리는 회귀를 수정했습니다.
+- queue Hide에서 빈 row 공간이 남지 않도록 하고, Manual Next 등 SPA current-track 전환에서도 auto-skip이 새 곡을 감지하도록 수정했습니다.
 
 ## [0.9.0] - 2026-09-15
 

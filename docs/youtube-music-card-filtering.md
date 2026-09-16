@@ -38,7 +38,7 @@ YTM isolated content script는 기존 `requestWatchDisclosure`만 호출한다. 
 
 YTM DOM 변경은 `src/ui/youtubeMusicRowFilter.ts`에 격리한다. row 자체를 remove하지 않고 NoAI data attribute와 한 번 삽입되는 style element로 가역 처리한다.
 
-- `hide`: 일반 row는 `display: none`으로 숨긴다. queue item은 현재 재생 renderer의 구조와 높이를 제거하지 않도록 `visibility: hidden`으로 내용만 숨기는 layout-preserving 방식을 쓴다. 두 경우 모두 DOM node와 이유 attribute는 유지되고 설정 변경 시 즉시 복구한다.
+- `hide`: 일반 row와 queue item 모두 `display: none`으로 시각적 내용과 차지하던 공간을 숨긴다. DOM node, Polymer `data.videoId`와 queue 순서는 변경하지 않으며 설정·mode 변경이나 item reuse 시 attribute만 제거해 즉시 복구한다.
 - `blur`: badge를 제외한 row의 직접 자식만 흐리며 pointer interaction은 막지 않는다. 이유 badge는 흐려지지 않는다.
 - `mark`: 콘텐츠 표현은 유지하고 reason badge만 표시한다.
 
@@ -66,7 +66,7 @@ lookup 완료 시 다음을 다시 확인한다.
 
 `storage.onChanged`에서 기존 `enabled`와 `mode` snapshot을 갱신한 뒤 현재 문서를 다시 처리한다. hide → blur, blur → mark, mark → hide와 enabled OFF/ON 전환은 이전 attribute와 badge를 모두 제거한 뒤 새 상태만 남긴다. 처음부터 disabled이면 row lookup을 시작하지 않으며, 이미 받은 동일 identity 결과는 OFF 동안 표시하지 않고 다시 ON이 되면 재사용할 수 있다.
 
-목록·queue 필터 controller는 `youtubeMusicAutoSkip`을 읽어 판단하지 않는다. 따라서 auto-skip이 꺼져 있어도 `enabled`가 켜져 있으면 필터는 동작한다. 현재 재생 auto-skip은 별도 player observer와 controller를 유지한다. queue 필터에는 `clickNext`, playback generation이나 latch 의존성이 없다. 두 기능이 같은 ID를 동시에 요청해도 기존 background in-flight dedupe/cache만 공유하며 서로의 DOM 상태나 click latch를 변경하지 않는다.
+목록·queue 필터 controller는 `youtubeMusicAutoSkip`을 읽어 판단하지 않는다. 따라서 auto-skip이 꺼져 있어도 `enabled`가 켜져 있으면 필터는 동작한다. 현재 재생 auto-skip은 별도 player observer와 controller를 유지한다. queue filter는 CSS attribute와 badge만 바꾸며 DOM node, Polymer queue data, `clickNext`, playback generation이나 latch를 변경하지 않는다. 두 기능이 같은 ID를 동시에 요청해도 기존 background in-flight dedupe/cache만 공유한다.
 
 ## fixture와 자동 검증
 
@@ -88,7 +88,7 @@ Vitest는 네 일반 surface와 queue, 세 mode, disabled, 음성·오류 결과
 10. 일반 항목, 판정 대기·실패 항목과 identity 없는 row가 그대로 유지되는지 확인한다.
 11. 검색 → 앨범 → 플레이리스트 → 아티스트로 SPA 이동하고 이전 row의 상태나 badge가 남지 않는지 확인한다.
 12. `youtubeMusicAutoSkip`을 각각 ON/OFF로 두고 목록 필터와 현재 재생 skip이 서로의 설정·DOM·동작을 방해하지 않는지 확인한다.
-13. Premium에서 일반 곡을 재생해 queue panel을 열고 confirmed queue item의 Hide·Blur·Mark, track allow/direct block과 일반 item no-op을 확인한다.
+13. Premium에서 일반 곡을 재생해 queue panel을 열고 confirmed queue item의 Hide·Blur·Mark, track allow/direct block과 일반 item no-op을 확인한다. Hide에서 빈 row 공간이 남지 않고 Blur/Mark 또는 Enabled OFF로 즉시 복구되는지도 확인한다.
 14. 플레이리스트 → 재생 화면 → 플레이리스트로 돌아와 기존 confirmed row의 필터가 자동으로 다시 적용되고 badge가 중복되지 않는지 확인한다.
 
 실제 confirmed YTM 항목을 안정적으로 찾지 못하면 “confirmed 적용”은 비식별 fixture E2E 결과로 기록하고, live Chrome에서는 일반곡 no-op과 selector·SPA·설정 복구만 별도로 기록한다. 두 결과를 하나의 live confirmed 검증처럼 합쳐 보고하지 않는다.

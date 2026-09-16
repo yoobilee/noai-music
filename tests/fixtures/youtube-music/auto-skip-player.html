@@ -22,16 +22,37 @@
         Next
       </button>
     </ytmusic-player-bar>
+    <ytmusic-player-queue-item data-testid="next-queue-item">
+      <div>Synthetic next queue item</div>
+    </ytmusic-player-queue-item>
     <script>
       const trackIds = ['PlaybackA01', 'PlaybackB01', 'PlaybackC01'];
       const currentTrack = document.querySelector('[data-testid="current-track"]');
+      const nextQueueItem = document.querySelector(
+        '[data-testid="next-queue-item"]',
+      );
+      nextQueueItem.data = { videoId: 'PlaybackB01' };
+
+      window.simulateCurrentTrackTransition = (
+        videoId,
+        updatePlayerAnchor = false,
+      ) => {
+        history.pushState({}, '', `/watch?v=${videoId}`);
+        if (updatePlayerAnchor) {
+          currentTrack.setAttribute('href', `/watch?v=${videoId}`);
+        }
+      };
+
       document
         .querySelector('[data-testid="next-button"]')
         .addEventListener('click', () => {
           const clickCount = Number(document.body.dataset.nextClickCount) + 1;
           document.body.dataset.nextClickCount = String(clickCount);
-          const nextTrackId = trackIds[Math.min(clickCount, trackIds.length - 1)];
-          currentTrack.setAttribute('href', `/watch?v=${nextTrackId}`);
+          const currentVideoId = new URL(location.href).searchParams.get('v');
+          const currentIndex = Math.max(trackIds.indexOf(currentVideoId), 0);
+          const nextTrackId =
+            trackIds[Math.min(currentIndex + 1, trackIds.length - 1)];
+          window.simulateCurrentTrackTransition(nextTrackId, true);
         });
     </script>
   </body>

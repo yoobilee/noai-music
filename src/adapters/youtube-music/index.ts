@@ -23,6 +23,7 @@ export interface YouTubeMusicMediaCandidate {
 interface YouTubeMusicAdapterEnvironment {
   document: Document;
   getCurrentUrl: () => URL;
+  getNavigationEventTarget?: () => EventTarget | undefined;
   createMutationObserver: (callback: MutationCallback) => MutationObserver;
   requestAnimationFrame: (callback: FrameRequestCallback) => number;
   cancelAnimationFrame: (handle: number) => void;
@@ -215,10 +216,47 @@ function createQueueCandidate(
   };
 }
 
+function createPlayerCandidate(
+  playerBar: Element,
+  currentUrl: URL,
+): YouTubeMusicMediaCandidate | undefined {
+  const domCandidate = createCandidate(
+    playerBar,
+    'player-current',
+    YOUTUBE_MUSIC_SELECTORS.playerLinkPriority,
+  );
+  const routeVideoId = parseYouTubeMusicWatchVideoId(currentUrl.href);
+  if (routeVideoId === null) {
+    return isSupportedYouTubeMusicUrl(currentUrl) &&
+      currentUrl.pathname === '/watch'
+      ? undefined
+      : domCandidate;
+  }
+
+  if (domCandidate?.snapshot.identity.videoId === routeVideoId) {
+    return domCandidate;
+  }
+
+  return {
+    element: playerBar,
+    surface: 'player-current',
+    snapshot: {
+      identity: {
+        site: 'youtube-music',
+        videoId: routeVideoId,
+        artistIds: [],
+      },
+      artistNames: [],
+    },
+  };
+}
+
 function defaultEnvironment(): YouTubeMusicAdapterEnvironment {
   return {
     document,
     getCurrentUrl: () => new URL(location.href),
+    getNavigationEventTarget: () =>
+      (window as typeof window & { navigation?: EventTarget }).navigation,
     createMutationObserver: (callback) => new MutationObserver(callback),
     requestAnimationFrame: (callback) => requestAnimationFrame(callback),
     cancelAnimationFrame: (handle) => cancelAnimationFrame(handle),
@@ -277,11 +315,7 @@ export function createYouTubeMusicAdapter(
           YOUTUBE_MUSIC_SELECTORS.playerBar,
         );
         return playerBar
-          ? createCandidate(
-              playerBar,
-              'player-current',
-              YOUTUBE_MUSIC_SELECTORS.playerLinkPriority,
-            )
+          ? createPlayerCandidate(playerBar, environment.getCurrentUrl())
           : undefined;
       } catch {
         return undefined;
@@ -425,6 +459,9 @@ export function createYouTubeMusicAdapter(
       };
       const observer = environment.createMutationObserver(schedule);
       const handleNavigation = () => schedule();
+      const navigationEventTarget =
+        environment.getNavigationEventTarget?.();
+      const currentWindow = environment.document.defaultView;
 
       observer.observe(observedRoot, {
         attributeFilter: ['aria-disabled', 'disabled', 'href'],
@@ -436,6 +473,11 @@ export function createYouTubeMusicAdapter(
         'yt-navigate-finish',
         handleNavigation,
       );
+      navigationEventTarget?.addEventListener(
+        'currententrychange',
+        handleNavigation,
+      );
+      currentWindow?.addEventListener('popstate', handleNavigation);
 
       return () => {
         observer.disconnect();
@@ -443,6 +485,11 @@ export function createYouTubeMusicAdapter(
           'yt-navigate-finish',
           handleNavigation,
         );
+        navigationEventTarget?.removeEventListener(
+          'currententrychange',
+          handleNavigation,
+        );
+        currentWindow?.removeEventListener('popstate', handleNavigation);
         if (animationFrame !== undefined) {
           environment.cancelAnimationFrame(animationFrame);
         }

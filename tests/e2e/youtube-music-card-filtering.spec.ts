@@ -390,8 +390,34 @@ test('filters live-shaped queue data identities without touching invalid items',
   await expect(confirmed.locator(reasonBadge)).toHaveCount(1);
   await setSettings(context, true, 'hide');
   await expect(confirmed).toHaveAttribute(filterAttribute, 'hide');
-  await expect(confirmed).toHaveCSS('visibility', 'hidden');
+  await expect(confirmed).toHaveCSS('display', 'none');
+  expect(
+    await confirmed.evaluate(
+      (element) => element.getBoundingClientRect().height,
+    ),
+  ).toBe(0);
+  expect(
+    await confirmed.evaluate((element) => ({
+      connected: element.isConnected,
+      videoId: (
+        element as Element & { data?: { videoId?: unknown } }
+      ).data?.videoId,
+    })),
+  ).toEqual({ connected: true, videoId: 'QueueAI0001' });
+
+  await setSettings(context, false, 'hide');
+  await expect(confirmed).not.toHaveAttribute(filterAttribute, /.+/);
   await expect(confirmed).not.toHaveCSS('display', 'none');
+  await setSettings(context, true, 'hide');
+  await expect(confirmed).toHaveCSS('display', 'none');
+
+  await setSettings(context, true, 'blur');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(confirmed).not.toHaveCSS('display', 'none');
+  await setSettings(context, true, 'mark');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');
+  await setSettings(context, true, 'hide');
+  await expect(confirmed).toHaveCSS('display', 'none');
 
   await setSettings(context, true, 'mark');
   await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');

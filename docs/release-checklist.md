@@ -34,6 +34,7 @@
 - [ ] Artist song row: Hide / Blur / Mark
 - [x] Premium live DOM에서 queue renderer `ytmusic-player-queue-item`과 exact `data.videoId` identity source 확인
 - [ ] queue item: Hide / Blur / Mark, track allow/direct block, invalid identity no-op — Premium 환경 필요
+- [ ] queue Hide에서 빈 공간이 남지 않고 DOM/playback 순서 유지, mode·Enabled 전환 시 즉시 복구 — Premium 환경 필요
 - [ ] playlist → `/watch?...&list=...` → playlist 복귀 후 기존 row 필터 재적용과 badge 중복 없음 — Premium 환경 필요
 - [ ] player bar가 현재 재생곡의 exact video ID를 읽음 — Premium 환경 필요
 - [ ] confirmed 현재 곡 auto-skip — Premium 환경 필요
@@ -42,6 +43,7 @@
 - [ ] Enabled OFF와 YouTube Music auto-skip OFF가 skip을 중지함 — Premium 환경 필요
 - [ ] playback generation별 one-click latch와 transition failure 재클릭 방지 — Premium 환경 필요
 - [ ] 다음 곡 전환과 SPA 이동에서 stale identity 또는 중복 click 없음 — Premium 환경 필요
+- [ ] manual Next, queue/playlist 선택과 자연스러운 곡 종료로 confirmed 곡 진입 시 generation당 한 번 auto-skip — Premium 환경 필요
 
 Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시하지 않고 bundled Chromium fixture/E2E 결과와 구분해 기록한다.
 
