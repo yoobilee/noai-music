@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
+import { syncYouTubeMusicQueueIdentities } from '@/adapters/youtube-music/queueIdentityBridge';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
 
 const fixtureHtml = await readFile(
@@ -137,6 +138,46 @@ describe('YouTube Music playable item identity extraction', () => {
     ).collectCandidates(fixtureElement('missing-id-row'));
 
     expect(candidates).toEqual([]);
+  });
+
+  it('extracts an exact queue identity from the live-confirmed data.videoId property', () => {
+    const queueItem = document.createElement('ytmusic-player-queue-item');
+    Object.assign(queueItem, { data: { videoId: 'QueueAI0001' } });
+    document.body.append(queueItem);
+    syncYouTubeMusicQueueIdentities(queueItem);
+
+    const [candidate] = createAdapter(
+      new URL('https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture'),
+    ).collectCandidates(queueItem);
+
+    expect(candidate).toMatchObject({
+      element: queueItem,
+      surface: 'queue-item',
+      snapshot: {
+        identity: {
+          site: 'youtube-music',
+          videoId: 'QueueAI0001',
+          artistIds: [],
+        },
+      },
+    });
+  });
+
+  it.each([
+    ['missing', {}],
+    ['invalid', { videoId: 'invalid' }],
+    ['ambiguous-shaped', { videoId: ['QueueAI0001', 'QueueOrd001'] }],
+  ])('fails closed for a %s queue data.videoId', (_name, data) => {
+    const queueItem = document.createElement('ytmusic-player-queue-item');
+    Object.assign(queueItem, { data });
+    document.body.append(queueItem);
+    syncYouTubeMusicQueueIdentities(queueItem);
+
+    expect(
+      createAdapter(
+        new URL('https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture'),
+      ).collectCandidates(queueItem),
+    ).toEqual([]);
   });
 
   it.each([

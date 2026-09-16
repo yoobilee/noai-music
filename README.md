@@ -11,7 +11,7 @@ NoAI는 자체 AI detector를 사용하지 않으며 제목, 채널명이나 음
 - YouTube 공식 AI·변경 콘텐츠 표시 기반 필터링
 - 숨기기, 흐리기, 표시만 모드와 필터 이유 표시
 - YouTube 홈·검색·관련 영상·재생목록 카드 필터링
-- YouTube Music 검색·앨범·플레이리스트·아티스트 목록 필터링
+- YouTube Music 검색·앨범·플레이리스트·아티스트 목록과 재생 queue 필터링
 - YouTube Music 현재 재생곡 자동 건너뛰기
 - 곡·아티스트 허용 목록
 - 곡·아티스트·채널 직접 차단 목록
@@ -34,7 +34,7 @@ NoAI는 자체 AI detector를 사용하지 않으며 제목, 채널명이나 음
 
 ### YouTube Music
 
-- 검색, 앨범, 플레이리스트와 아티스트의 지원되는 track row
+- 검색, 앨범, 플레이리스트와 아티스트의 지원되는 track row 및 exact video ID가 확인된 재생 queue item
 - 현재 재생곡 identity와 자동 건너뛰기
 - 곡 video ID와 확인된 아티스트 UC ID 사용자 규칙
 

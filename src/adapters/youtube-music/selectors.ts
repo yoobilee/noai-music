@@ -1,5 +1,6 @@
 export const YOUTUBE_MUSIC_SELECTORS = {
   playableRow: 'ytmusic-responsive-list-item-renderer',
+  queueItem: 'ytmusic-player-queue-item',
   rowLinkPriority: ['.title a[href]', 'a[href]'],
   artistLinks: 'a[href]',
   playerBar: 'ytmusic-player-bar',

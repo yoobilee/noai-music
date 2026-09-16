@@ -32,6 +32,9 @@
 - [ ] Album track row: Hide / Blur / Mark
 - [ ] Playlist track row: Hide / Blur / Mark
 - [ ] Artist song row: Hide / Blur / Mark
+- [x] Premium live DOM에서 queue renderer `ytmusic-player-queue-item`과 exact `data.videoId` identity source 확인
+- [ ] queue item: Hide / Blur / Mark, track allow/direct block, invalid identity no-op — Premium 환경 필요
+- [ ] playlist → `/watch?...&list=...` → playlist 복귀 후 기존 row 필터 재적용과 badge 중복 없음 — Premium 환경 필요
 - [ ] player bar가 현재 재생곡의 exact video ID를 읽음 — Premium 환경 필요
 - [ ] confirmed 현재 곡 auto-skip — Premium 환경 필요
 - [ ] track allowlist가 auto-skip을 방지함 — Premium 환경 필요
