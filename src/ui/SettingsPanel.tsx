@@ -128,100 +128,105 @@ export function SettingsPanel({ userListsVariant }: SettingsPanelProps) {
         </span>
       </header>
 
-      <section
-        aria-label={message('enabledLabel')}
-        className="settings-panel__section settings-panel__section--primary"
-      >
-        <label className="switch-control" htmlFor="noai-enabled">
-          <span className="switch-control__copy">
-            <strong>{message('enabledLabel')}</strong>
-            <span>{message('enabledDescription')}</span>
-          </span>
-          <input
-            checked={settings.enabled}
-            disabled={savingDisabled}
-            id="noai-enabled"
-            onChange={(event) =>
-              updateSettings({
-                ...settings,
-                enabled: event.currentTarget.checked,
-              })
-            }
-            type="checkbox"
-          />
-          <span aria-hidden="true" className="switch-control__visual" />
-        </label>
-      </section>
+      <div className="settings-panel__configuration">
+        <section
+          aria-label={message('enabledLabel')}
+          className="settings-panel__section settings-panel__section--primary"
+        >
+          <label className="switch-control" htmlFor="noai-enabled">
+            <span className="switch-control__copy">
+              <strong>{message('enabledLabel')}</strong>
+              <span>{message('enabledDescription')}</span>
+            </span>
+            <input
+              checked={settings.enabled}
+              disabled={savingDisabled}
+              id="noai-enabled"
+              onChange={(event) =>
+                updateSettings({
+                  ...settings,
+                  enabled: event.currentTarget.checked,
+                })
+              }
+              type="checkbox"
+            />
+            <span aria-hidden="true" className="switch-control__visual" />
+          </label>
+        </section>
 
-      <fieldset
-        className="settings-panel__section settings-panel__mode-section"
-        data-disabled={secondaryDisabled}
-        disabled={secondaryDisabled}
-      >
-        <legend>{message('filterModeLabel')}</legend>
-        <div className="settings-panel__modes">
-          {(['hide', 'blur', 'mark'] satisfies readonly FilterMode[]).map(
-            (mode) => (
-              <label className="mode-option" key={mode}>
-                <input
-                  checked={settings.mode === mode}
-                  name="filter-mode"
-                  onChange={() => updateSettings({ ...settings, mode })}
-                  type="radio"
-                  value={mode}
-                />
-                <span className="mode-option__surface">
-                  <span aria-hidden="true" className="mode-option__indicator" />
-                  <span className="mode-option__copy">
-                    <strong>{message(MODE_MESSAGE_KEYS[mode].label)}</strong>
-                    <span>
-                      {message(MODE_MESSAGE_KEYS[mode].description)}
+        <fieldset
+          className="settings-panel__section settings-panel__mode-section"
+          data-disabled={secondaryDisabled}
+          disabled={secondaryDisabled}
+        >
+          <legend>{message('filterModeLabel')}</legend>
+          <div className="settings-panel__modes">
+            {(['hide', 'blur', 'mark'] satisfies readonly FilterMode[]).map(
+              (mode) => (
+                <label className="mode-option" key={mode}>
+                  <input
+                    checked={settings.mode === mode}
+                    name="filter-mode"
+                    onChange={() => updateSettings({ ...settings, mode })}
+                    type="radio"
+                    value={mode}
+                  />
+                  <span className="mode-option__surface">
+                    <span
+                      aria-hidden="true"
+                      className="mode-option__indicator"
+                    />
+                    <span className="mode-option__copy">
+                      <strong>{message(MODE_MESSAGE_KEYS[mode].label)}</strong>
+                      <span>
+                        {message(MODE_MESSAGE_KEYS[mode].description)}
+                      </span>
                     </span>
                   </span>
-                </span>
-              </label>
-            ),
-          )}
-        </div>
-      </fieldset>
+                </label>
+              ),
+            )}
+          </div>
+        </fieldset>
 
-      <section
-        aria-labelledby="youtube-music-heading"
-        className="settings-panel__section settings-panel__music-section"
-        data-disabled={secondaryDisabled}
-      >
-        <header className="settings-panel__section-header">
-          <h2 id="youtube-music-heading">{message('youtubeMusicHeading')}</h2>
-          <p>{message('youtubeMusicAutoSkipDescription')}</p>
-        </header>
-        <label
-          className="switch-control switch-control--compact"
-          htmlFor="noai-youtube-music-auto-skip"
+        <section
+          aria-labelledby="youtube-music-heading"
+          className="settings-panel__section settings-panel__music-section"
+          data-disabled={secondaryDisabled}
         >
-          <span className="switch-control__copy">
-            <strong>{message('youtubeMusicAutoSkipLabel')}</strong>
-          </span>
-          <input
-            checked={settings.youtubeMusicAutoSkip}
-            disabled={secondaryDisabled}
-            id="noai-youtube-music-auto-skip"
-            onChange={(event) =>
-              updateSettings({
-                ...settings,
-                youtubeMusicAutoSkip: event.currentTarget.checked,
-              })
-            }
-            type="checkbox"
-          />
-          <span aria-hidden="true" className="switch-control__visual" />
-        </label>
-      </section>
+          <header className="settings-panel__section-header">
+            <h2 id="youtube-music-heading">{message('youtubeMusicHeading')}</h2>
+            <p>{message('youtubeMusicAutoSkipDescription')}</p>
+          </header>
+          <label
+            className="switch-control switch-control--compact"
+            htmlFor="noai-youtube-music-auto-skip"
+          >
+            <span className="switch-control__copy">
+              <strong>{message('youtubeMusicAutoSkipLabel')}</strong>
+            </span>
+            <input
+              checked={settings.youtubeMusicAutoSkip}
+              disabled={secondaryDisabled}
+              id="noai-youtube-music-auto-skip"
+              onChange={(event) =>
+                updateSettings({
+                  ...settings,
+                  youtubeMusicAutoSkip: event.currentTarget.checked,
+                })
+              }
+              type="checkbox"
+            />
+            <span aria-hidden="true" className="switch-control__visual" />
+          </label>
+        </section>
 
-      {status === 'error' ? (
-        <p className="settings-panel__error" role="alert">
-          {message('settingsSaveError')}
-        </p>
-      ) : null}
+        {status === 'error' ? (
+          <p className="settings-panel__error" role="alert">
+            {message('settingsSaveError')}
+          </p>
+        ) : null}
+      </div>
 
       {userListsVariant === undefined ? null : (
         <section

@@ -69,7 +69,7 @@ button {
   gap: 18px;
   inline-size: 100%;
   margin-inline: auto;
-  max-inline-size: 760px;
+  max-inline-size: 1120px;
   min-inline-size: 0;
   padding: 32px;
 }
@@ -83,6 +83,23 @@ button {
   overscroll-behavior: contain;
   padding: 18px;
   scrollbar-gutter: stable;
+}
+
+.settings-panel__configuration {
+  display: grid;
+  gap: 18px;
+  min-inline-size: 0;
+}
+
+.settings-panel--compact .settings-panel__configuration {
+  gap: 14px;
+}
+
+.settings-panel--full .settings-panel__configuration {
+  background: var(--noai-surface);
+  border: 1px solid var(--noai-border);
+  border-radius: 14px;
+  padding: 22px;
 }
 
 .settings-panel h1,
@@ -397,6 +414,12 @@ button {
   min-inline-size: 0;
 }
 
+.settings-panel--full .settings-panel__rule-sections {
+  align-items: start;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .user-rule-manager {
   min-inline-size: 0;
 }
@@ -489,19 +512,35 @@ button {
 }
 
 .user-rule-manager__header {
-  display: grid;
-  gap: 5px;
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-inline-size: 0;
+  padding: 18px;
 }
 
 .user-rule-manager__header h3 {
   font-size: 17px;
 }
 
+.user-rule-manager__header-copy {
+  display: grid;
+  gap: 5px;
+  min-inline-size: 0;
+}
+
 .user-rule-manager__full-body {
+  border-block-start: 1px solid var(--noai-border);
+  padding: 18px;
+}
+
+.settings-panel--full .user-rule-manager {
   background: var(--noai-surface);
   border: 1px solid var(--noai-border);
-  border-radius: 10px;
-  padding: 18px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .user-rule-manager__forms,
@@ -509,10 +548,6 @@ button {
   display: grid;
   gap: 14px;
   min-inline-size: 0;
-}
-
-.settings-panel--full .user-rule-manager__forms {
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
 .user-rule-manager__form,
@@ -662,13 +697,22 @@ button {
   }
 }
 
+@media (max-width: 840px) {
+  .settings-panel--full .settings-panel__rule-sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 620px) {
   .settings-panel--full {
     padding: 20px;
   }
 
-  .settings-panel--full .settings-panel__modes,
-  .settings-panel--full .user-rule-manager__forms {
+  .settings-panel--full .settings-panel__configuration {
+    padding: 18px;
+  }
+
+  .settings-panel--full .settings-panel__modes {
     grid-template-columns: 1fr;
   }
 

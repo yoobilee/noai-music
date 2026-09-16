@@ -53,8 +53,13 @@ export function UserRuleSection({
   return (
     <section aria-labelledby={headingId} className={classes}>
       <header className="user-rule-manager__header">
-        <h3 id={headingId}>{heading}</h3>
-        <p>{description}</p>
+        <div className="user-rule-manager__header-copy">
+          <h3 id={headingId}>{heading}</h3>
+          <p>{description}</p>
+        </div>
+        <span aria-live="polite" className="user-rule-manager__summary-count">
+          {summaryCount}
+        </span>
       </header>
       <div className="user-rule-manager__full-body">{children}</div>
     </section>
