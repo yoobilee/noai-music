@@ -1,7 +1,7 @@
-# NoAI 개인정보 처리방침 초안
+# NoAI 개인정보 처리방침
 
 - 적용 버전: 0.9.0
-- 최종 갱신일: 2026-09-15
+- 최종 갱신일: 2026-09-16
 
 NoAI는 YouTube와 YouTube Music에서 사용자가 선택한 필터 규칙을 적용하는 로컬 우선 브라우저 확장 프로그램이다. NoAI 개발자는 별도 사용자 계정이나 데이터 수집 서버를 운영하지 않는다.
 
@@ -50,6 +50,10 @@ NoAI가 처리하는 정보는 확장 프로그램의 단일 목적과 사용자
 - `https://www.youtube.com/*`, `https://music.youtube.com/*` content-script matches: 각 사이트의 지원되는 카드·row와 player에 로컬 설정을 적용한다. YouTube Music 범위는 생성 manifest의 별도 `host_permissions`가 아니라 `content_scripts.matches`에만 선언된다.
 
 NoAI는 `tabs`, `activeTab`, `history`, `cookies`, `identity` 또는 `<all_urls>` 권한을 요청하지 않는다.
+
+## Chrome Web Store 사용자 데이터 정책
+
+NoAI가 처리하는 정보는 확장 프로그램의 공개된 단일 목적과 사용자 대면 기능을 제공하는 데에만 사용됩니다. NoAI의 정보 사용은 [Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies)와 [Limited Use](https://developer.chrome.com/docs/webstore/program-policies/limited-use) 요구사항을 준수합니다.
 
 ## 정책과 문의
 

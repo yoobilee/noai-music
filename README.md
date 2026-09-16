@@ -64,7 +64,7 @@ NoAI는 별도 서버나 계정을 운영하지 않으며 analytics와 telemetry
 - `https://www.youtube.com/*` host permission: background에서 검증된 video ID의 공개 watch page를 확인
 - YouTube·YouTube Music content-script matches: 각 사이트의 지원 카드·row와 player에 로컬 설정을 적용
 
-자세한 내용은 [개인정보 처리방침 초안](docs/privacy.md)을 참고하세요.
+자세한 내용은 [개인정보 처리방침](docs/privacy.md)을 참고하세요.
 
 ## 현재 상태
 
