@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
+import { syncYouTubeMusicQueueIdentities } from '@/adapters/youtube-music/queueIdentityBridge';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
 
 const fixtureHtml = await readFile(
@@ -139,6 +140,46 @@ describe('YouTube Music playable item identity extraction', () => {
     expect(candidates).toEqual([]);
   });
 
+  it('extracts an exact queue identity from the live-confirmed data.videoId property', () => {
+    const queueItem = document.createElement('ytmusic-player-queue-item');
+    Object.assign(queueItem, { data: { videoId: 'QueueAI0001' } });
+    document.body.append(queueItem);
+    syncYouTubeMusicQueueIdentities(queueItem);
+
+    const [candidate] = createAdapter(
+      new URL('https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture'),
+    ).collectCandidates(queueItem);
+
+    expect(candidate).toMatchObject({
+      element: queueItem,
+      surface: 'queue-item',
+      snapshot: {
+        identity: {
+          site: 'youtube-music',
+          videoId: 'QueueAI0001',
+          artistIds: [],
+        },
+      },
+    });
+  });
+
+  it.each([
+    ['missing', {}],
+    ['invalid', { videoId: 'invalid' }],
+    ['ambiguous-shaped', { videoId: ['QueueAI0001', 'QueueOrd001'] }],
+  ])('fails closed for a %s queue data.videoId', (_name, data) => {
+    const queueItem = document.createElement('ytmusic-player-queue-item');
+    Object.assign(queueItem, { data });
+    document.body.append(queueItem);
+    syncYouTubeMusicQueueIdentities(queueItem);
+
+    expect(
+      createAdapter(
+        new URL('https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture'),
+      ).collectCandidates(queueItem),
+    ).toEqual([]);
+  });
+
   it.each([
     'https://music.youtube.com/',
     'https://music.youtube.com/browse/FEmusic_home',
@@ -164,6 +205,43 @@ describe('YouTube Music playable item identity extraction', () => {
         },
       },
     });
+  });
+
+  it('prefers the exact watch route when a reused player anchor is stale', () => {
+    const candidate = createAdapter(
+      new URL('https://music.youtube.com/watch?v=NextPlaying'),
+    ).getNowPlayingCandidate();
+
+    expect(candidate).toMatchObject({
+      surface: 'player-current',
+      snapshot: {
+        identity: {
+          site: 'youtube-music',
+          videoId: 'NextPlaying',
+          artistIds: [],
+        },
+      },
+    });
+  });
+
+  it('keeps stable player artist identity only when the route and anchor agree', () => {
+    const titleLink = fixtureElement('player-bar').querySelector('.title a');
+    titleLink?.setAttribute('href', '/watch?v=NextPlaying');
+    const candidate = createAdapter(
+      new URL('https://music.youtube.com/watch?v=NextPlaying'),
+    ).getNowPlayingCandidate();
+
+    expect(candidate?.snapshot.identity.artistIds).toEqual([
+      'UCabcdefghijklmnopqrstuv',
+    ]);
+  });
+
+  it('fails closed on a malformed watch route instead of using a stale anchor', () => {
+    expect(
+      createAdapter(
+        new URL('https://music.youtube.com/watch?v=invalid'),
+      ).getNowPlayingCandidate(),
+    ).toBeUndefined();
   });
 
   it('does not retain a stale player ID when the player bar is reused', () => {
@@ -232,5 +310,33 @@ describe('YouTube Music playable item identity extraction', () => {
       throw new Error('synthetic click failure');
     });
     expect(adapter.clickNext('NowPlaying1')).toBe(false);
+  });
+
+  it('observes committed same-document player navigation without polling', () => {
+    const navigation = new EventTarget();
+    let scheduledFrame: FrameRequestCallback | undefined;
+    const onChange = vi.fn();
+    const adapter = createYouTubeMusicAdapter({
+      document,
+      getCurrentUrl: () =>
+        new URL('https://music.youtube.com/watch?v=NowPlaying1'),
+      getNavigationEventTarget: () => navigation,
+      createMutationObserver: (callback) => new MutationObserver(callback),
+      requestAnimationFrame: (callback) => {
+        scheduledFrame = callback;
+        return 1;
+      },
+      cancelAnimationFrame: vi.fn(),
+    });
+    const stop = adapter.observePlayer(onChange);
+
+    navigation.dispatchEvent(new Event('currententrychange'));
+    expect(onChange).not.toHaveBeenCalled();
+    scheduledFrame?.(0);
+    expect(onChange).toHaveBeenCalledOnce();
+
+    stop();
+    navigation.dispatchEvent(new Event('currententrychange'));
+    expect(onChange).toHaveBeenCalledOnce();
   });
 });

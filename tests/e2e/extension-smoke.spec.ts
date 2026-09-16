@@ -18,7 +18,11 @@ interface GeneratedManifest {
     page?: string;
     open_in_tab?: boolean;
   };
-  content_scripts?: Array<{ matches?: string[] }>;
+  content_scripts?: Array<{
+    js?: string[];
+    matches?: string[];
+    world?: 'ISOLATED' | 'MAIN';
+  }>;
 }
 
 const manifestPath = fileURLToPath(
@@ -54,13 +58,33 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
     page: 'options.html',
   });
   expect(
-    manifest.content_scripts?.flatMap((contentScript) =>
-      contentScript.matches ?? [],
-    ),
+    [
+      ...new Set(
+        manifest.content_scripts?.flatMap(
+          (contentScript) => contentScript.matches ?? [],
+        ),
+      ),
+    ].sort(),
   ).toEqual([
     'https://music.youtube.com/*',
     'https://www.youtube.com/*',
   ]);
+  expect(manifest.content_scripts).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        matches: ['https://music.youtube.com/*'],
+        world: 'MAIN',
+      }),
+      expect.objectContaining({
+        matches: ['https://music.youtube.com/*'],
+        world: 'ISOLATED',
+      }),
+      expect.objectContaining({
+        matches: ['https://www.youtube.com/*'],
+        world: 'ISOLATED',
+      }),
+    ]),
+  );
 });
 
 test('popup defines a stable intrinsic width and its own scroll container', async ({

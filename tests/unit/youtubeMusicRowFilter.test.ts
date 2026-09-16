@@ -9,6 +9,7 @@ import {
   YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE,
   YOUTUBE_MUSIC_FILTER_REASON_ATTRIBUTE,
   YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE,
+  YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE,
 } from '@/ui/youtubeMusicRowFilter';
 
 const reasonText = 'NoAI · YouTube AI disclosure';
@@ -117,5 +118,28 @@ describe('YouTube Music row DOM filtering', () => {
     buttons[1]?.click();
     expect(allowTrack).toHaveBeenCalledOnce();
     expect(allowArtist).toHaveBeenCalledOnce();
+  });
+
+  it('collapses a hidden queue item without removing its DOM node', () => {
+    const queueItem = document.createElement('ytmusic-player-queue-item');
+    queueItem.textContent = 'Queue track';
+    document.body.append(queueItem);
+
+    applyYouTubeMusicRowFilter(
+      queueItem,
+      decision('hide'),
+      reasonText,
+      undefined,
+      'queue-item',
+    );
+
+    expect(queueItem.getAttribute(YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE)).toBe(
+      'queue-item',
+    );
+    const styles = document.head.textContent ?? '';
+    expect(styles).toContain('display: none !important');
+    expect(styles).not.toContain('visibility: hidden !important');
+    expect(queueItem.isConnected).toBe(true);
+    expect(queueItem.textContent).toBe('Queue track');
   });
 });

@@ -3,6 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
+import { syncYouTubeMusicQueueIdentities } from '@/adapters/youtube-music/queueIdentityBridge';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import type { FilterMode } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
@@ -476,5 +477,66 @@ describe('YouTube Music row filter lifecycle', () => {
     expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
       false,
     );
+  });
+
+  it('discards a playlist lookup that completes after entering the watch route', async () => {
+    const delayed = deferred<WatchDisclosureLookupResult>();
+    const state = setup({
+      url: 'https://music.youtube.com/playlist?list=PLfixture',
+      settings: { ...DEFAULT_SETTINGS, mode: 'blur' },
+      lookup: () => delayed.promise,
+    });
+    state.controller.processRoots([document]);
+
+    state.setUrl(
+      'https://music.youtube.com/watch?v=SurfaceOrd1&list=PLfixture',
+    );
+    state.controller.processRoots([document]);
+    delayed.resolve(lookupResult('SurfaceAI01'));
+    await flushPromises();
+
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      false,
+    );
+    expect(
+      state.row.querySelectorAll(
+        `[${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}]`,
+      ),
+    ).toHaveLength(0);
+  });
+
+  it('filters a live-shaped queue item and clears stale state when it is reused', async () => {
+    const state = setup({
+      url: 'https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture',
+      settings: { ...DEFAULT_SETTINGS, mode: 'mark' },
+      rowHtml: '<ytmusic-player-queue-item data-testid="row"></ytmusic-player-queue-item>',
+      lookup: async (videoId) =>
+        lookupResult(
+          videoId,
+          videoId === 'QueueAI0001' ? 'confirmed' : 'not-detected',
+          videoId === 'QueueAI0001' ? confirmedEvidence : [],
+        ),
+    });
+    Object.assign(state.row, { data: { videoId: 'QueueAI0001' } });
+    syncYouTubeMusicQueueIdentities(state.row);
+
+    state.controller.processRoots([document]);
+    await flushPromises();
+    expect(state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      'mark',
+    );
+
+    Object.assign(state.row, { data: { videoId: 'QueueOrd001' } });
+    syncYouTubeMusicQueueIdentities(state.row);
+    state.controller.processRoots([state.row]);
+    await flushPromises();
+    expect(state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE)).toBe(
+      false,
+    );
+    expect(
+      state.row.querySelectorAll(
+        `[${YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE}]`,
+      ),
+    ).toHaveLength(0);
   });
 });

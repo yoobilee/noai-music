@@ -10,6 +10,10 @@ export const YOUTUBE_MUSIC_FILTER_REASON_ATTRIBUTE =
   'data-noai-filter-reason';
 export const YOUTUBE_MUSIC_FILTER_REASON_BADGE_ATTRIBUTE =
   'data-noai-filter-reason-badge';
+export const YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE =
+  'data-noai-filter-surface';
+
+export type YouTubeMusicFilterSurface = 'list-row' | 'queue-item';
 
 const FILTER_STYLE_ATTRIBUTE = 'data-noai-youtube-music-row-filter-styles';
 
@@ -92,6 +96,7 @@ function ensureFilterStyles(currentDocument: Document): void {
 export function clearYouTubeMusicRowFilter(element: Element): void {
   element.removeAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE);
   element.removeAttribute(YOUTUBE_MUSIC_FILTER_REASON_ATTRIBUTE);
+  element.removeAttribute(YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE);
   for (const badge of findReasonBadges(element)) {
     badge.remove();
   }
@@ -102,6 +107,7 @@ export function applyYouTubeMusicRowFilter(
   decision: FilterDecision,
   reasonText: string,
   allowlistActions?: FilterAllowlistActions,
+  surface: YouTubeMusicFilterSurface = 'list-row',
 ): void {
   clearYouTubeMusicRowFilter(element);
   if (decision.action === 'none') {
@@ -111,6 +117,7 @@ export function applyYouTubeMusicRowFilter(
   ensureFilterStyles(element.ownerDocument);
   element.setAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE, decision.action);
   element.setAttribute(YOUTUBE_MUSIC_FILTER_REASON_ATTRIBUTE, decision.reason);
+  element.setAttribute(YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE, surface);
 
   if (decision.action === 'hide') {
     return;
@@ -134,6 +141,7 @@ export function applyYouTubeMusicRowFilter(
 export function isYouTubeMusicRowFilterCurrent(
   element: Element,
   decision: FilterDecision,
+  surface: YouTubeMusicFilterSurface = 'list-row',
 ): boolean {
   const action = element.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE);
   const badgeCount = findReasonBadges(element).length;
@@ -144,6 +152,7 @@ export function isYouTubeMusicRowFilterCurrent(
 
   return (
     action === decision.action &&
+    element.getAttribute(YOUTUBE_MUSIC_FILTER_SURFACE_ATTRIBUTE) === surface &&
     element.getAttribute(YOUTUBE_MUSIC_FILTER_REASON_ATTRIBUTE) ===
       decision.reason &&
     (decision.action === 'hide' ? badgeCount === 0 : badgeCount === 1)

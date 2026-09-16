@@ -1,6 +1,6 @@
 # YouTube Music 현재 재생 자동 건너뛰기
 
-- 구현 기준일: 2026-09-14
+- 구현 기준일: 2026-09-16
 - 범위: 현재 재생 player bar identity, 기존 YouTube watch disclosure lookup 재사용, confirmed 항목의 다음 곡 버튼 1회 클릭
 - 이 controller의 제외 범위: YTM 목록 row 필터, queue 재작성, 반복 정책 변경, 비공개 player API, 새 네트워크·권한·telemetry, 재생 기록 저장. 목록 row 필터는 이후 별도 controller로 구현했으며 `youtube-music-card-filtering.md`에서 다룬다.
 
@@ -8,7 +8,7 @@
 
 다음 조건을 모두 만족할 때만 현재 항목의 다음 버튼을 한 번 클릭한다.
 
-1. `ytmusic-player-bar`의 지원되는 watch anchor에서 정확한 11자리 video ID를 얻는다.
+1. `/watch?v=…` route 또는 `ytmusic-player-bar`의 지원되는 watch anchor에서 정확한 11자리 video ID를 얻는다.
 2. 전역 `enabled`와 `youtubeMusicAutoSkip` 설정이 모두 `true`다.
 3. 기존 background message로 조회한 결과가 `status === 'confirmed'`다.
 4. 반환된 evidence를 기존 `detectYouTubeOfficialDisclosure`로 다시 검사했을 때 YouTube 공식 evidence가 confirmed다.
@@ -19,9 +19,9 @@
 
 ## player identity와 관측
 
-현재 identity는 기존 YouTube Music adapter의 `ytmusic-player-bar`와 `.title a[href]`, 이후 동일 player bar 안의 `a[href]` 우선순위를 재사용한다. 현재 URL이나 Polymer property, Media Session, 비공개 runtime state로 fallback하지 않는다. 동일 element가 재사용되더라도 매번 현재 `href`를 파싱하므로 전환 중 href가 사라지면 identity 없음으로 처리한다.
+현재 identity는 정확한 `https://music.youtube.com/watch?v=…` route를 우선하고, watch route가 아닐 때 기존 `ytmusic-player-bar`의 `.title a[href]`, 이후 동일 player bar 안의 `a[href]` 우선순위를 사용한다. Manual Next처럼 route는 새 곡인데 재사용된 player anchor가 이전 곡을 가리키면 route video ID만 사용하고 stale DOM의 artist ID는 함께 사용하지 않는다. route와 anchor video ID가 일치할 때만 player bar의 안정적인 UC artist identity를 유지한다. Polymer property, Media Session과 비공개 runtime state는 읽지 않는다.
 
-adapter는 `href`, `disabled`, `aria-disabled`, child-list 변경과 `yt-navigate-finish`를 관측하고 animation frame 단위로 알린다. selector와 YTM 전용 navigation event 명칭은 adapter 안에만 있다.
+adapter는 `href`, `disabled`, `aria-disabled`, child-list 변경, `yt-navigate-finish`, `popstate`와 표준 Navigation API의 `currententrychange`를 관측하고 animation frame 단위로 알린다. `history.pushState()`·`replaceState()`로 변경되는 YTM SPA current entry를 event 기반으로 처리하므로 polling이나 History API monkey patch가 없다. Manual Next, queue/playlist item 선택과 자연스러운 다음 곡 전환이 같은 exact current-route identity 계약을 사용한다. Navigation API가 없는 환경에서는 기존 DOM/navigation signal만 유지한다.
 
 ## next control 전략
 
@@ -36,7 +36,7 @@ adapter는 `href`, `disabled`, `aria-disabled`, child-list 변경과 `yt-navigat
 
 ## stale 결과와 중복 방어
 
-runtime controller는 유효한 current video ID가 바뀔 때마다 in-memory playback generation을 만든다. lookup callback은 generation과 expected/current/result video ID가 모두 일치할 때만 반영한다. href가 사라지는 전환 구간은 진행 중 generation을 무효화한다.
+runtime controller는 유효한 current video ID가 바뀔 때마다 in-memory playback generation을 만든다. lookup callback은 generation과 expected/current/result video ID가 모두 일치할 때만 반영한다. watch route가 malformed하거나 watch route 밖에서 player anchor도 사라진 전환 구간은 진행 중 generation을 무효화한다.
 
 confirmed 결과가 skip 조건을 만족하면 next control을 찾기 전에 해당 video ID를 `blockedUntilDifferentVideoId`로 latch한다. 클릭 성공, control 없음, disabled, disconnected, 예외 여부와 무관하게 같은 ID에서는 다시 클릭하지 않는다. href가 잠시 사라졌다가 같은 ID로 돌아와도 latch를 유지한다. 다른 유효 ID가 관측되어야 latch가 풀린다.
 
@@ -58,28 +58,30 @@ YTM content script는 기존 `noai:youtube-watch-disclosure:lookup` runtime mess
 
 비식별 fixture는 합성 video ID와 player bar/next control 관계만 포함한다. 단위 테스트는 policy, evidence 재검증, player ID 변경, stale callback, 중복 observer, transition latch, 순차 confirmed 항목, missing/disabled/disconnected/throwing next control, 설정 migration과 sender origin 경계를 검증한다.
 
-bundled Chromium extension E2E는 YTM fixture content script → runtime message → 기존 background watch lookup → detector → next DOM click 전체 흐름을 검증한다. A와 B가 연속 confirmed일 때 각 한 번 건너뛰고 ordinary C에서 멈추는 경우, 늦은 A 결과가 B를 건너뛰지 않는 경우, 설정 변경이 reload 없이 반영되는 경우를 포함한다. CI는 실제 YTM live DOM이나 계정에 의존하지 않는다.
+bundled Chromium extension E2E는 YTM fixture content script → runtime message → 기존 background watch lookup → detector → next DOM click 전체 흐름을 검증한다. A와 B가 연속 confirmed일 때 각 한 번 건너뛰고 ordinary C에서 멈추는 경우, stale player anchor를 유지한 manual Next route 전환, 늦은 A/B 결과 폐기, auto-skip OFF, allowlisted/direct-blocked/ordinary B, 반복 mutation의 one-click latch와 queue filtering 독립성을 포함한다. CI는 실제 YTM live DOM이나 계정에 의존하지 않는다.
 
 ## 실제 Chrome 수동 검증 절차
 
 1. `npm run build`를 실행한다.
 2. `chrome://extensions`에서 개발자 모드를 켜고 `.output/chrome-mv3`를 reload한다.
 3. YouTube Music을 열고 popup/options에서 `YouTube Music 자동 건너뛰기`가 켜져 있는지 확인한다.
-4. DevTools Elements에서 `ytmusic-player-bar`의 `.title a[href]`가 현재 항목의 `/watch?...v=...`를 가리키는지 확인한다.
+4. 주소창의 `/watch?...v=...`와 DevTools Elements의 `ytmusic-player-bar .title a[href]`가 전환 전후 어떤 순서로 갱신되는지 확인한다.
 5. 같은 player bar 안에 `.next-button.ytmusic-player-bar`가 있고 실제 다음 곡 control인지 확인한다.
 6. 기존 공개 sample video ID 등 YTM에서 직접 재생 가능하고 공식 disclosure lookup이 confirmed인 테스트 항목을 재생해 다음 항목으로 한 번만 넘어가는지 확인한다.
 7. official disclosure가 없는 일반 항목은 계속 재생되는지 확인한다.
 8. confirmed 항목이 연속된 queue에서 각 playback generation마다 한 번씩 넘어가는지 확인한다.
-9. auto-skip을 끄거나 전역 NoAI를 끈 상태에서는 현재 항목이 유지되는지 확인한다.
-10. 검색·앨범·playlist·artist SPA 이동과 queue 변경 뒤 stale 항목을 건너뛰거나 같은 항목을 반복 클릭하지 않는지 확인한다.
-11. 테스트가 끝나면 제목, 아티스트, 검색어, queue 또는 청취 기록이 `storage.local`에 추가되지 않았는지 확인한다.
+9. 일반곡에서 사용자가 Next를 눌러 confirmed 곡으로 전환했을 때 해당 곡을 한 번만 건너뛰는지 확인한다.
+10. queue item 직접 선택, playlist item 직접 선택과 자연스러운 곡 종료에서도 같은 동작인지 확인한다.
+11. auto-skip을 끄거나 전역 NoAI를 끈 상태에서는 현재 항목이 유지되는지 확인한다.
+12. 검색·앨범·playlist·artist SPA 이동과 queue 변경 뒤 stale 항목을 건너뛰거나 같은 항목을 반복 클릭하지 않는지 확인한다.
+13. 테스트가 끝나면 제목, 아티스트, 검색어, queue 또는 청취 기록이 `storage.local`에 추가되지 않았는지 확인한다.
 
 이번 구현 환경에서는 in-app Chrome 연결을 다시 시도했으나 browser bridge를 사용할 수 없어 live YTM 수동 검증은 실행하지 못했다. fixture E2E 결과와 live 일반곡 no-op 검증은 구분해야 하며, PR 병합 전 위 절차의 사람 확인이 필요하다.
 
 ## 알려진 한계
 
 - YouTube Music DOM은 공개 안정 API가 아니며 player bar 또는 next selector가 바뀌면 fail-closed no-op이 된다.
-- player bar에 지원 watch anchor가 없는 전환 구간이나 premium/disabled UI에서는 skip하지 않는다.
+- watch route와 player bar 양쪽에서 exact ID를 얻지 못하는 전환 구간이나 premium/disabled UI에서는 skip하지 않는다.
 - 클릭 성공 뒤 실제 player 전환 완료 여부를 비공개 state로 확인하지 않는다. ID가 바뀌지 않으면 같은 항목을 재클릭하지 않는다.
 - 같은 video ID가 중간에 다른 유효 ID 없이 repeat되면 새 playback generation으로 판단할 수 없어 추가 skip하지 않는다.
 - skip toast, skip 이유 history와 queue 정책은 이 controller의 범위가 아니다. YTM 목록 reason badge와 필터는 별도 `youtube-music-card-filtering.md` 계약을 따른다.

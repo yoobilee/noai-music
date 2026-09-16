@@ -64,6 +64,52 @@
       </ytmusic-responsive-list-item-renderer>
     </template>
 
+    <template id="queue-item">
+      <section data-testid="queue-panel">
+        <ytmusic-player-bar>
+          <div class="title">
+            <a href="/watch?v=NowPlaying1">Synthetic current item</a>
+          </div>
+          <button class="next-button ytmusic-player-bar" type="button">
+            Next
+          </button>
+        </ytmusic-player-bar>
+        <ytmusic-player-queue-item
+          data-testid="queue-confirmed"
+          data-fixture-video-id="QueueAI0001"
+        >
+          <div>Synthetic confirmed queue item</div>
+        </ytmusic-player-queue-item>
+        <ytmusic-player-queue-item
+          data-testid="queue-ordinary"
+          data-fixture-video-id="QueueOrd001"
+        >
+          <div>Synthetic ordinary queue item</div>
+        </ytmusic-player-queue-item>
+        <ytmusic-player-queue-item
+          data-testid="queue-direct"
+          data-fixture-video-id="QueueBlk001"
+        >
+          <div>Synthetic directly blocked queue item</div>
+        </ytmusic-player-queue-item>
+        <ytmusic-player-queue-item data-testid="queue-missing">
+          <div>Synthetic missing identity queue item</div>
+        </ytmusic-player-queue-item>
+        <ytmusic-player-queue-item
+          data-testid="queue-invalid"
+          data-fixture-video-id="invalid"
+        >
+          <div>Synthetic invalid identity queue item</div>
+        </ytmusic-player-queue-item>
+        <ytmusic-player-queue-item
+          data-testid="queue-ambiguous"
+          data-fixture-ambiguous="true"
+        >
+          <div>Synthetic ambiguous identity queue item</div>
+        </ytmusic-player-queue-item>
+      </section>
+    </template>
+
     <script>
       (() => {
         const surfaceFromPath = (path) => {
@@ -71,8 +117,22 @@
           if (path.startsWith('/browse/MPRE')) return 'album-track';
           if (path.startsWith('/playlist')) return 'playlist-track';
           if (path.startsWith('/channel/UC')) return 'artist-song';
+          if (path.startsWith('/watch')) return 'queue-item';
           return undefined;
         };
+
+        const hydrateQueueData = (root) => {
+          for (const item of root.querySelectorAll('ytmusic-player-queue-item')) {
+            if (item.dataset.fixtureAmbiguous === 'true') {
+              item.data = { videoId: ['QueueAI0001', 'QueueOrd001'] };
+              continue;
+            }
+            const videoId = item.dataset.fixtureVideoId;
+            item.data = videoId ? { videoId } : {};
+          }
+        };
+
+        window.fixtureNextClicks = 0;
 
         window.activateFixtureSurface = (path) => {
           const surface = surfaceFromPath(path);
@@ -82,7 +142,39 @@
           root.replaceChildren(
             ...(template ? [template.content.cloneNode(true)] : []),
           );
+          hydrateQueueData(root);
+          root
+            .querySelector('.next-button.ytmusic-player-bar')
+            ?.addEventListener('click', () => {
+              window.fixtureNextClicks += 1;
+            });
           document.dispatchEvent(new Event('yt-navigate-finish'));
+        };
+
+        window.reuseFixtureQueueItem = (testId, videoId) => {
+          const item = document.querySelector(`[data-testid="${testId}"]`);
+          item.data = videoId === null ? {} : { videoId };
+          item.append(document.createElement('span'));
+        };
+
+        window.simulatePlaylistPlaybackReturn = async () => {
+          const root = document.getElementById('fixture-root');
+          history.pushState(
+            {},
+            '',
+            '/watch?v=ListOrd0001&list=PLfixture',
+          );
+          root.hidden = true;
+          document.dispatchEvent(new Event('yt-navigate-finish'));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+
+          // Reproduce the live timing where the navigation signal can precede
+          // the final /playlist URL and the existing renderer is only revealed.
+          document.dispatchEvent(new Event('yt-navigate-finish'));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          history.pushState({}, '', '/playlist?list=PLfixture');
+          root.hidden = false;
         };
 
         window.activateFixtureSurface(location.pathname + location.search);

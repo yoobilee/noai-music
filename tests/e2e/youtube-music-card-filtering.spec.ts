@@ -36,6 +36,7 @@ const confirmedIds = new Set([
   'ListAI00001',
   'ArtistAI001',
   'DelayedAI01',
+  'QueueAI0001',
 ]);
 
 test('direct track block filters an ordinary YTM row without disclosure lookup', async ({ context, page }) => {
@@ -137,7 +138,7 @@ test('filters all supported SPA row surfaces in every mode', async ({
   }
 
   for (const videoId of confirmedIds) {
-    if (videoId !== 'DelayedAI01') {
+    if (videoId !== 'DelayedAI01' && videoId !== 'QueueAI0001') {
       expect(watchRequests.get(videoId)).toBe(1);
     }
   }
@@ -283,4 +284,165 @@ test('restores a confirmed row when a track or stable artist is allowed', async 
   await setAllowlist(context, {});
   await expect(row).toHaveAttribute(filterAttribute, 'mark');
   await expect(row.locator(reasonBadge)).toHaveCount(1);
+});
+
+test('reapplies playlist filtering after the live playlist-watch-playlist transition', async ({
+  context,
+  page,
+}) => {
+  const requests = new Map<string, number>();
+  await setSettings(context, true, 'blur');
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', async (route) => {
+    const videoId = new URL(route.request().url()).searchParams.get('v') ?? '';
+    requests.set(videoId, (requests.get(videoId) ?? 0) + 1);
+    await route.fulfill({
+      body: confirmedIds.has(videoId) ? disclosedHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://music.youtube.com/playlist?list=PLfixture');
+  let confirmed = page.getByTestId('confirmed-row');
+  let ordinary = page.getByTestId('ordinary-row');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+
+  await page.evaluate(async () => {
+    const fixtureWindow = window as typeof window & {
+      simulatePlaylistPlaybackReturn(): Promise<void>;
+    };
+    await fixtureWindow.simulatePlaylistPlaybackReturn();
+  });
+  await expect(page).toHaveURL(/\/playlist\?list=PLfixture$/);
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(confirmed.locator(reasonBadge)).toHaveCount(1);
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+
+  await activateSurface(page, '/watch?v=ListOrd0001&list=PLfixture');
+  await activateSurface(page, '/playlist?list=PLfixture');
+  confirmed = page.getByTestId('confirmed-row');
+  ordinary = page.getByTestId('ordinary-row');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(confirmed.locator(reasonBadge)).toHaveCount(1);
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+
+  await setSettings(context, true, 'mark');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');
+  await setSettings(context, false, 'mark');
+  await expect(confirmed).not.toHaveAttribute(filterAttribute, /.+/);
+  await setSettings(context, true, 'blur');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  expect(requests.get('ListAI00001')).toBe(1);
+});
+
+test('filters live-shaped queue data identities without touching invalid items', async ({
+  context,
+  page,
+}) => {
+  const requests: string[] = [];
+  await setSettings(context, true, 'blur');
+  await setAllowlist(context, {});
+  await setBlocklist(context, { tracks: [{ videoId: 'QueueBlk001' }] });
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', async (route) => {
+    const videoId = new URL(route.request().url()).searchParams.get('v') ?? '';
+    requests.push(videoId);
+    await route.fulfill({
+      body: confirmedIds.has(videoId) ? disclosedHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto(
+    'https://music.youtube.com/watch?v=NowPlaying1&list=PLfixture',
+  );
+  const confirmed = page.getByTestId('queue-confirmed');
+  const ordinary = page.getByTestId('queue-ordinary');
+  const direct = page.getByTestId('queue-direct');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(confirmed.locator(reasonBadge)).toHaveCount(1);
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect(direct).toHaveAttribute(filterAttribute, 'blur');
+  await expect(direct).toHaveAttribute(
+    'data-noai-filter-reason',
+    'direct-block-track',
+  );
+  expect(requests).not.toContain('QueueBlk001');
+  for (const testId of ['queue-missing', 'queue-invalid', 'queue-ambiguous']) {
+    await expect(page.getByTestId(testId)).not.toHaveAttribute(
+      filterAttribute,
+      /.+/,
+    );
+  }
+
+  await setAllowlist(context, { tracks: [{ videoId: 'QueueAI0001' }] });
+  await expect(confirmed).not.toHaveAttribute(filterAttribute, /.+/);
+  await setAllowlist(context, {});
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+
+  await setSettings(context, true, 'mark');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');
+  await expect(confirmed.locator(reasonBadge)).toHaveCount(1);
+  await setSettings(context, true, 'hide');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'hide');
+  await expect(confirmed).toHaveCSS('display', 'none');
+  expect(
+    await confirmed.evaluate(
+      (element) => element.getBoundingClientRect().height,
+    ),
+  ).toBe(0);
+  expect(
+    await confirmed.evaluate((element) => ({
+      connected: element.isConnected,
+      videoId: (
+        element as Element & { data?: { videoId?: unknown } }
+      ).data?.videoId,
+    })),
+  ).toEqual({ connected: true, videoId: 'QueueAI0001' });
+
+  await setSettings(context, false, 'hide');
+  await expect(confirmed).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect(confirmed).not.toHaveCSS('display', 'none');
+  await setSettings(context, true, 'hide');
+  await expect(confirmed).toHaveCSS('display', 'none');
+
+  await setSettings(context, true, 'blur');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'blur');
+  await expect(confirmed).not.toHaveCSS('display', 'none');
+  await setSettings(context, true, 'mark');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');
+  await setSettings(context, true, 'hide');
+  await expect(confirmed).toHaveCSS('display', 'none');
+
+  await setSettings(context, true, 'mark');
+  await expect(confirmed).toHaveAttribute(filterAttribute, 'mark');
+
+  await page.evaluate(() => {
+    const fixtureWindow = window as typeof window & {
+      reuseFixtureQueueItem(testId: string, videoId: string | null): void;
+    };
+    fixtureWindow.reuseFixtureQueueItem('queue-ordinary', 'QueueAI0001');
+  });
+  await expect(ordinary).toHaveAttribute(filterAttribute, 'mark');
+  await expect(ordinary.locator(reasonBadge)).toHaveCount(1);
+  await page.evaluate(() => {
+    const fixtureWindow = window as typeof window & {
+      reuseFixtureQueueItem(testId: string, videoId: string | null): void;
+    };
+    fixtureWindow.reuseFixtureQueueItem('queue-ordinary', 'QueueOrd001');
+  });
+  await expect(ordinary).not.toHaveAttribute(filterAttribute, /.+/);
+  await expect(ordinary.locator(reasonBadge)).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        (window as typeof window & { fixtureNextClicks: number })
+          .fixtureNextClicks,
+    ),
+  ).toBe(0);
 });

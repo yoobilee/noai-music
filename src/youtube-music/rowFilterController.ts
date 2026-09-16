@@ -17,6 +17,7 @@ import {
   isYouTubeMusicRowFilterCurrent,
 } from '@/ui/youtubeMusicRowFilter';
 import type { FilterAllowlistActions } from '@/ui/filterAllowlistActions';
+import type { YouTubeMusicFilterSurface } from '@/ui/youtubeMusicRowFilter';
 
 interface CandidateResult {
   expectedKey: string;
@@ -51,6 +52,12 @@ export interface YouTubeMusicRowFilterController {
 
 function candidateKey(candidate: YouTubeMusicMediaCandidate): string {
   return `${candidate.surface}|${candidate.snapshot.identity.videoId}`;
+}
+
+function filterSurface(
+  candidate: YouTubeMusicMediaCandidate,
+): YouTubeMusicFilterSurface {
+  return candidate.surface === 'queue-item' ? 'queue-item' : 'list-row';
 }
 
 function decisionFingerprint(
@@ -121,7 +128,11 @@ export function createYouTubeMusicRowFilterController(
     );
     if (
       appliedFingerprints.get(candidate.element) === fingerprint &&
-      isYouTubeMusicRowFilterCurrent(candidate.element, decision)
+      isYouTubeMusicRowFilterCurrent(
+        candidate.element,
+        decision,
+        filterSurface(candidate),
+      )
     ) {
       return;
     }
@@ -184,6 +195,7 @@ export function createYouTubeMusicRowFilterController(
         ? ''
         : (dependencies.getReasonText?.(decision.reason) ?? dependencies.reasonText ?? ''),
       allowlistActions,
+      filterSurface(candidate),
     );
     appliedFingerprints.set(candidate.element, fingerprint);
   };
