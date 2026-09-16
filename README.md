@@ -25,7 +25,7 @@ NoAI uses YouTube's official AI or altered-content disclosure as its primary det
 - It does not use an AI detector of its own.
 - It does not infer AI use from titles, channel names, or audio characteristics.
 - An official disclosure does not by itself prove that the music was AI-generated. NoAI reports only the disclosure it confirmed.
-- If NoAI cannot verify the page structure, identity, or disclosure evidence, it fails closed and does not guess or filter the item.
+- If NoAI cannot verify the page structure, identity, or disclosure evidence, it leaves the item unchanged rather than guessing.
 - A direct block is a user rule, not an AI classification.
 
 ## Supported surfaces
