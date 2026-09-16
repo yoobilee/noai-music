@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from './fixtures';
+import { setAllowlist } from './allowlistStorage';
+import { setBlocklist } from './blocklistStorage';
 
 interface GeneratedManifest {
   manifest_version: number;
@@ -260,6 +262,71 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await expect(page.locator('.user-rule-manager__disclosure')).toHaveCount(0);
   await expect(page.locator('#allowlist-track-input')).toBeVisible();
   await expect(page.locator('#blocklist-channel-input')).toBeVisible();
+});
+
+test('options uses a responsive two-column user rule management layout', async ({
+  context,
+  extensionId,
+  page,
+}) => {
+  await setAllowlist(context, {
+    artists: [{ artistId: 'UCabcdefghijklmnopqrstuv' }],
+    tracks: [{ videoId: 'TrackVideo1' }],
+  });
+  await setBlocklist(context, {
+    channels: [{ handle: '@example', identityType: 'handle' }],
+    tracks: [{ videoId: 'BlockVideo1' }],
+  });
+  await page.setViewportSize({ height: 900, width: 1100 });
+  await page.goto(`chrome-extension://${extensionId}/options.html`);
+
+  const ruleCards = page.locator('.settings-panel__rule-sections > section');
+  await expect(ruleCards).toHaveCount(2);
+  await expect(
+    page.getByRole('heading', { level: 3, name: /Allowlist|허용 목록/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 3, name: /Blocklist|차단 목록/ }),
+  ).toBeVisible();
+  await expect(
+    ruleCards.nth(0).locator('.user-rule-manager__summary-count'),
+  ).toContainText('2');
+  await expect(
+    ruleCards.nth(1).locator('.user-rule-manager__summary-count'),
+  ).toContainText('2');
+
+  const desktopCards = await ruleCards.evaluateAll((cards) =>
+    cards.map((card) => {
+      const bounds = card.getBoundingClientRect();
+      return { left: bounds.left, top: bounds.top };
+    }),
+  );
+  const desktopAllowlist = desktopCards[0]!;
+  const desktopBlocklist = desktopCards[1]!;
+  expect(desktopAllowlist.top).toBe(desktopBlocklist.top);
+  expect(desktopAllowlist.left).toBeLessThan(desktopBlocklist.left);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+
+  await page.setViewportSize({ height: 900, width: 760 });
+  const narrowCards = await ruleCards.evaluateAll((cards) =>
+    cards.map((card) => {
+      const bounds = card.getBoundingClientRect();
+      return { left: bounds.left, top: bounds.top };
+    }),
+  );
+  const narrowAllowlist = narrowCards[0]!;
+  const narrowBlocklist = narrowCards[1]!;
+  expect(narrowAllowlist.left).toBe(narrowBlocklist.left);
+  expect(narrowAllowlist.top).toBeLessThan(narrowBlocklist.top);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
 });
 
 test('popup manages the allowlist without opening another page', async ({
