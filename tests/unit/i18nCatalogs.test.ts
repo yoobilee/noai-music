@@ -23,6 +23,7 @@ describe('UI locale catalogs', () => {
 
     expect(Object.keys(english).sort()).toEqual(Object.keys(korean).sort());
     for (const key of [
+      'brandName',
       'languageLabel',
       'languageAuto',
       'languageKorean',
@@ -31,5 +32,11 @@ describe('UI locale catalogs', () => {
       expect(english[key]?.message).toBeTruthy();
       expect(korean[key]?.message).toBeTruthy();
     }
+    expect(english.extName?.message).toBe(
+      'NoAI — AI-Labeled Music Filter',
+    );
+    expect(korean.extName?.message).toBe('NoAI — AI 표시 음악 필터');
+    expect(english.brandName?.message).toBe('NoAI');
+    expect(korean.brandName?.message).toBe('NoAI');
   });
 });
