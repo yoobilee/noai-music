@@ -64,11 +64,11 @@ allowlist > direct blocklist > official disclosure
 
 ### Chrome Web Store
 
-NoAI 0.9.0은 Chrome Web Store에 제출되었으며 현재 **검토 중**입니다. 아직 공개된 스토어 URL은 없습니다.
+NoAI는 [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)에서 설치할 수 있습니다.
 
 ### GitHub Release
 
-[NoAI v0.9.0 Release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)에서 Chrome 확장 프로그램 ZIP을 받을 수 있습니다. 스토어 공개 전에는 ZIP을 압축 해제한 뒤 Chrome 개발자 모드에서 압축 해제된 확장 프로그램을 불러올 수 있습니다.
+[NoAI v0.9.0 Release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)에서 Chrome 확장 프로그램 ZIP을 받을 수 있습니다. 스토어 설치 대신 ZIP을 압축 해제한 뒤 Chrome 개발자 모드에서 압축 해제된 확장 프로그램을 불러올 수도 있습니다.
 
 개발용 빌드를 사용하려면 아래 개발 절차를 실행하고 `.output/chrome-mv3`를 unpacked extension으로 불러오세요.
 
@@ -90,7 +90,7 @@ NoAI 0.9.0은 Chrome Web Store에 제출되었으며 현재 **검토 중**입니
 - 현재 버전: **0.9.0**
 - 상태: **1.0 release candidate**
 - GitHub Release: [v0.9.0 공개](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
-- Chrome Web Store: **제출 완료 / 검토 중**
+- Chrome Web Store: **[공개 / 설치 가능](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - 우선 검증 대상: desktop Chrome 현재 안정 버전
 - Edge와 Whale: Chromium 호환 대상이며 브라우저별 최종 수동 검증 필요
 - Firefox: 1.0 범위에 포함하지 않으며 이후 검토 가능

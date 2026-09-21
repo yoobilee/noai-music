@@ -64,11 +64,11 @@ allowlist > direct blocklist > official disclosure
 
 ### Chrome Web Store
 
-NoAI 0.9.0 has been submitted to the Chrome Web Store and is currently **under review**. There is no public store listing URL yet.
+NoAI is available on the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
 
 ### GitHub Release
 
-The [NoAI v0.9.0 release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0) includes the Chrome extension ZIP. Until the store listing is public, you can extract the ZIP and load the extracted extension through Chrome's developer mode.
+The [NoAI v0.9.0 release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
 
 For a development build instead, follow the instructions below and load `.output/chrome-mv3` as an unpacked extension.
 
@@ -90,7 +90,7 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 - Current version: **0.9.0**
 - Status: **1.0 release candidate**
 - GitHub Release: [v0.9.0 available](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
-- Chrome Web Store: **submitted / under review**
+- Chrome Web Store: **[Available](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
 - Edge and Whale: Chromium compatibility targets; final browser-specific manual validation remains
 - Firefox: not in the 1.0 scope and may be considered later

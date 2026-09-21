@@ -1,7 +1,8 @@
-# Chrome Web Store listing 초안
+# Chrome Web Store listing
 
 - 대상 버전: 0.9.0
-- 상태: 제출 문구 초안. 실제 Dashboard 입력과 asset 업로드는 사람 검증 후 진행한다.
+- 상태: 공개 / 설치 가능
+- 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
 
 ## 공통 제품 정보
 
@@ -9,7 +10,7 @@
 - Tagline: **Block AI music on YouTube. Skip it on YouTube Music.**
 - 단일 목적: YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음악 콘텐츠와 사용자가 직접 지정한 exact identity에 사용자의 필터 설정을 적용한다.
 - 지원 사이트: `https://www.youtube.com/*`, `https://music.youtube.com/*`
-- 권장 카테고리: TODO — 제출 시 Chrome Web Store의 현재 카테고리 목록에서 사람이 선택
+- 카테고리: Chrome Web Store 공개 listing에서 관리
 - Privacy policy URL: https://github.com/yoobilee/noai-music/blob/main/docs/privacy.md
 - Support URL: `https://github.com/yoobilee/noai-music/issues`
 
@@ -66,7 +67,7 @@ If NoAI cannot confirm the page structure or identity, it does not guess and blo
 - 단, 공식 표시 추가 확인을 위해 해당 video ID의 public YouTube watch page를 `credentials: omit`으로 YouTube에 요청할 수 있다.
 - 상세 내용은 [개인정보 처리방침](privacy.md)에 기록한다.
 
-Chrome Web Store는 로컬 처리도 공개 대상이 될 수 있으며 Dashboard의 Privacy practices와 공개 정책이 일치해야 한다. 제출 시 [공식 Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)를 기준으로 다시 확인한다.
+Chrome Web Store는 로컬 처리도 공개 대상이 될 수 있으며 Dashboard의 Privacy practices와 공개 정책이 일치해야 한다. 변경 시 [공식 Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)를 기준으로 다시 확인한다.
 
 ## 권한 설명 / Permission justifications
 
@@ -103,9 +104,9 @@ Chrome 공식 문서는 현재 다음 asset을 안내한다.
 - 440×280 small promotional image
 - 최소 1개, 최대 5개의 1280×800 또는 640×400 screenshot
 
-출처: [Extension icon 안내](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons), [Chrome Web Store 이미지 요구사항](https://developer.chrome.com/docs/webstore/images). Dashboard 요구사항은 제출 시점에 다시 확인한다.
+출처: [Extension icon 안내](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons), [Chrome Web Store 이미지 요구사항](https://developer.chrome.com/docs/webstore/images). Dashboard 요구사항은 listing asset 변경 시 다시 확인한다.
 
-현재 저장소에는 사용자 승인된 16/32/48/128 PNG icon set이 있고 extension manifest와 package에 포함된다. Store promotional asset과 실제 screenshot은 다음 제출 전 TODO로 남는다.
+현재 저장소에는 사용자 승인된 16/32/48/128 PNG icon set이 있고 extension manifest와 package에 포함된다. Store promotional asset과 실제 screenshot은 Chrome Web Store Dashboard에서 관리하며, 아래 목록은 향후 asset 갱신 시 참고한다.
 
 1. popup 기본 화면
 2. YouTube Blur 또는 Mark 적용 화면
