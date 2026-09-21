@@ -23,6 +23,7 @@ import {
   RuleListGroup,
   UserRuleSection,
 } from '@/ui/UserRuleManager';
+import { useMessage } from '@/ui/I18nContext';
 
 type AllowlistMessageKey =
   | 'addArtistAllowlist'
@@ -43,18 +44,16 @@ type AllowlistMessageKey =
   | 'trackAllowlistInputLabel'
   | 'trackAllowlistInputPlaceholder';
 
-function message(
-  key: AllowlistMessageKey,
-  substitutions?: string | string[],
-): string {
-  return browser.i18n.getMessage(key, substitutions);
-}
-
 interface AllowlistManagerProps {
   compact?: boolean;
 }
 
 export function AllowlistManager({ compact = false }: AllowlistManagerProps) {
+  const resolveMessage = useMessage();
+  const message = (
+    key: AllowlistMessageKey,
+    substitutions?: string | string[],
+  ) => resolveMessage(key, substitutions);
   const [allowlist, setAllowlist] =
     useState<PersistedAllowlist>(DEFAULT_ALLOWLIST);
   const [trackInput, setTrackInput] = useState('');

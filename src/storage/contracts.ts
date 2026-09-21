@@ -8,6 +8,8 @@ export const ALLOWLIST_STORAGE_KEY = 'allowlistV1';
 export const BLOCKLIST_SCHEMA_VERSION = 1;
 export const BLOCKLIST_STORAGE_KEY = 'blocklistV1';
 
+export type UiLocalePreference = 'auto' | 'ko' | 'en';
+
 export interface StoredEntityReference {
   site: SupportedSite;
   kind: 'track' | 'artist' | 'channel';
@@ -25,6 +27,7 @@ export interface PersistedSettings {
   enabled: boolean;
   mode: FilterMode;
   youtubeMusicAutoSkip: boolean;
+  uiLocale: UiLocalePreference;
 }
 
 export const DEFAULT_SETTINGS: PersistedSettings = {
@@ -32,6 +35,7 @@ export const DEFAULT_SETTINGS: PersistedSettings = {
   enabled: true,
   mode: 'hide',
   youtubeMusicAutoSkip: true,
+  uiLocale: 'auto',
 };
 
 export interface AllowedTrack {

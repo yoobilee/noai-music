@@ -41,6 +41,7 @@ describe('versioned local settings', () => {
       enabled: false,
       mode: 'mark',
       youtubeMusicAutoSkip: false,
+      uiLocale: 'ko',
     });
 
     await expect(loadSettings(storage)).resolves.toEqual({
@@ -48,6 +49,7 @@ describe('versioned local settings', () => {
       enabled: false,
       mode: 'mark',
       youtubeMusicAutoSkip: false,
+      uiLocale: 'ko',
     });
   });
 
@@ -65,12 +67,14 @@ describe('versioned local settings', () => {
       enabled: false,
       mode: 'blur',
       youtubeMusicAutoSkip: true,
+      uiLocale: 'auto',
     });
     expect(storage.data[SETTINGS_STORAGE_KEY]).toEqual({
       schemaVersion: STORAGE_SCHEMA_VERSION,
       enabled: false,
       mode: 'blur',
       youtubeMusicAutoSkip: true,
+      uiLocale: 'auto',
     });
   });
 
@@ -89,6 +93,34 @@ describe('versioned local settings', () => {
       enabled: false,
       mode: 'mark',
       youtubeMusicAutoSkip: true,
+      uiLocale: 'auto',
+    });
+  });
+
+  it('falls back to auto when the locale preference is invalid', async () => {
+    const storage = createMemoryStorage({
+      [SETTINGS_STORAGE_KEY]: {
+        schemaVersion: STORAGE_SCHEMA_VERSION,
+        enabled: false,
+        mode: 'mark',
+        youtubeMusicAutoSkip: false,
+        uiLocale: 'fr',
+      },
+    });
+
+    await expect(loadSettings(storage)).resolves.toEqual({
+      schemaVersion: STORAGE_SCHEMA_VERSION,
+      enabled: false,
+      mode: 'mark',
+      youtubeMusicAutoSkip: false,
+      uiLocale: 'auto',
+    });
+    expect(storage.data[SETTINGS_STORAGE_KEY]).toEqual({
+      schemaVersion: STORAGE_SCHEMA_VERSION,
+      enabled: false,
+      mode: 'mark',
+      youtubeMusicAutoSkip: false,
+      uiLocale: 'auto',
     });
   });
 
@@ -113,6 +145,7 @@ describe('versioned local settings', () => {
               enabled: true,
               mode: 'blur',
               youtubeMusicAutoSkip: false,
+              uiLocale: 'en',
             },
           },
         },
@@ -123,6 +156,7 @@ describe('versioned local settings', () => {
       enabled: true,
       mode: 'blur',
       youtubeMusicAutoSkip: false,
+      uiLocale: 'en',
     });
     expect(
       readSettingsChange(

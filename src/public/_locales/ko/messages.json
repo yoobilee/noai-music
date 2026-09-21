@@ -53,6 +53,18 @@
   "settingsSaveError": {
     "message": "설정을 저장하지 못했습니다. 다시 시도해 주세요."
   },
+  "languageLabel": {
+    "message": "언어"
+  },
+  "languageAuto": {
+    "message": "자동"
+  },
+  "languageKorean": {
+    "message": "한국어"
+  },
+  "languageEnglish": {
+    "message": "English"
+  },
   "youtubeDisclosureReason": {
     "message": "NoAI · YouTube AI 표시"
   },

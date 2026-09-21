@@ -56,7 +56,8 @@ body.noai-options {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -364,6 +365,35 @@ button {
   gap: 12px;
   grid-template-columns: minmax(0, 1fr) auto;
   padding-block: 14px;
+}
+
+.settings-panel__locale-section {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  min-inline-size: 0;
+}
+
+.settings-panel__locale-section label {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.settings-panel__locale-section select {
+  background: var(--noai-surface);
+  border: 1px solid var(--noai-border-strong);
+  border-radius: 8px;
+  color: var(--noai-text);
+  max-inline-size: 150px;
+  min-block-size: 38px;
+  min-inline-size: 118px;
+  padding: 6px 30px 6px 10px;
+}
+
+.settings-panel__locale-section select:focus-visible {
+  outline: 3px solid var(--noai-focus);
+  outline-offset: 3px;
 }
 
 .settings-panel__section-header {

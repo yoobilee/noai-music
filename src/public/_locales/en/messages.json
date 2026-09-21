@@ -53,6 +53,18 @@
   "settingsSaveError": {
     "message": "Settings could not be saved. Try again."
   },
+  "languageLabel": {
+    "message": "Language"
+  },
+  "languageAuto": {
+    "message": "Auto"
+  },
+  "languageKorean": {
+    "message": "한국어"
+  },
+  "languageEnglish": {
+    "message": "English"
+  },
   "youtubeDisclosureReason": {
     "message": "NoAI · YouTube AI disclosure"
   },

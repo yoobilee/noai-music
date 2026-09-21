@@ -15,7 +15,7 @@ NoAI는 음악이 AI로 생성됐는지 추측하지 않습니다. 확인된 You
 - 지원되는 YouTube Music track row와 queue item 필터링
 - 곡·아티스트 허용 목록
 - 곡·아티스트·채널 직접 차단
-- 한국어·영어 UI
+- 브라우저 언어 자동 감지 또는 직접 선택이 가능한 한국어·영어 UI
 - 광고, analytics, telemetry 없음
 
 ## 동작 및 판정 원칙

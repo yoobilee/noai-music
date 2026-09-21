@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { browser, type Browser } from 'wxt/browser';
 
 import type { FilterMode } from '@/filtering/contracts';
-import { DEFAULT_SETTINGS, type PersistedSettings } from '@/storage/contracts';
+import {
+  DEFAULT_SETTINGS,
+  type PersistedSettings,
+  type UiLocalePreference,
+} from '@/storage/contracts';
 import {
   loadSettings,
   readSettingsChange,
@@ -10,6 +14,7 @@ import {
 } from '@/storage/settings';
 import { AllowlistManager } from '@/ui/AllowlistManager';
 import { BlocklistManager } from '@/ui/BlocklistManager';
+import { I18nProvider, useMessage } from '@/ui/I18nContext';
 
 type MessageKey =
   | 'enabledDescription'
@@ -25,6 +30,10 @@ type MessageKey =
   | 'filterScopeDescription'
   | 'filterStateDisabled'
   | 'filterStateEnabled'
+  | 'languageAuto'
+  | 'languageEnglish'
+  | 'languageKorean'
+  | 'languageLabel'
   | 'settingsSaveError'
   | 'userRulesDescription'
   | 'userRulesHeading'
@@ -50,10 +59,6 @@ const MODE_MESSAGE_KEYS = {
   FilterMode,
   { description: MessageKey; label: MessageKey }
 >;
-
-function message(key: MessageKey): string {
-  return browser.i18n.getMessage(key);
-}
 
 interface SettingsPanelProps {
   userListsVariant?: 'compact' | 'full';
@@ -104,7 +109,35 @@ export function SettingsPanel({ userListsVariant }: SettingsPanelProps) {
       .catch(() => setStatus('error'));
   };
 
+  return (
+    <I18nProvider preference={settings.uiLocale}>
+      <SettingsPanelContent
+        settings={settings}
+        status={status}
+        updateSettings={updateSettings}
+        userListsVariant={userListsVariant}
+      />
+    </I18nProvider>
+  );
+}
+
+interface SettingsPanelContentProps extends SettingsPanelProps {
+  settings: PersistedSettings;
+  status: 'loading' | 'ready' | 'saving' | 'error';
+  updateSettings(next: PersistedSettings): void;
+}
+
+function SettingsPanelContent({
+  settings,
+  status,
+  updateSettings,
+  userListsVariant,
+}: SettingsPanelContentProps) {
+  const resolveMessage = useMessage();
+  const message = (key: MessageKey) => resolveMessage(key);
+
   const savingDisabled = status === 'loading' || status === 'saving';
+  const localeDisabled = status === 'loading';
   const secondaryDisabled = savingDisabled || !settings.enabled;
   const compact = userListsVariant === 'compact';
 
@@ -219,6 +252,27 @@ export function SettingsPanel({ userListsVariant }: SettingsPanelProps) {
             />
             <span aria-hidden="true" className="switch-control__visual" />
           </label>
+        </section>
+
+        <section className="settings-panel__section settings-panel__locale-section">
+          <label htmlFor="noai-ui-locale">
+            <strong>{message('languageLabel')}</strong>
+          </label>
+          <select
+            disabled={localeDisabled}
+            id="noai-ui-locale"
+            onChange={(event) =>
+              updateSettings({
+                ...settings,
+                uiLocale: event.currentTarget.value as UiLocalePreference,
+              })
+            }
+            value={settings.uiLocale}
+          >
+            <option value="auto">{message('languageAuto')}</option>
+            <option value="ko">{message('languageKorean')}</option>
+            <option value="en">{message('languageEnglish')}</option>
+          </select>
         </section>
 
         {status === 'error' ? (
