@@ -1,6 +1,6 @@
 # NoAI 0.9.0 → 1.0.0 릴리스 체크리스트
 
-0.9.0은 1.0 release candidate다. 이 문서는 1.0.0 tag, GitHub Release와 Chrome Web Store 제출 전에 사람이 실제 환경에서 확인할 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+0.9.0은 1.0 release candidate이며 Chrome Web Store에서 공개되어 설치할 수 있다. 이 문서는 1.0.0 전에 사람이 실제 환경에서 확인할 항목과 0.9.0 배포 상태를 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
 
 ## 기능 동결
 
@@ -110,12 +110,12 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 - [ ] remote code 사용 안 함으로 선언
 - [ ] 단일 목적과 모든 permission justification 입력
 
-Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](https://developer.chrome.com/docs/webstore/images)에서, privacy 입력 항목은 [Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)에서 제출 직전에 다시 확인한다.
+Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](https://developer.chrome.com/docs/webstore/images)에서, privacy 입력 항목은 [Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)에서 listing 변경 전에 다시 확인한다.
 
-## 승인 후에만 수행
+## 배포 단계
 
-- [ ] 0.9.0 PR 사람 review와 병합 승인
-- [ ] 0.9.0 tag 생성 및 push 승인
-- [ ] GitHub Release 생성과 검증된 zip 첨부 승인
-- [ ] Chrome Web Store package upload 및 제출 승인
+- [x] 0.9.0 PR 사람 review와 병합 승인
+- [x] 0.9.0 tag 생성 및 push 승인
+- [x] GitHub Release 생성과 검증된 zip 첨부 승인
+- [x] Chrome Web Store package upload 및 제출 승인 — [공개 listing](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 - [ ] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인
