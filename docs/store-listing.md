@@ -31,7 +31,7 @@ NoAI는 YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음�
 - 곡·아티스트 허용 목록
 - exact video ID, UC channel ID 또는 YouTube `@handle` 기반 직접 차단 목록
 - 설정과 사용자 규칙의 브라우저 로컬 저장
-- 한국어와 영어 UI
+- 브라우저 언어 자동 감지 또는 직접 선택이 가능한 한국어와 영어 UI
 
 NoAI는 자체 AI 모델, 제목, 채널명이나 음원 특징으로 AI 여부를 추측하지 않습니다. 공식 표시가 있다는 이유만으로 음악 자체가 AI 생성됐다고 단정하지 않습니다. 사용자가 직접 차단한 항목은 AI 판정이 아닌 사용자 규칙이며, 허용 목록이 직접 차단과 공식 표시보다 우선합니다.
 
@@ -54,7 +54,7 @@ Key features:
 - Track and artist allowlists
 - Direct block rules using exact video IDs, UC channel IDs, or YouTube `@handles`
 - Local browser storage for settings and user rules
-- Korean and English UI
+- Korean and English UI with automatic browser-language detection or manual language selection
 
 NoAI does not use its own AI model and does not infer AI use from titles, channel names, or audio characteristics. An official disclosure does not by itself prove that the music was AI-generated. Direct blocks are user-defined rules, not AI detections. Allowlist rules take priority over direct blocks and official disclosures.
 

@@ -15,7 +15,7 @@ NoAI does not guess whether music is AI-generated. It uses confirmed YouTube dis
 - Filter supported YouTube Music track rows and queue items
 - Track and artist allowlists
 - Direct blocking for tracks, artists, and channels
-- Korean and English UI
+- Korean and English UI with automatic browser-language detection or manual language selection
 - No ads, analytics, or telemetry
 
 ## How it works

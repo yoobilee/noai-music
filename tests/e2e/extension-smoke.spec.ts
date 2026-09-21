@@ -264,6 +264,55 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await expect(page.locator('#blocklist-channel-input')).toBeVisible();
 });
 
+test('popup and options share a persisted manual UI language', async ({
+  context,
+  extensionId,
+  page,
+}) => {
+  await page.setViewportSize({ height: 600, width: 380 });
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+
+  const popupLocale = page.locator('#noai-ui-locale');
+  await expect(popupLocale).toHaveAccessibleName(/Language|언어/);
+  await expect(popupLocale).toHaveValue('auto');
+  await popupLocale.evaluate((element) => {
+    const select = element as HTMLSelectElement;
+    select.focus();
+    select.value = 'ko';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(popupLocale).toBeFocused();
+  await expect(popupLocale).toHaveAccessibleName('언어');
+  await expect(page.getByText('필터 사용', { exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
+
+  const options = await context.newPage();
+  await options.setViewportSize({ height: 800, width: 900 });
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  const optionsLocale = options.locator('#noai-ui-locale');
+  await expect(optionsLocale).toHaveAccessibleName('언어');
+  await expect(optionsLocale).toHaveValue('ko');
+  await expect(options.getByText('필터 사용', { exact: true })).toBeVisible();
+
+  await optionsLocale.selectOption('en');
+  await expect(optionsLocale).toHaveAccessibleName('Language');
+  await expect(options.getByText('Enable filtering', { exact: true })).toBeVisible();
+  await expect(options.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(popupLocale).toHaveValue('en');
+  await expect(popupLocale).toHaveAccessibleName('Language');
+  await expect(page.getByText('Enable filtering', { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(page.locator('#noai-ui-locale')).toHaveValue('en');
+  await expect(page.getByText('Enable filtering', { exact: true })).toBeVisible();
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+});
+
 test('options uses a responsive two-column user rule management layout', async ({
   context,
   extensionId,

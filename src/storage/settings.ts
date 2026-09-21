@@ -27,7 +27,8 @@ export function isPersistedSettings(
     value.schemaVersion === STORAGE_SCHEMA_VERSION &&
     typeof value.enabled === 'boolean' &&
     (value.mode === 'hide' || value.mode === 'blur' || value.mode === 'mark') &&
-    typeof value.youtubeMusicAutoSkip === 'boolean'
+    typeof value.youtubeMusicAutoSkip === 'boolean' &&
+    (value.uiLocale === 'auto' || value.uiLocale === 'ko' || value.uiLocale === 'en')
   );
 }
 
@@ -49,6 +50,10 @@ export function normalizeSettings(value: unknown): PersistedSettings {
       typeof value.youtubeMusicAutoSkip === 'boolean'
         ? value.youtubeMusicAutoSkip
         : DEFAULT_SETTINGS.youtubeMusicAutoSkip,
+    uiLocale:
+      value.uiLocale === 'ko' || value.uiLocale === 'en'
+        ? value.uiLocale
+        : DEFAULT_SETTINGS.uiLocale,
   };
 }
 
@@ -70,7 +75,7 @@ export async function saveSettings(
   storageArea: SettingsStorageArea,
   settings: Pick<
     PersistedSettings,
-    'enabled' | 'mode' | 'youtubeMusicAutoSkip'
+    'enabled' | 'mode' | 'youtubeMusicAutoSkip' | 'uiLocale'
   >,
 ): Promise<PersistedSettings> {
   const normalized = normalizeSettings({
@@ -78,6 +83,7 @@ export async function saveSettings(
     enabled: settings.enabled,
     mode: settings.mode,
     youtubeMusicAutoSkip: settings.youtubeMusicAutoSkip,
+    uiLocale: settings.uiLocale,
   });
   await storageArea.set({ [SETTINGS_STORAGE_KEY]: normalized });
   return normalized;

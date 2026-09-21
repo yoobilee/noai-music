@@ -26,6 +26,7 @@ import {
   RuleListGroup,
   UserRuleSection,
 } from '@/ui/UserRuleManager';
+import { useMessage } from '@/ui/I18nContext';
 
 type Kind = 'track' | 'artist' | 'channel';
 type BlocklistMessageKey =
@@ -76,11 +77,10 @@ const config = {
   },
 } as const;
 
-function message(key: BlocklistMessageKey, substitution?: string): string {
-  return browser.i18n.getMessage(key, substitution);
-}
-
 export function BlocklistManager({ compact = false }: { compact?: boolean }) {
+  const resolveMessage = useMessage();
+  const message = (key: BlocklistMessageKey, substitution?: string) =>
+    resolveMessage(key, substitution);
   const [blocklist, setBlocklist] =
     useState<PersistedBlocklist>(DEFAULT_BLOCKLIST);
   const [inputs, setInputs] = useState<Record<Kind, string>>({
