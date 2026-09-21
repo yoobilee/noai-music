@@ -1,12 +1,15 @@
 # Chrome Web Store listing
 
-- 대상 버전: 0.9.0
-- 상태: 공개 / 설치 가능
+- 현재 공개 버전: 0.9.0
+- 다음 업데이트 대상 버전: 0.9.1
+- 상태: 공개 / 설치 가능 (0.9.1 Dashboard 반영·제출은 별도 진행)
 - 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
 
 ## 공통 제품 정보
 
-- 이름: **NoAI**
+- Brand: **NoAI**
+- English display name: **NoAI — AI-Labeled Music Filter**
+- Korean display name: **NoAI — AI 표시 음악 필터**
 - Tagline: **Block AI music on YouTube. Skip it on YouTube Music.**
 - 단일 목적: YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음악 콘텐츠와 사용자가 직접 지정한 exact identity에 사용자의 필터 설정을 적용한다.
 - 지원 사이트: `https://www.youtube.com/*`, `https://music.youtube.com/*`

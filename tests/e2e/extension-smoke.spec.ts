@@ -7,6 +7,7 @@ import { setBlocklist } from './blocklistStorage';
 
 interface GeneratedManifest {
   manifest_version: number;
+  name: string;
   version: string;
   icons?: Record<string, string>;
   action?: {
@@ -31,13 +32,38 @@ const manifestPath = fileURLToPath(
   new URL('../../.output/chrome-mv3/manifest.json', import.meta.url),
 );
 
+async function readBuiltLocale(locale: 'en' | 'ko') {
+  return JSON.parse(
+    await readFile(
+      fileURLToPath(
+        new URL(
+          `../../.output/chrome-mv3/_locales/${locale}/messages.json`,
+          import.meta.url,
+        ),
+      ),
+      'utf8',
+    ),
+  ) as Record<string, { message: string }>;
+}
+
 test('generated manifest stays on MV3 with minimal permissions', async () => {
-  const manifest = JSON.parse(
-    await readFile(manifestPath, 'utf8'),
-  ) as GeneratedManifest;
+  const [manifest, english, korean] = await Promise.all([
+    readFile(manifestPath, 'utf8').then(
+      (value) => JSON.parse(value) as GeneratedManifest,
+    ),
+    readBuiltLocale('en'),
+    readBuiltLocale('ko'),
+  ]);
 
   expect(manifest.manifest_version).toBe(3);
-  expect(manifest.version).toBe('0.9.0');
+  expect(manifest.version).toBe('0.9.1');
+  expect(manifest.name).toBe('__MSG_extName__');
+  expect(english.extName?.message).toBe(
+    'NoAI — AI-Labeled Music Filter',
+  );
+  expect(korean.extName?.message).toBe('NoAI — AI 표시 음악 필터');
+  expect(english.brandName?.message).toBe('NoAI');
+  expect(korean.brandName?.message).toBe('NoAI');
   expect(manifest.icons).toEqual({
     16: 'icons/icon-16.png',
     32: 'icons/icon-32.png',

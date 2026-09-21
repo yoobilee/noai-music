@@ -6,6 +6,8 @@
 
 NoAI는 YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음악을 사용자가 원하는 방식으로 관리할 수 있게 돕는 오픈소스 브라우저 확장 프로그램입니다.
 
+제품 브랜드는 계속 **NoAI**입니다. 0.9.1부터 확장 프로그램의 외부 표시 이름은 영어에서 **NoAI — AI-Labeled Music Filter**, 한국어에서 **NoAI — AI 표시 음악 필터**를 사용합니다.
+
 NoAI는 음악이 AI로 생성됐는지 추측하지 않습니다. 확인된 YouTube 공식 표시와 사용자가 직접 지정한 exact identity만 사용하며, 필요한 근거나 identity를 확인할 수 없으면 아무 항목도 추측해서 처리하지 않습니다.
 
 ## 핵심 기능
@@ -87,9 +89,8 @@ NoAI는 [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibm
 
 ## 브라우저 지원과 현재 상태
 
-- 현재 버전: **0.9.0**
-- 상태: **1.0 release candidate**
-- GitHub Release: [v0.9.0 공개](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
+- 현재 개발/릴리스 후보 버전: **0.9.1**
+- 최신 GitHub Release: [v0.9.0 공개](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
 - Chrome Web Store: **[공개 / 설치 가능](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - 우선 검증 대상: desktop Chrome 현재 안정 버전
 - Edge와 Whale: Chromium 호환 대상이며 브라우저별 최종 수동 검증 필요
@@ -115,7 +116,7 @@ npm run verify:all
 빌드 결과:
 
 - unpacked Chrome extension: `.output/chrome-mv3`
-- 현재 release ZIP: `.output/noai-music-0.9.0-chrome.zip`
+- 준비된 release ZIP: `.output/noai-music-0.9.1-chrome.zip`
 
 ## 문서
 
@@ -129,7 +130,7 @@ npm run verify:all
 - [직접 차단 목록](docs/blocklist.md)
 - [개인정보 처리방침](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [0.9.0 → 1.0.0 릴리스 체크리스트](docs/release-checklist.md)
+- [0.9.1 릴리스 준비 및 1.0.0 체크리스트](docs/release-checklist.md)
 
 ## 라이선스
 

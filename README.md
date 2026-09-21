@@ -6,6 +6,8 @@
 
 NoAI is an open-source browser extension that helps users manage music content that YouTube officially labels as AI or altered content.
 
+The product brand remains **NoAI**. From 0.9.1, the localized extension display name is **NoAI — AI-Labeled Music Filter** in English and **NoAI — AI 표시 음악 필터** in Korean.
+
 NoAI does not guess whether music is AI-generated. It uses confirmed YouTube disclosures and exact user-defined identities, and does nothing when it cannot verify the required evidence or identity.
 
 ## Key features
@@ -87,9 +89,8 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 
 ## Browser support and current status
 
-- Current version: **0.9.0**
-- Status: **1.0 release candidate**
-- GitHub Release: [v0.9.0 available](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
+- Current development/release candidate version: **0.9.1**
+- Latest GitHub Release: [v0.9.0 available](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
 - Chrome Web Store: **[Available](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
 - Edge and Whale: Chromium compatibility targets; final browser-specific manual validation remains
@@ -115,7 +116,7 @@ npm run verify:all
 Build artifacts:
 
 - Unpacked Chrome extension: `.output/chrome-mv3`
-- Current release ZIP: `.output/noai-music-0.9.0-chrome.zip`
+- Prepared release ZIP: `.output/noai-music-0.9.1-chrome.zip`
 
 ## Documentation
 
@@ -129,7 +130,7 @@ Build artifacts:
 - [Direct blocklist](docs/blocklist.md)
 - [Privacy policy](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [0.9.0 to 1.0.0 release checklist](docs/release-checklist.md)
+- [0.9.1 release preparation and 1.0.0 checklist](docs/release-checklist.md)
 
 ## License
 

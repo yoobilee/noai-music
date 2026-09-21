@@ -1,6 +1,51 @@
 # NoAI 0.9.0 → 1.0.0 릴리스 체크리스트
 
-0.9.0은 1.0 release candidate이며 Chrome Web Store에서 공개되어 설치할 수 있다. 이 문서는 1.0.0 전에 사람이 실제 환경에서 확인할 항목과 0.9.0 배포 상태를 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+0.9.0은 Chrome Web Store에서 공개되어 설치할 수 있고, 0.9.1은 다음 release candidate로 준비 중이다. 이 문서는 0.9.1과 1.0.0 전에 사람이 실제 환경에서 확인할 항목 및 0.9.0 배포 상태를 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+
+## 0.9.1 릴리스 준비
+
+### 기능
+
+- [ ] Auto / 한국어 / English 선택
+- [ ] popup 언어 즉시 변경
+- [ ] options 언어 즉시 변경
+- [ ] popup/options 동기화
+- [ ] popup 닫기/재열기 후 선택 유지
+- [ ] invalid locale → Auto fallback
+- [ ] Auto에서 Chrome UI locale 유지
+- [ ] content-script badge와 reason은 browser locale을 유지
+
+### 표시 이름
+
+- [ ] English extension name `NoAI — AI-Labeled Music Filter` 확인
+- [ ] Korean extension name `NoAI — AI 표시 음악 필터` 확인
+- [ ] popup/options 내부 header는 `NoAI` 유지
+- [ ] Chrome 확장 프로그램 관리 화면 표시 이름 확인
+
+### UI
+
+- [ ] popup 380px 폭 회귀 없음
+- [ ] 200% zoom에서 잘림/가로 overflow 없음
+- [ ] keyboard/focus-visible 확인
+
+### 기존 기능 회귀
+
+- [ ] enabled ON/OFF
+- [ ] Hide / Blur / Mark
+- [ ] YouTube Music auto-skip
+- [ ] allowlist
+- [ ] blocklist
+
+### 배포
+
+- [x] package version 0.9.1
+- [x] generated manifest version 0.9.1
+- [x] production ZIP 생성
+- [x] ZIP 내용 검사
+- [x] Chrome Web Store update package 준비
+- [ ] v0.9.1 tag
+- [ ] GitHub Release v0.9.1
+- [ ] Chrome Web Store 0.9.1 제출
 
 ## 기능 동결
 

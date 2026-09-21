@@ -17,9 +17,9 @@ import { BlocklistManager } from '@/ui/BlocklistManager';
 import { I18nProvider, useMessage } from '@/ui/I18nContext';
 
 type MessageKey =
+  | 'brandName'
   | 'enabledDescription'
   | 'enabledLabel'
-  | 'extName'
   | 'filterModeBlur'
   | 'filterModeBlurDescription'
   | 'filterModeHide'
@@ -147,7 +147,7 @@ function SettingsPanelContent({
     >
       <header className="settings-panel__header">
         <div>
-          <h1>{message('extName')}</h1>
+          <h1>{message('brandName')}</h1>
           <p>{message('filterScopeDescription')}</p>
         </div>
         <span

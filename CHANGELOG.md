@@ -13,6 +13,22 @@
 - 플레이리스트에서 재생 화면으로 이동했다가 돌아올 때 기존 row 필터가 간헐적으로 풀리는 회귀를 수정했습니다.
 - queue Hide에서 빈 row 공간이 남지 않도록 하고, Manual Next 등 SPA current-track 전환에서도 auto-skip이 새 곡을 감지하도록 수정했습니다.
 
+## [0.9.1] - 준비 중
+
+### Added
+
+- popup과 options에서 Auto, 한국어, English 중 UI 언어를 직접 선택할 수 있습니다.
+- popup과 options 사이에서 선택한 UI 언어를 즉시 동기화하고 `storage.local`에 유지합니다.
+
+### Changed
+
+- 확장 프로그램 외부 표시 이름을 영어 **NoAI — AI-Labeled Music Filter**, 한국어 **NoAI — AI 표시 음악 필터**로 구체화했습니다. 제품 UI 내부 브랜드는 계속 **NoAI**입니다.
+
+### Privacy and permissions
+
+- 새 permission, host permission, 외부 network request, analytics, telemetry 또는 remote code를 추가하지 않았습니다.
+- YouTube와 YouTube Music에 삽입되는 badge와 reason 문구는 계속 browser locale을 따릅니다.
+
 ## [0.9.0] - 2026-09-15
 
 ### 추가
