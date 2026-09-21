@@ -114,8 +114,8 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 
 ## 배포 단계
 
-- [ ] 0.9.0 PR 사람 review와 병합 승인
-- [ ] 0.9.0 tag 생성 및 push 승인
+- [x] 0.9.0 PR 사람 review와 병합 승인
+- [x] 0.9.0 tag 생성 및 push 승인
 - [x] GitHub Release 생성과 검증된 zip 첨부 승인
 - [x] Chrome Web Store package upload 및 제출 승인 — [공개 listing](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 - [ ] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인
