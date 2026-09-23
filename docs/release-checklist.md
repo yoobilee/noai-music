@@ -162,20 +162,21 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 
 개발자용 기술 문서에서는 정확한 기술 용어와 코드 식별자를 유지할 수 있다. Chrome Web Store의 사용자용 한국어 설명에서는 일반 사용자가 자연스럽게 이해할 수 있는 표현을 우선한다. YouTube, YouTube Music, NoAI, UC ID 또는 UC 채널 ID, `@handle` 또는 `@핸들`, `storage.local`, manifest, 실제 권한 이름, URL과 코드·설정 키는 정확성을 위해 그대로 유지할 수 있다.
 
-- [ ] 한국어 짧은 설명 전체 검토
-- [ ] 한국어 상세 설명 전체 현지화
-- [ ] 불필요한 영어/개발 용어 제거
-- [ ] 영어 listing과 한국어 listing의 기능 의미 일치 확인
-- [ ] 공식 AI 표시가 음악 자체의 AI 생성을 의미한다고 오해시키지 않는지 확인
-- [ ] direct block은 AI 판정이 아니라 사용자 규칙임을 유지
-- [ ] allowlist / blocklist 설명을 일반 사용자에게 자연스럽게 표현
+- [x] 한국어 짧은 설명 전체 검토
+- [x] 한국어 상세 설명 전체 현지화
+- [x] 불필요한 영어/개발 용어 제거
+- [x] 영어 listing과 한국어 listing의 기능 의미 일치 확인
+- [x] 공식 AI 표시가 음악 자체의 AI 생성을 의미한다고 오해시키지 않는지 확인
+- [x] direct block은 AI 판정이 아니라 사용자 규칙임을 유지
+- [x] allowlist / blocklist 설명을 일반 사용자에게 자연스럽게 표현
 - [ ] 한국어 screenshot 문구와 Store 상세 설명 용어 통일
-- [ ] 확장 프로그램 이름 **NoAI — AI 표시 음악 필터**와 설명 문체 통일
+- [x] 확장 프로그램 이름 **NoAI — AI 표시 음악 필터**와 설명 문체 통일
 - [ ] Store Dashboard에 실제 최종 문구가 반영됐는지 제출 전 확인
+- [ ] Chrome Web Store 1.0.0 listing 제출
 
 현지화 검토에서는 `exact video ID`를 `정확한 영상 ID`, `channel ID`를 `채널 ID`, `identity`를 `식별 정보`, `surface`를 `화면` 또는 `영역`, `browser locale`을 `브라우저 언어`, `popup/options`를 `팝업/설정 페이지`, `analytics`를 `분석 도구` 또는 `사용 분석`, `telemetry`를 `사용 통계 수집`, `release candidate`를 `출시 후보 버전`처럼 문맥에 맞게 바꾼다.
 
-이번 문서 갱신에서는 Chrome Web Store Dashboard의 listing 문구를 직접 변경하지 않는다.
+이번 1단계 문서 갱신에서는 Chrome Web Store Dashboard의 listing 문구를 직접 변경하거나 제출하지 않는다.
 
 ## 배포 단계
 
