@@ -4,6 +4,24 @@
 
 ## Unreleased
 
+## [1.0.0] - 준비 중
+
+### Changed
+
+- 0.9.x 출시 후보에서 검증한 기능과 사용자 경험을 1.0.0 정식 릴리스 기준으로 확정했습니다.
+- Chrome Web Store 한국어 설명을 자연스럽게 현지화하고 공개 문서를 1.0.0 출시 기준으로 정리했습니다.
+
+### Validation
+
+- 실제 Chrome에서 1.0.0 최종 수동 회귀 검증을 완료했습니다.
+- YouTube와 YouTube Music의 핵심 필터링 및 자동 건너뛰기를 확인했습니다.
+- 팝업과 설정 페이지의 언어 전환, 설정 유지 및 동기화를 확인했습니다.
+- 200% 화면 확대와 키보드 초점 표시를 확인했습니다.
+
+### Privacy and permissions
+
+- 새 permission, host permission, 외부 network request, analytics, telemetry 또는 remote code를 추가하지 않았습니다.
+
 ## [0.9.1] - 2026-09-21
 
 ### Added

@@ -89,7 +89,8 @@ NoAI 0.9.1은 [Chrome Web Store](https://chromewebstore.google.com/detail/noai/e
 
 ## 브라우저 지원과 현재 상태
 
-- 현재 버전: **0.9.1**
+- 현재 공개 버전: **0.9.1**
+- 다음 출시 후보 버전: **1.0.0**
 - 최신 GitHub Release: [v0.9.1](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1)
 - Chrome Web Store: **[0.9.1 공개 / 설치 가능](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - 우선 검증 대상: desktop Chrome 현재 안정 버전
@@ -116,7 +117,7 @@ npm run verify:all
 빌드 결과:
 
 - unpacked Chrome extension: `.output/chrome-mv3`
-- 준비된 release ZIP: `.output/noai-music-0.9.1-chrome.zip`
+- 준비된 1.0.0 출시 후보 ZIP: `.output/noai-music-1.0.0-chrome.zip`
 
 ## 문서
 

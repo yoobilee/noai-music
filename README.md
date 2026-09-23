@@ -89,7 +89,8 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 
 ## Browser support and current status
 
-- Current version: **0.9.1**
+- Current published version: **0.9.1**
+- Next release candidate: **1.0.0**
 - Latest GitHub Release: [v0.9.1](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1)
 - Chrome Web Store: **[0.9.1 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
@@ -116,7 +117,7 @@ npm run verify:all
 Build artifacts:
 
 - Unpacked Chrome extension: `.output/chrome-mv3`
-- Prepared release ZIP: `.output/noai-music-0.9.1-chrome.zip`
+- Prepared 1.0.0 release candidate ZIP: `.output/noai-music-1.0.0-chrome.zip`
 
 ## Documentation
 

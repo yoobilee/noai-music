@@ -2,39 +2,39 @@
 
 0.9.1은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 다음 목표 버전은 1.0.0이다. 이 문서는 0.9.1 배포 상태와 1.0.0 전에 사람이 실제 환경에서 확인할 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
 
-## 0.9.1 공개 상태와 미확인 수동 검증
+## 0.9.1 공개 상태와 1.0.0 수동 검증
 
 ### 기능
 
-- [ ] Auto / 한국어 / English 선택
-- [ ] popup 언어 즉시 변경
-- [ ] options 언어 즉시 변경
-- [ ] popup/options 동기화
-- [ ] popup 닫기/재열기 후 선택 유지
+- [x] Auto / 한국어 / English 선택
+- [x] popup 언어 즉시 변경
+- [x] options 언어 즉시 변경
+- [x] popup/options 동기화
+- [x] popup 닫기/재열기 후 선택 유지
 - [ ] invalid locale → Auto fallback
-- [ ] Auto에서 Chrome UI locale 유지
+- [x] Auto에서 Chrome UI locale 유지
 - [ ] content-script badge와 reason은 browser locale을 유지
 
 ### 표시 이름
 
-- [ ] English extension name `NoAI — AI-Labeled Music Filter` 확인
-- [ ] Korean extension name `NoAI — AI 표시 음악 필터` 확인
-- [ ] popup/options 내부 header는 `NoAI` 유지
-- [ ] Chrome 확장 프로그램 관리 화면 표시 이름 확인
+- [x] English extension name `NoAI — AI-Labeled Music Filter` 확인
+- [x] Korean extension name `NoAI — AI 표시 음악 필터` 확인
+- [x] popup/options 내부 header는 `NoAI` 유지
+- [x] Chrome 확장 프로그램 관리 화면 표시 이름 확인
 
 ### UI
 
 - [ ] popup 380px 폭 회귀 없음
-- [ ] 200% zoom에서 잘림/가로 overflow 없음
-- [ ] keyboard/focus-visible 확인
+- [x] 200% zoom에서 잘림/가로 overflow 없음
+- [x] keyboard/focus-visible 확인
 
 ### 기존 기능 회귀
 
-- [ ] enabled ON/OFF
-- [ ] Hide / Blur / Mark
-- [ ] YouTube Music auto-skip
-- [ ] allowlist
-- [ ] blocklist
+- [x] enabled ON/OFF
+- [x] Hide / Blur / Mark
+- [x] YouTube Music auto-skip
+- [x] allowlist
+- [x] blocklist
 
 ### 배포
 
@@ -80,13 +80,15 @@
 - [ ] Artist song row: Hide / Blur / Mark
 - [x] Premium live DOM에서 queue renderer `ytmusic-player-queue-item`과 exact `data.videoId` identity source 확인
 - [ ] queue item: Hide / Blur / Mark, track allow/direct block, invalid identity no-op — Premium 환경 필요
-- [ ] queue Hide에서 빈 공간이 남지 않고 DOM/playback 순서 유지, mode·Enabled 전환 시 즉시 복구 — Premium 환경 필요
-- [ ] playlist → `/watch?...&list=...` → playlist 복귀 후 기존 row 필터 재적용과 badge 중복 없음 — Premium 환경 필요
+- [x] queue Hide에서 빈 공간이 남지 않음 — Chrome 수동 확인
+- [ ] queue Hide에서 DOM/playback 순서 유지, mode·Enabled 전환 시 즉시 복구 — Premium 환경 필요
+- [x] playlist → `/watch?...&list=...` → playlist 복귀 후 기존 row 필터 재적용 — Chrome 수동 확인
+- [ ] playlist 복귀 후 badge 중복 없음 — Premium 환경 필요
 - [ ] player bar가 현재 재생곡의 exact video ID를 읽음 — Premium 환경 필요
 - [ ] confirmed 현재 곡 auto-skip — Premium 환경 필요
 - [ ] track allowlist가 auto-skip을 방지함 — Premium 환경 필요
 - [ ] direct blocked track/확실한 artist가 disclosure lookup 없이 한 번 skip됨 — Premium 환경 필요
-- [ ] Enabled OFF와 YouTube Music auto-skip OFF가 skip을 중지함 — Premium 환경 필요
+- [x] Enabled OFF와 YouTube Music auto-skip OFF가 skip을 중지함 — Chrome 수동 확인
 - [ ] playback generation별 one-click latch와 transition failure 재클릭 방지 — Premium 환경 필요
 - [ ] 다음 곡 전환과 SPA 이동에서 stale identity 또는 중복 click 없음 — Premium 환경 필요
 - [ ] manual Next, queue/playlist 선택과 자연스러운 곡 종료로 confirmed 곡 진입 시 generation당 한 번 auto-skip — Premium 환경 필요
@@ -98,13 +100,14 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 - [ ] 실제 Chrome popup이 처음부터 약 380px이며 좌우 oscillation이 없음
 - [ ] collapsed/expanded details와 목록 추가·삭제 중 popup 폭이 변하지 않음
 - [ ] 600px 제한에서 vertical scroll만 나타나고 horizontal scroll이 없음
-- [ ] Hide / Blur / Mark와 ON/OFF의 현재 상태를 바로 이해할 수 있음
+- [x] Hide / Blur / Mark와 ON/OFF의 현재 상태를 바로 이해할 수 있음
 - [ ] 허용·차단 details의 제목, 저장 개수와 chevron이 명확함
-- [ ] popup과 options의 설정·목록이 즉시 동기화됨
+- [x] popup과 options의 설정·목록이 즉시 동기화됨
+- [x] popup/options 내부 header가 `NoAI` 브랜드를 유지함
 - [ ] 한국어 UI와 긴 한글 `@handle` 줄바꿈
 - [ ] 영어 UI와 긴 UC ID/URL 줄바꿈
-- [ ] keyboard Tab / Shift+Tab / Enter / Space와 focus-visible
-- [ ] 200% zoom에서 내용·control 손실과 가로 overflow 없음
+- [x] keyboard Tab 이동과 focus-visible 확인
+- [x] 200% zoom에서 내용·control 손실과 가로 overflow 없음
 - [ ] 오류 메시지, `aria-invalid`와 `aria-describedby` 연결
 
 ## 브라우저
@@ -116,30 +119,30 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 
 ## 자동 검증
 
-- [ ] `npm ci`
-- [ ] `npm audit --audit-level=low`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm test`
-- [ ] `npm run test:automation-policy`
-- [ ] `npm run build`
-- [ ] `npm run test:e2e`
-- [ ] `npm run verify:all`
-- [ ] `npm run zip`
-- [ ] `git diff --check`
+- [x] `npm ci`
+- [x] `npm audit --audit-level=low`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm test`
+- [x] `npm run test:automation-policy`
+- [x] `npm run build`
+- [x] `npm run test:e2e`
+- [x] `npm run verify:all`
+- [x] `npm run zip`
+- [x] `git diff --check`
 - [ ] PR 최신 head의 CI `Verify`
 
 ## Manifest와 배포 artifact
 
-- [x] `package.json`과 `package-lock.json`의 project version이 `0.9.1`
-- [x] `.output/chrome-mv3/manifest.json`의 version이 `0.9.1`
-- [ ] manifest name, description, `default_locale`, action popup과 options 확인
-- [ ] `permissions: [storage]`와 `host_permissions: [https://www.youtube.com/*]` 외 증가 없음
-- [ ] content-script matches가 YouTube와 YouTube Music 두 HTTPS origin으로 제한됨
-- [x] `.output/noai-music-0.9.1-chrome.zip` 생성
-- [ ] zip에 `.git`, `node_modules`, tests, docs, fixture, 환경 파일과 source map이 없음
-- [ ] zip에 manifest, runtime bundle, popup/options, locale 파일이 있음
-- [ ] source·fixture·secret 문자열과 로컬 절대 경로가 bundle에 포함되지 않음
+- [x] `package.json`과 `package-lock.json`의 project version이 `1.0.0`
+- [x] `.output/chrome-mv3/manifest.json`의 version이 `1.0.0`
+- [x] manifest name, description, `default_locale`, action popup과 options 확인
+- [x] `permissions: [storage]`와 `host_permissions: [https://www.youtube.com/*]` 외 증가 없음
+- [x] content-script matches가 YouTube와 YouTube Music 두 HTTPS origin으로 제한됨
+- [x] `.output/noai-music-1.0.0-chrome.zip` 생성
+- [x] zip에 `.git`, `node_modules`, tests, docs, fixture, 환경 파일과 source map이 없음
+- [x] zip에 manifest, runtime bundle, popup/options, locale 파일과 icon이 있음
+- [x] source·fixture·secret 문자열과 로컬 절대 경로가 bundle에 포함되지 않음
 - [ ] Git working tree clean
 
 ## Store asset와 listing
@@ -176,7 +179,7 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 
 현지화 검토에서는 `exact video ID`를 `정확한 영상 ID`, `channel ID`를 `채널 ID`, `identity`를 `식별 정보`, `surface`를 `화면` 또는 `영역`, `browser locale`을 `브라우저 언어`, `popup/options`를 `팝업/설정 페이지`, `analytics`를 `분석 도구` 또는 `사용 분석`, `telemetry`를 `사용 통계 수집`, `release candidate`를 `출시 후보 버전`처럼 문맥에 맞게 바꾼다.
 
-이번 1단계 문서 갱신에서는 Chrome Web Store Dashboard의 listing 문구를 직접 변경하거나 제출하지 않는다.
+한국어 문구는 저장소 문서에서 확정했으며, Store Dashboard 반영과 제출은 별도 릴리스 단계에서 수행한다.
 
 ## 배포 단계
 
@@ -185,4 +188,9 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 - [x] GitHub Release 생성과 검증된 zip 첨부 승인
 - [x] Chrome Web Store package upload 및 제출 승인 — [공개 listing](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 - [x] Chrome Web Store 0.9.1 검토 승인 및 공개
-- [ ] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인
+- [x] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인
+- [x] 1.0.0 package version 및 generated manifest version 확인
+- [x] 1.0.0 production ZIP 생성 및 최종 artifact 검사
+- [ ] v1.0.0 tag 생성 및 push 승인
+- [ ] GitHub Release v1.0.0 생성과 검증된 ZIP 첨부 승인
+- [ ] Chrome Web Store 1.0.0 package upload 및 제출 승인
