@@ -4,25 +4,25 @@
 
 ## Unreleased
 
-- options 페이지를 공통 설정과 2열 사용자 규칙 관리 카드로 정리하고, 좁은 화면에서는 1열로 전환하도록 개선했습니다.
-
-0.9.0 이후에는 1.0 출시를 위한 회귀 수정, 검증 문서와 배포 asset 보완만 예정되어 있습니다.
-
-- 사용자 승인된 16×16, 32×32, 48×48, 128×128 PNG 아이콘을 extension과 toolbar action에 적용했습니다.
-- Premium live DOM에서 확인한 exact video ID로 YouTube Music 재생 queue의 항목을 필터링합니다.
-- 플레이리스트에서 재생 화면으로 이동했다가 돌아올 때 기존 row 필터가 간헐적으로 풀리는 회귀를 수정했습니다.
-- queue Hide에서 빈 row 공간이 남지 않도록 하고, Manual Next 등 SPA current-track 전환에서도 auto-skip이 새 곡을 감지하도록 수정했습니다.
-
 ## [0.9.1] - 2026-09-21
 
 ### Added
 
 - popup과 options에서 Auto, 한국어, English 중 UI 언어를 직접 선택할 수 있습니다.
 - popup과 options 사이에서 선택한 UI 언어를 즉시 동기화하고 `storage.local`에 유지합니다.
+- Premium 실제 DOM에서 확인한 정확한 영상 ID로 YouTube Music 재생 대기열의 항목을 필터링합니다.
 
 ### Changed
 
 - 확장 프로그램 외부 표시 이름을 영어 **NoAI — AI-Labeled Music Filter**, 한국어 **NoAI — AI 표시 음악 필터**로 구체화했습니다. 제품 UI 내부 브랜드는 계속 **NoAI**입니다.
+- options 페이지를 공통 설정과 2열 사용자 규칙 관리 카드로 정리하고, 좁은 화면에서는 1열로 전환하도록 개선했습니다.
+- 사용자 승인된 16×16, 32×32, 48×48, 128×128 PNG 아이콘을 확장 프로그램과 도구 모음 버튼에 적용했습니다.
+
+### Fixed
+
+- 플레이리스트에서 재생 화면으로 이동했다가 돌아올 때 기존 목록 필터가 간헐적으로 풀리는 회귀를 수정했습니다.
+- 재생 대기열을 숨길 때 빈 공간이 남지 않도록 수정했습니다.
+- 수동으로 다음 곡을 선택하는 등 SPA에서 현재 곡이 바뀔 때 자동 건너뛰기가 새 곡을 감지하도록 수정했습니다.
 
 ### Privacy and permissions
 
