@@ -66,11 +66,11 @@ allowlist > direct blocklist > official disclosure
 
 ### Chrome Web Store
 
-NoAI is available on the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
+NoAI 0.9.1 is available to install from the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
 
 ### GitHub Release
 
-The [NoAI v0.9.0 release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
+The [NoAI v0.9.1 release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
 
 For a development build instead, follow the instructions below and load `.output/chrome-mv3` as an unpacked extension.
 
@@ -89,9 +89,9 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 
 ## Browser support and current status
 
-- Current development/release candidate version: **0.9.1**
-- Latest GitHub Release: [v0.9.0 available](https://github.com/yoobilee/noai-music/releases/tag/v0.9.0)
-- Chrome Web Store: **[Available](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
+- Current version: **0.9.1**
+- Latest GitHub Release: [v0.9.1](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1)
+- Chrome Web Store: **[0.9.1 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
 - Edge and Whale: Chromium compatibility targets; final browser-specific manual validation remains
 - Firefox: not in the 1.0 scope and may be considered later
@@ -130,7 +130,7 @@ Build artifacts:
 - [Direct blocklist](docs/blocklist.md)
 - [Privacy policy](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [0.9.1 release preparation and 1.0.0 checklist](docs/release-checklist.md)
+- [0.9.1 release status and 1.0.0 checklist](docs/release-checklist.md)
 
 ## License
 

@@ -1,8 +1,8 @@
-# NoAI 0.9.0 → 1.0.0 릴리스 체크리스트
+# NoAI 0.9.1 → 1.0.0 릴리스 체크리스트
 
-0.9.0은 Chrome Web Store에서 공개되어 설치할 수 있고, 0.9.1은 다음 release candidate로 준비 중이다. 이 문서는 0.9.1과 1.0.0 전에 사람이 실제 환경에서 확인할 항목 및 0.9.0 배포 상태를 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+0.9.1은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 다음 목표 버전은 1.0.0이다. 이 문서는 0.9.1 배포 상태와 1.0.0 전에 사람이 실제 환경에서 확인할 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
 
-## 0.9.1 릴리스 준비
+## 0.9.1 공개 상태와 미확인 수동 검증
 
 ### 기능
 
@@ -43,13 +43,14 @@
 - [x] production ZIP 생성
 - [x] ZIP 내용 검사
 - [x] Chrome Web Store update package 준비
-- [ ] v0.9.1 tag
-- [ ] GitHub Release v0.9.1
-- [ ] Chrome Web Store 0.9.1 제출
+- [x] v0.9.1 tag
+- [x] [GitHub Release v0.9.1](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1)
+- [x] Chrome Web Store 0.9.1 제출
+- [x] [Chrome Web Store 0.9.1 승인 및 공개](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 
 ## 기능 동결
 
-- [ ] 0.9.0 이후 새 기능 없이 회귀 수정과 문서·asset 보완만 진행
+- [ ] 1.0.0까지 새 기능 없이 회귀 수정과 문서·asset 보완만 진행
 - [ ] `allowlist > direct blocklist > official disclosure` 우선순위 재확인
 - [ ] official disclosure가 음악 자체의 AI 생성을 단정하지 않는 UI 문구 재확인
 - [ ] 판정 불가와 identity 누락이 fail-closed인지 재확인
@@ -130,12 +131,12 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 
 ## Manifest와 배포 artifact
 
-- [ ] `package.json`과 `package-lock.json`의 project version이 `0.9.0`
-- [ ] `.output/chrome-mv3/manifest.json`의 version이 `0.9.0`
+- [x] `package.json`과 `package-lock.json`의 project version이 `0.9.1`
+- [x] `.output/chrome-mv3/manifest.json`의 version이 `0.9.1`
 - [ ] manifest name, description, `default_locale`, action popup과 options 확인
 - [ ] `permissions: [storage]`와 `host_permissions: [https://www.youtube.com/*]` 외 증가 없음
 - [ ] content-script matches가 YouTube와 YouTube Music 두 HTTPS origin으로 제한됨
-- [ ] `.output/noai-music-0.9.0-chrome.zip` 생성
+- [x] `.output/noai-music-0.9.1-chrome.zip` 생성
 - [ ] zip에 `.git`, `node_modules`, tests, docs, fixture, 환경 파일과 source map이 없음
 - [ ] zip에 manifest, runtime bundle, popup/options, locale 파일이 있음
 - [ ] source·fixture·secret 문자열과 로컬 절대 경로가 bundle에 포함되지 않음
@@ -157,10 +158,30 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 
 Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](https://developer.chrome.com/docs/webstore/images)에서, privacy 입력 항목은 [Privacy practices 안내](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)에서 listing 변경 전에 다시 확인한다.
 
+## 1.0.0 Chrome Web Store 한국어 현지화
+
+개발자용 기술 문서에서는 정확한 기술 용어와 코드 식별자를 유지할 수 있다. Chrome Web Store의 사용자용 한국어 설명에서는 일반 사용자가 자연스럽게 이해할 수 있는 표현을 우선한다. YouTube, YouTube Music, NoAI, UC ID 또는 UC 채널 ID, `@handle` 또는 `@핸들`, `storage.local`, manifest, 실제 권한 이름, URL과 코드·설정 키는 정확성을 위해 그대로 유지할 수 있다.
+
+- [ ] 한국어 짧은 설명 전체 검토
+- [ ] 한국어 상세 설명 전체 현지화
+- [ ] 불필요한 영어/개발 용어 제거
+- [ ] 영어 listing과 한국어 listing의 기능 의미 일치 확인
+- [ ] 공식 AI 표시가 음악 자체의 AI 생성을 의미한다고 오해시키지 않는지 확인
+- [ ] direct block은 AI 판정이 아니라 사용자 규칙임을 유지
+- [ ] allowlist / blocklist 설명을 일반 사용자에게 자연스럽게 표현
+- [ ] 한국어 screenshot 문구와 Store 상세 설명 용어 통일
+- [ ] 확장 프로그램 이름 **NoAI — AI 표시 음악 필터**와 설명 문체 통일
+- [ ] Store Dashboard에 실제 최종 문구가 반영됐는지 제출 전 확인
+
+현지화 검토에서는 `exact video ID`를 `정확한 영상 ID`, `channel ID`를 `채널 ID`, `identity`를 `식별 정보`, `surface`를 `화면` 또는 `영역`, `browser locale`을 `브라우저 언어`, `popup/options`를 `팝업/설정 페이지`, `analytics`를 `분석 도구` 또는 `사용 분석`, `telemetry`를 `사용 통계 수집`, `release candidate`를 `출시 후보 버전`처럼 문맥에 맞게 바꾼다.
+
+이번 문서 갱신에서는 Chrome Web Store Dashboard의 listing 문구를 직접 변경하지 않는다.
+
 ## 배포 단계
 
 - [x] 0.9.0 PR 사람 review와 병합 승인
 - [x] 0.9.0 tag 생성 및 push 승인
 - [x] GitHub Release 생성과 검증된 zip 첨부 승인
 - [x] Chrome Web Store package upload 및 제출 승인 — [공개 listing](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
+- [x] Chrome Web Store 0.9.1 검토 승인 및 공개
 - [ ] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인

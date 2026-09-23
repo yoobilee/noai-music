@@ -1,8 +1,8 @@
 # Chrome Web Store listing
 
-- 현재 공개 버전: 0.9.0
-- 다음 업데이트 대상 버전: 0.9.1
-- 상태: 공개 / 설치 가능 (0.9.1 Dashboard 반영·제출은 별도 진행)
+- 현재 공개 버전: 0.9.1
+- 다음 업데이트 대상 버전: 1.0.0
+- 상태: Chrome Web Store 공개 / 설치 가능
 - 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
 
 ## 공통 제품 정보
@@ -92,7 +92,7 @@ YouTube와 YouTube Music의 지원되는 카드·목록 row와 player bar에서 
 
 ## 알려진 한계
 
-- 0.9.0은 1.0 release candidate이며 실제 Chrome·Edge·Whale 최종 수동 검증이 남아 있다.
+- 1.0.0 출시 전 실제 Chrome·Edge·Whale 최종 수동 검증이 남아 있다.
 - YouTube Music Premium이 필요한 live auto-skip 재생 검증은 해당 환경에서 별도로 수행해야 한다.
 - YouTube/YTM DOM 또는 공식 disclosure 형식이 바뀌면 확인할 수 없는 항목은 fail-closed로 처리한다.
 - 채널 `@handle`은 UC ID보다 변경 가능성이 높으며 handle 변경 시 기존 exact rule이 더 이상 일치하지 않을 수 있다.
