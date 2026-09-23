@@ -133,6 +133,16 @@ Build artifacts:
 - [Chrome Web Store listing](docs/store-listing.md)
 - [0.9.1 release status and 1.0.0 checklist](docs/release-checklist.md)
 
+## Support NoAI
+
+NoAI is free and open source.
+
+If you find it useful and would like to support continued development and maintenance, you can sponsor the project on GitHub.
+
+Sponsorship is completely optional and does not unlock any additional features.
+
+GitHub Sponsors: [https://github.com/sponsors/yoobilee](https://github.com/sponsors/yoobilee)
+
 ## License
 
 [MIT License](LICENSE)
