@@ -2,7 +2,7 @@
 
 - 현재 공개 버전: 0.9.1
 - 다음 업데이트 대상 버전: 1.0.0
-- 상태: Chrome Web Store 공개 / 설치 가능
+- 상태: 0.9.1 공개 / 설치 가능, 1.0.0 제출 준비 중
 - 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
 
 ## 공통 제품 정보

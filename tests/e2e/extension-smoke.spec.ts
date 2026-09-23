@@ -56,7 +56,7 @@ test('generated manifest stays on MV3 with minimal permissions', async () => {
   ]);
 
   expect(manifest.manifest_version).toBe(3);
-  expect(manifest.version).toBe('0.9.1');
+  expect(manifest.version).toBe('1.0.0');
   expect(manifest.name).toBe('__MSG_extName__');
   expect(english.extName?.message).toBe(
     'NoAI — AI-Labeled Music Filter',
