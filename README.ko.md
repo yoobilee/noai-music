@@ -133,6 +133,16 @@ npm run verify:all
 - [Chrome Web Store listing](docs/store-listing.md)
 - [0.9.1 공개 상태 및 1.0.0 체크리스트](docs/release-checklist.md)
 
+## NoAI 후원하기
+
+NoAI는 무료 오픈소스 프로젝트입니다.
+
+프로젝트가 유용했다면 GitHub Sponsors를 통해 개발과 유지보수를 가볍게 후원할 수 있습니다.
+
+후원은 완전히 선택 사항이며, 후원 여부에 따라 추가 기능이 제공되거나 기능이 제한되지 않습니다.
+
+GitHub Sponsors: [https://github.com/sponsors/yoobilee](https://github.com/sponsors/yoobilee)
+
 ## 라이선스
 
 [MIT License](LICENSE)
