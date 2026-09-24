@@ -66,11 +66,11 @@ allowlist > direct blocklist > official disclosure
 
 ### Chrome Web Store
 
-NoAI 0.9.1 is available to install from the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
+NoAI 1.0.0 is available to install from the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
 
 ### GitHub Release
 
-The [NoAI v0.9.1 release](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
+The [NoAI v1.0.0 release](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
 
 For a development build instead, follow the instructions below and load `.output/chrome-mv3` as an unpacked extension.
 
@@ -89,10 +89,9 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 
 ## Browser support and current status
 
-- Current published version: **0.9.1**
-- Next release candidate: **1.0.0**
-- Latest GitHub Release: [v0.9.1](https://github.com/yoobilee/noai-music/releases/tag/v0.9.1)
-- Chrome Web Store: **[0.9.1 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
+- Current published version: **1.0.0**
+- Latest GitHub Release: [v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)
+- Chrome Web Store: **[1.0.0 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
 - Edge and Whale: Chromium compatibility targets; final browser-specific manual validation remains
 - Firefox: not in the 1.0 scope and may be considered later
@@ -117,7 +116,7 @@ npm run verify:all
 Build artifacts:
 
 - Unpacked Chrome extension: `.output/chrome-mv3`
-- Prepared 1.0.0 release candidate ZIP: `.output/noai-music-1.0.0-chrome.zip`
+- Official 1.0.0 release ZIP: [`.output/noai-music-1.0.0-chrome.zip`](https://github.com/yoobilee/noai-music/releases/download/v1.0.0/noai-music-1.0.0-chrome.zip)
 
 ## Documentation
 
@@ -131,7 +130,7 @@ Build artifacts:
 - [Direct blocklist](docs/blocklist.md)
 - [Privacy policy](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [0.9.1 release status and 1.0.0 checklist](docs/release-checklist.md)
+- [1.0.0 release record and follow-up validation checklist](docs/release-checklist.md)
 
 ## Support NoAI
 

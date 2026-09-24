@@ -1,8 +1,8 @@
-# NoAI 0.9.1 → 1.0.0 릴리스 체크리스트
+# NoAI 1.0.0 공개 기록 및 후속 검증 체크리스트
 
-0.9.1은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 다음 목표 버전은 1.0.0이다. 이 문서는 0.9.1 배포 상태와 1.0.0 전에 사람이 실제 환경에서 확인할 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+1.0.0은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 이 문서는 1.0.0 배포 완료 상태와 공개 후에도 남아 있는 사람의 실제 환경 검증 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
 
-## 0.9.1 공개 상태와 1.0.0 수동 검증
+## 1.0.0 공개 상태와 후속 수동 검증
 
 ### 기능
 
@@ -140,6 +140,7 @@ Premium 환경을 사용할 수 없으면 위 Premium 항목을 완료로 표시
 - [x] `permissions: [storage]`와 `host_permissions: [https://www.youtube.com/*]` 외 증가 없음
 - [x] content-script matches가 YouTube와 YouTube Music 두 HTTPS origin으로 제한됨
 - [x] `.output/noai-music-1.0.0-chrome.zip` 생성
+- [x] 릴리스 ZIP SHA-256 `c59a65cd96b5e17f2260440d86faad181a70e56199727e634b92b84407b8054b` 확인
 - [x] zip에 `.git`, `node_modules`, tests, docs, fixture, 환경 파일과 source map이 없음
 - [x] zip에 manifest, runtime bundle, popup/options, locale 파일과 icon이 있음
 - [x] source·fixture·secret 문자열과 로컬 절대 경로가 bundle에 포함되지 않음
@@ -174,12 +175,12 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 - [x] allowlist / blocklist 설명을 일반 사용자에게 자연스럽게 표현
 - [ ] 한국어 screenshot 문구와 Store 상세 설명 용어 통일
 - [x] 확장 프로그램 이름 **NoAI — AI 표시 음악 필터**와 설명 문체 통일
-- [ ] Store Dashboard에 실제 최종 문구가 반영됐는지 제출 전 확인
-- [ ] Chrome Web Store 1.0.0 listing 제출
+- [x] Store Dashboard에 실제 최종 영문·한국어 상세 설명 반영
+- [x] Chrome Web Store 1.0.0 listing 제출
 
 현지화 검토에서는 `exact video ID`를 `정확한 영상 ID`, `channel ID`를 `채널 ID`, `identity`를 `식별 정보`, `surface`를 `화면` 또는 `영역`, `browser locale`을 `브라우저 언어`, `popup/options`를 `팝업/설정 페이지`, `analytics`를 `분석 도구` 또는 `사용 분석`, `telemetry`를 `사용 통계 수집`, `release candidate`를 `출시 후보 버전`처럼 문맥에 맞게 바꾼다.
 
-한국어 문구는 저장소 문서에서 확정했으며, Store Dashboard 반영과 제출은 별도 릴리스 단계에서 수행한다.
+한국어 문구는 저장소 문서에서 확정했으며, Store Dashboard 반영과 제출을 완료했다.
 
 ## 배포 단계
 
@@ -191,6 +192,8 @@ Chrome 공식 문서의 현재 이미지 규격은 [Web Store 이미지 안내](
 - [x] 1.0.0 version bump 전 최종 회귀 결과와 남은 blocker 확인
 - [x] 1.0.0 package version 및 generated manifest version 확인
 - [x] 1.0.0 production ZIP 생성 및 최종 artifact 검사
-- [ ] v1.0.0 tag 생성 및 push 승인
-- [ ] GitHub Release v1.0.0 생성과 검증된 ZIP 첨부 승인
-- [ ] Chrome Web Store 1.0.0 package upload 및 제출 승인
+- [x] v1.0.0 tag 생성 및 push
+- [x] [GitHub Release v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0) 생성 및 검증된 ZIP 첨부
+- [x] Chrome Web Store 1.0.0 package upload
+- [x] Chrome Web Store 1.0.0 제출
+- [x] [Chrome Web Store 1.0.0 승인 및 공개](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
