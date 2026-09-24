@@ -2,7 +2,7 @@
 
 - 조사일: 2026-09-24
 - 범위: 기존 공개 YouTube watch-page fetch 응답에서 음악 콘텐츠 여부를 구조화 데이터만으로 판별할 수 있는지 검토
-- 제외: 기능 구현, 설정 schema, popup/options, package/version/release 변경
+- 최초 조사 범위에서는 기능 구현과 설정 UI를 제외했으며, 아래에 후속 구현 상태를 함께 기록한다. package/version/release는 변경하지 않는다.
 
 ## 결론
 
@@ -32,10 +32,10 @@ category === 'Music' ? 'music' : 'unknown';
 2. content script가 video ID만 background service worker에 보낸다.
 3. background가 sender origin과 ID를 검증하고 `https://www.youtube.com/watch?v=VIDEO_ID&hl=en`을 조립한다.
 4. `credentials: 'omit'`, `referrerPolicy: 'no-referrer'`, timeout 8초, 최대 5 MB 조건으로 HTML을 한 번 fetch한다.
-5. `watchPageHtml.ts`가 HTML을 실행하거나 DOM에 넣지 않고 `ytInitialData` JSON만 추출한다.
+5. `watchPageHtml.ts`가 HTML을 실행하거나 DOM에 넣지 않고 `ytInitialData`와 `ytInitialPlayerResponse` JSON을 각각 추출한다.
 6. 현재 영상의 `videoPrimaryInfoRenderer.badges`와 최상위 `engagementPanels`의 `howThisWasMadeSectionViewModel`만 disclosure evidence로 변환한다.
 7. detector가 confirmed 공식 evidence만 `confirmed`로 만들고, 나머지는 `not-detected` 또는 `unknown-or-error`로 둔다.
-8. 결과는 video ID 기준 `storage.local` cache에 저장한다.
+8. disclosure 상태와 `contentKind` 결과는 video ID 기준 `storage.local` cache에 저장한다.
 
 관련 구현:
 
@@ -46,7 +46,7 @@ category === 'Music' ? 'music' : 'unknown';
 - `src/storage/youtubeDisclosureCache.ts`
 - [`youtube-watch-disclosure-lookup.md`](youtube-watch-disclosure-lookup.md)
 
-현재 parser는 `ytInitialPlayerResponse`를 읽지 않는다. 그러나 2026-09-24에 성공한 공개 표본 15개에서는 기존 fetch의 같은 HTML 안에 `ytInitialData`와 `ytInitialPlayerResponse`가 모두 있었다. 따라서 별도 요청 없이 기존 응답에서 category를 함께 읽을 수 있다.
+현재 parser는 기존 balanced JSON extraction을 재사용해 `ytInitialPlayerResponse`를 읽는다. 별도 요청 없이 같은 응답의 playability, video ID와 category를 검증하며, player parsing 실패는 disclosure 결과를 오염시키지 않는다.
 
 ## 조사 방법과 경계
 
@@ -175,9 +175,9 @@ YouTube Music origin 자체를 모든 항목의 `music` 근거로 사용하는 �
 - disclosure parsing 실패와 content-kind parsing 실패는 가능한 한 분리해야 한다. 한쪽 구조가 없어도 다른 쪽의 유효한 결과를 버리지 않는다.
 - category는 `hl=en` 요청을 유지해 exact `Music` 비교의 locale 변동을 줄인다. 그래도 내부 web response field는 공개 API 계약이 아니므로 누락·변경 시 `unknown`이어야 한다.
 
-## 예상 코드 변경 범위
+## 구현 상태와 코드 범위
 
-구현 시 최소 변경 예상은 다음과 같다.
+아래 변경은 1.1 구현 기반으로 반영됐다.
 
 1. `src/adapters/youtube/watchPageHtml.ts`
    - `ytInitialPlayerResponse` marker와 parser 추가
@@ -198,7 +198,7 @@ YouTube Music origin 자체를 모든 항목의 `music` 근거로 사용하는 �
    - disclosure confirmed/content unknown 조합
    - `Music` category의 broad-content 경계와 non-`Music` 음악 경계
 
-사용자 설정을 실제로 추가하는 단계에서는 settings schema migration과 popup/options UI가 별도 작업으로 필요하다. 이번 조사에서는 변경하지 않는다.
+settings schema version 2와 popup/options에는 `music | all` 선택 UI를 연결했다. 신규 설치는 `music`, 기존 version-1 설정은 동작 보존을 위해 `all`로 migration하며, 열린 YouTube와 YouTube Music 화면은 `storage.onChanged`에서 scope 변경을 즉시 다시 평가한다.
 
 ## Privacy, permission과 network 영향
 

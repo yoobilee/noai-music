@@ -92,7 +92,7 @@ describe('YouTube watch disclosure lookup service', () => {
 
   it('keeps confirmed disclosure evidence when player classification is unavailable', async () => {
     const htmlWithoutPlayerResponse = disclosedHtml.replace(
-      /      var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n/,
+      /      var ytInitialPlayerResponse = \{[\s\S]*?\r?\n      \};\r?\n/,
       '',
     );
     const cache = createMemoryCache();

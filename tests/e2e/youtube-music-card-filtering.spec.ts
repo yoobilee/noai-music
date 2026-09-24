@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { BrowserContext, Page } from '@playwright/test';
 
-import type { FilterMode } from '@/filtering/contracts';
+import type { FilterMode, FilterScope } from '@/filtering/contracts';
 
 import { readAllowlist, setAllowlist } from './allowlistStorage';
 import { setBlocklist } from './blocklistStorage';
@@ -41,7 +41,7 @@ const confirmedIds = new Set([
 
 test('direct track block filters an ordinary YTM row without disclosure lookup', async ({ context, page }) => {
   const requested: string[] = [];
-  await setSettings(context, true, 'mark');
+  await setSettings(context, true, 'mark', 'music');
   await setBlocklist(context, { tracks: [{ videoId: 'SearchOrd01' }] });
   await context.route('https://music.youtube.com/**', (route) => route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }));
   await context.route('https://www.youtube.com/**', (route) => { requested.push(new URL(route.request().url()).searchParams.get('v') ?? ''); return route.fulfill({ body: ordinaryHtml, contentType: 'text/html' }); });
@@ -50,6 +50,8 @@ test('direct track block filters an ordinary YTM row without disclosure lookup',
   await expect(row).toHaveAttribute(filterAttribute, 'mark');
   await expect(row).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
   expect(requested).not.toContain('SearchOrd01');
+  await setSettings(context, true, 'mark', 'all');
+  await expect(row).toHaveAttribute(filterAttribute, 'mark');
   await setBlocklist(context, {});
   await expect(row).not.toHaveAttribute(filterAttribute);
 });
@@ -58,11 +60,12 @@ async function setSettings(
   context: BrowserContext,
   enabled: boolean,
   mode: FilterMode,
+  filterScope: FilterScope = 'all',
 ): Promise<void> {
   const worker =
     context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
   await worker.evaluate(
-    async ({ nextEnabled, nextMode }) => {
+    async ({ nextEnabled, nextMode, nextFilterScope }) => {
       const extensionGlobal = globalThis as typeof globalThis & {
         chrome: {
           storage: {
@@ -72,14 +75,16 @@ async function setSettings(
       };
       await extensionGlobal.chrome.storage.local.set({
         settingsV1: {
-          schemaVersion: 1,
+          schemaVersion: 2,
           enabled: nextEnabled,
           mode: nextMode,
+          filterScope: nextFilterScope,
           youtubeMusicAutoSkip: false,
+          uiLocale: 'auto',
         },
       });
     },
-    { nextEnabled: enabled, nextMode: mode },
+    { nextEnabled: enabled, nextMode: mode, nextFilterScope: filterScope },
   );
 }
 
@@ -241,6 +246,33 @@ test('keeps one lookup and badge while applying live setting transitions', async
   await expect(row).toHaveAttribute(filterAttribute, 'mark');
   await expect(row.locator(reasonBadge)).toHaveCount(1);
   expect(requests.get('SearchAI001')).toBe(1);
+});
+
+test('re-evaluates a cached unknown row on live scope changes', async ({
+  context,
+  page,
+}) => {
+  await setSettings(context, true, 'hide', 'all');
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: rowFixtureHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', (route) => {
+    const videoId = new URL(route.request().url()).searchParams.get('v') ?? '';
+    return route.fulfill({
+      body: confirmedIds.has(videoId) ? disclosedHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://music.youtube.com/search?q=scope');
+  const row = page.getByTestId('confirmed-row');
+  await expect(row).toHaveAttribute(filterAttribute, 'hide');
+
+  await setSettings(context, true, 'hide', 'music');
+  await expect(row).not.toHaveAttribute(filterAttribute);
+
+  await setSettings(context, true, 'hide', 'all');
+  await expect(row).toHaveAttribute(filterAttribute, 'hide');
 });
 
 test('restores a confirmed row when a track or stable artist is allowed', async ({

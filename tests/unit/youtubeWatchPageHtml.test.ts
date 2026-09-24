@@ -174,14 +174,14 @@ describe('YouTube watch-page HTML adapter', () => {
     {
       name: 'a malformed player response',
       html: disclosedHtml.replace(
-        /var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n      var ytInitialData/,
+        /var ytInitialPlayerResponse = \{[\s\S]*?\r?\n      \};\r?\n      var ytInitialData/,
         'var ytInitialPlayerResponse = {broken};\n      var ytInitialData',
       ),
     },
     {
       name: 'a missing player response',
       html: disclosedHtml.replace(
-        /      var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n/,
+        /      var ytInitialPlayerResponse = \{[\s\S]*?\r?\n      \};\r?\n/,
         '',
       ),
     },

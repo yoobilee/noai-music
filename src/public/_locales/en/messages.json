@@ -47,6 +47,21 @@
   "filterScopeDescription": {
     "message": "Manage YouTube's AI-labeled content in the way you choose."
   },
+  "filterScopeLabel": {
+    "message": "Filter scope"
+  },
+  "filterScopeMusic": {
+    "message": "Music only"
+  },
+  "filterScopeMusicDescription": {
+    "message": "Apply AI-label filtering only to content confirmed as music on YouTube."
+  },
+  "filterScopeAll": {
+    "message": "All AI-labeled content"
+  },
+  "filterScopeAllDescription": {
+    "message": "Apply filtering to all supported content that YouTube labels as AI or altered."
+  },
   "filterStateEnabled": {
     "message": "On"
   },

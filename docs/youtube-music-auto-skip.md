@@ -50,9 +50,9 @@ YTM content script는 기존 `noai:youtube-watch-disclosure:lookup` runtime mess
 
 ## 설정과 migration
 
-`settingsV1`의 schema version과 storage key는 유지하고 `youtubeMusicAutoSkip: boolean`을 additive field로 추가했다. 기본값은 `true`다. 구버전 version-1 값에 새 field가 없거나 field만 손상된 경우 기존 `enabled`와 `mode`를 보존한 채 새 field만 기본값으로 보정해 다시 저장한다. version, `enabled` 또는 `mode`가 손상된 값은 기존과 같이 전체 안전 기본값으로 복구한다.
+`youtubeMusicAutoSkip: boolean`의 기본값은 계속 `true`다. filter scope 도입으로 `settingsV1` 객체의 schema version은 2이며, version-1 설정은 기존 `enabled`, `mode`, `youtubeMusicAutoSkip`, `uiLocale`을 보존하면서 `filterScope: 'all'`로 migration한다. 신규 설치는 `filterScope: 'music'`을 사용한다.
 
-전역 `enabled=false`이면 auto-skip checkbox 값과 무관하게 lookup과 skip을 실행하지 않는다. popup/options의 같은 설정 패널에 한국어·영어 checkbox 하나를 추가했으며 storage change는 열린 YTM 페이지에 즉시 반영된다.
+전역 `enabled=false`이면 auto-skip checkbox 값과 무관하게 lookup과 skip을 실행하지 않는다. popup/options의 같은 설정 패널에 한국어·영어 checkbox 하나를 추가했으며 storage change는 열린 YTM 페이지에 즉시 반영된다. `music` scope에서는 lookup의 `contentKind`가 `music`인 confirmed disclosure만 건너뛰고, `all`로 바꾸면 이미 받은 confirmed unknown 결과도 현재 playback generation에서 다시 평가한다.
 
 ## 자동 검증
 

@@ -13,6 +13,7 @@ NoAI does not guess whether music is AI-generated. It uses confirmed YouTube dis
 ## Key features
 
 - Hide, blur, or mark officially AI/altered-labeled content on YouTube
+- Choose whether official-disclosure filtering applies only to content YouTube confirms as music or to all supported AI-labeled content
 - Automatically skip matching tracks on YouTube Music
 - Filter supported YouTube Music track rows and queue items
 - Track and artist allowlists

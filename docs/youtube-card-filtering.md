@@ -16,17 +16,20 @@ NoAI는 제목, 설명, 채널명, 음원 특성이나 AI 관련 키워드로 �
 
 ## 설정 저장
 
-`storage.local`의 `settingsV1` 키에 다음 schema version 1 객체만 저장한다.
+`storage.local`의 `settingsV1` 키에는 schema version 2 설정을 저장한다.
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "enabled": true,
-  "mode": "hide"
+  "mode": "hide",
+  "filterScope": "music",
+  "youtubeMusicAutoSkip": true,
+  "uiLocale": "auto"
 }
 ```
 
-기본값은 활성화와 `hide`다. `enabled` 또는 mode가 잘못됐거나 schema version이 다르면 전체 객체를 기본값으로 복구한다. popup과 options는 같은 저장 함수를 사용하며 `storage.onChanged`를 통해 서로의 변경과 열려 있는 YouTube 탭에 즉시 반영한다.
+신규 설치의 filter scope 기본값은 `music`이다. 기존 schema version 1 설정은 현재 동작을 보존하도록 `all`로 migration하며 기존 `enabled`, mode, auto-skip과 UI locale 값은 유지한다. popup과 options는 같은 저장 함수를 사용하며 `storage.onChanged`를 통해 서로의 변경과 열려 있는 YouTube 탭에 즉시 반영한다. `music` scope는 watch-page category가 정확히 `Music`인 confirmed disclosure에만 적용하고, `all`은 기존처럼 모든 confirmed disclosure에 적용한다. allowlist와 direct block 우선순위는 scope보다 앞선다.
 
 ## DOM 적용과 접근성
 

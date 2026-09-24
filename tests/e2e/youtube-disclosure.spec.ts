@@ -22,6 +22,28 @@ test('filters a card with direct official evidence but not watch metadata', asyn
   context,
   page,
 }) => {
+  const worker =
+    context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+  await worker.evaluate(async () => {
+    const extensionGlobal = globalThis as typeof globalThis & {
+      chrome: {
+        storage: {
+          local: { set(items: Record<string, unknown>): Promise<void> };
+        };
+      };
+    };
+    await extensionGlobal.chrome.storage.local.set({
+      settingsV1: {
+        schemaVersion: 2,
+        enabled: true,
+        mode: 'hide',
+        filterScope: 'all',
+        youtubeMusicAutoSkip: true,
+        uiLocale: 'auto',
+      },
+    });
+  });
+
   await context.route('https://www.youtube.com/**', async (route) => {
     await route.fulfill({
       body: route.request().isNavigationRequest() ? fixtureHtml : unknownWatchHtml,

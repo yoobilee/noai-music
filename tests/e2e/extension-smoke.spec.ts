@@ -143,7 +143,7 @@ test('popup defines a stable intrinsic width and its own scroll container', asyn
   await page.reload();
   await expect(page.getByRole('heading', { name: 'NoAI' })).toBeVisible();
 
-  const modeCards = page.locator('.mode-option');
+  const modeCards = page.locator('.settings-panel__modes .mode-option');
   const cardBoxes = await modeCards.evaluateAll((cards) =>
     cards.map((card) => {
       const rect = card.getBoundingClientRect();
@@ -229,14 +229,15 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await expect(page.locator('#noai-enabled')).toBeChecked();
   await expect(page.locator('#noai-youtube-music-auto-skip')).toBeChecked();
   await expect(page.locator('input[type="radio"][value="hide"]')).toBeChecked();
-  await expect(page.locator('.mode-option')).toHaveCount(3);
-  await expect(page.locator('.mode-option').nth(0)).toContainText(
+  await expect(page.locator('input[name="filter-scope"][value="music"]')).toBeChecked();
+  await expect(page.locator('.settings-panel__modes .mode-option')).toHaveCount(3);
+  await expect(page.locator('.settings-panel__modes .mode-option').nth(0)).toContainText(
     /Remove matching content|대상 콘텐츠를 목록에서 숨깁니다/,
   );
-  await expect(page.locator('.mode-option').nth(1)).toContainText(
+  await expect(page.locator('.settings-panel__modes .mode-option').nth(1)).toContainText(
     /Keep content visible but blurred|콘텐츠는 남기고 내용을 흐립니다/,
   );
-  await expect(page.locator('.mode-option').nth(2)).toContainText(
+  await expect(page.locator('.settings-panel__modes .mode-option').nth(2)).toContainText(
     /Keep content and show the reason|콘텐츠는 그대로 두고 이유만 표시합니다/,
   );
   await expect(
@@ -258,6 +259,9 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   for (const mode of ['hide', 'blur', 'mark']) {
     await expect(page.locator(`input[name="filter-mode"][value="${mode}"]`)).toBeDisabled();
   }
+  for (const scope of ['music', 'all']) {
+    await expect(page.locator(`input[name="filter-scope"][value="${scope}"]`)).toBeDisabled();
+  }
   await expect(page.locator('#noai-youtube-music-auto-skip')).toBeDisabled();
   await expect(
     page.locator('.user-rule-manager__disclosure').first(),
@@ -267,6 +271,8 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
 
   await page.locator('input[type="radio"][value="mark"]').check();
   await expect(page.locator('input[type="radio"][value="mark"]')).toBeChecked();
+  await page.locator('input[name="filter-scope"][value="all"]').check();
+  await expect(page.locator('input[name="filter-scope"][value="all"]')).toBeChecked();
   await page.locator('#noai-youtube-music-auto-skip').uncheck();
   await expect(page.locator('#noai-youtube-music-auto-skip')).not.toBeChecked();
 
@@ -282,12 +288,71 @@ test('popup and options entrypoints load', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(page.getByRole('heading', { name: 'NoAI' })).toBeVisible();
   await expect(page.locator('input[type="radio"][value="mark"]')).toBeChecked();
+  await expect(page.locator('input[name="filter-scope"][value="all"]')).toBeChecked();
   await expect(page.locator('#noai-youtube-music-auto-skip')).not.toBeChecked();
   await expect(page.locator('body')).toHaveClass(/noai-options/);
   await expect(page.locator('.settings-panel--full')).toBeVisible();
   await expect(page.locator('.user-rule-manager__disclosure')).toHaveCount(0);
   await expect(page.locator('#allowlist-track-input')).toBeVisible();
   await expect(page.locator('#blocklist-channel-input')).toBeVisible();
+});
+
+test('popup and options share an accessible persisted filter scope', async ({
+  context,
+  extensionId,
+  page,
+}) => {
+  await page.setViewportSize({ height: 600, width: 380 });
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  await page.locator('#noai-ui-locale').selectOption('en');
+
+  const popupGroup = page.getByRole('group', { name: 'Filter scope' });
+  const popupMusic = popupGroup.getByRole('radio', { name: /Music only/ });
+  const popupAll = popupGroup.getByRole('radio', {
+    name: /All AI-labeled content/,
+  });
+  await expect(popupMusic).toBeChecked();
+  await expect(popupGroup).toContainText(
+    'Apply AI-label filtering only to content confirmed as music on YouTube.',
+  );
+  await expect(popupGroup).toContainText(
+    'Apply filtering to all supported content that YouTube labels as AI or altered.',
+  );
+
+  const options = await context.newPage();
+  await options.setViewportSize({ height: 800, width: 900 });
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  const optionsGroup = options.getByRole('group', { name: 'Filter scope' });
+  const optionsMusic = optionsGroup.getByRole('radio', { name: /Music only/ });
+  const optionsAll = optionsGroup.getByRole('radio', {
+    name: /All AI-labeled content/,
+  });
+  await expect(optionsMusic).toBeChecked();
+
+  await popupAll.check();
+  await expect(optionsAll).toBeChecked();
+
+  await optionsMusic.check();
+  await expect(popupMusic).toBeChecked();
+
+  await popupMusic.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(popupAll).toBeChecked();
+  await expect(optionsAll).toBeChecked();
+
+  await page.reload();
+  await expect(
+    page.getByRole('group', { name: 'Filter scope' }).getByRole('radio', {
+      name: /All AI-labeled content/,
+    }),
+  ).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
 });
 
 test('popup and options share a persisted manual UI language', async ({
@@ -310,6 +375,12 @@ test('popup and options share a persisted manual UI language', async ({
   await expect(popupLocale).toBeFocused();
   await expect(popupLocale).toHaveAccessibleName('언어');
   await expect(page.getByText('필터 사용', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('group', { name: '필터 대상' }),
+  ).toContainText('음악만');
+  await expect(
+    page.getByRole('group', { name: '필터 대상' }),
+  ).toContainText('AI 표시 콘텐츠 전체');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
 
   const options = await context.newPage();
@@ -323,6 +394,12 @@ test('popup and options share a persisted manual UI language', async ({
   await optionsLocale.selectOption('en');
   await expect(optionsLocale).toHaveAccessibleName('Language');
   await expect(options.getByText('Enable filtering', { exact: true })).toBeVisible();
+  await expect(
+    options.getByRole('group', { name: 'Filter scope' }),
+  ).toContainText('Music only');
+  await expect(
+    options.getByRole('group', { name: 'Filter scope' }),
+  ).toContainText('All AI-labeled content');
   await expect(options.locator('html')).toHaveAttribute('lang', 'en');
   await expect(popupLocale).toHaveValue('en');
   await expect(popupLocale).toHaveAccessibleName('Language');
