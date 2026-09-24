@@ -42,6 +42,7 @@ describe('YouTube watch disclosure lookup service', () => {
     const cached: WatchDisclosureLookupResult = {
       videoId: 'CachedVid01',
       status: 'confirmed',
+      contentKind: 'unknown',
       evidence: [],
       checkedAt: 100,
       source: 'cache',
@@ -66,6 +67,7 @@ describe('YouTube watch disclosure lookup service', () => {
     await expect(service.lookup('Disclose001')).resolves.toMatchObject({
       videoId: 'Disclose001',
       status: 'confirmed',
+      contentKind: 'music',
       checkedAt: 1234,
       source: 'network',
     });
@@ -83,7 +85,25 @@ describe('YouTube watch disclosure lookup service', () => {
 
     await expect(service.lookup('Ordinary001')).resolves.toMatchObject({
       status: 'not-detected',
+      contentKind: 'unknown',
       evidence: [],
+    });
+  });
+
+  it('keeps confirmed disclosure evidence when player classification is unavailable', async () => {
+    const htmlWithoutPlayerResponse = disclosedHtml.replace(
+      /      var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n/,
+      '',
+    );
+    const cache = createMemoryCache();
+    const service = createYouTubeWatchDisclosureLookupService({
+      cache,
+      fetchPage: async () => ({ ok: true, html: htmlWithoutPlayerResponse }),
+    });
+
+    await expect(service.lookup('Disclose001')).resolves.toMatchObject({
+      status: 'confirmed',
+      contentKind: 'unknown',
     });
   });
 
@@ -97,6 +117,7 @@ describe('YouTube watch disclosure lookup service', () => {
     const result = await service.lookup('UnknownVid1');
     expect(result).toMatchObject({
       status: 'unknown-or-error',
+      contentKind: 'unknown',
       failureReason: 'invalid-html',
     });
     expect(cache.set).toHaveBeenCalledWith(

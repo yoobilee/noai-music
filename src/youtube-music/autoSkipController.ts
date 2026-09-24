@@ -1,6 +1,7 @@
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
 import type { MediaIdentity } from '@/detection/contracts';
 import { evaluateUserRules } from '@/filtering/userRules';
+import type { FilterScope } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type {
   PersistedAllowlist,
@@ -23,6 +24,7 @@ interface YouTubeMusicAutoSkipDependencies {
   getSettings(): PersistedSettings;
   getAllowlist(): PersistedAllowlist;
   getBlocklist?(): PersistedBlocklist;
+  filterScope: FilterScope;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   clickNext(expectedVideoId: string): boolean;
 }
@@ -107,6 +109,7 @@ export function createYouTubeMusicAutoSkipController(
           currentIdentity,
           allowlist: dependencies.getAllowlist(),
           blocklist: dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
+          filterScope: dependencies.filterScope,
           result: currentPlayback.result,
         })
       ) {

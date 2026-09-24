@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
+import type { FilterPolicyInput } from '@/filtering/contracts';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
 import { DEFAULT_ALLOWLIST, DEFAULT_BLOCKLIST } from '@/storage/contracts';
 
@@ -19,32 +20,33 @@ const identity = {
   videoId: 'AllowedVid1',
   artistIds: [],
 };
+const baseInput: FilterPolicyInput = {
+  settings: { enabled: true, mode: 'hide' },
+  identity,
+  allowlist: DEFAULT_ALLOWLIST,
+  blocklist: DEFAULT_BLOCKLIST,
+  directBlockKinds: { artist: false, channel: false },
+  filterScope: 'all',
+  disclosureStatus: 'confirmed',
+  contentKind: 'unknown',
+  evidence: confirmedEvidence,
+};
+
+function decide(overrides: Partial<FilterPolicyInput> = {}) {
+  return decideYouTubeCardFilter({ ...baseInput, ...overrides });
+}
 
 describe('YouTube card filter policy', () => {
   it('does nothing when filtering is disabled', () => {
-    expect(
-      decideYouTubeCardFilter({
-        settings: { enabled: false, mode: 'hide' },
-        identity,
-        allowlist: DEFAULT_ALLOWLIST,
-        disclosureStatus: 'confirmed',
-        evidence: confirmedEvidence,
-      }),
-    ).toEqual({ action: 'none' });
+    expect(decide({ settings: { enabled: false, mode: 'hide' } })).toEqual({
+      action: 'none',
+    });
   });
 
   it.each(['hide', 'blur', 'mark'] as const)(
     'returns %s only for a confirmed official disclosure',
     (mode) => {
-      expect(
-        decideYouTubeCardFilter({
-          settings: { enabled: true, mode },
-          identity,
-          allowlist: DEFAULT_ALLOWLIST,
-          disclosureStatus: 'confirmed',
-          evidence: confirmedEvidence,
-        }),
-      ).toEqual({
+      expect(decide({ settings: { enabled: true, mode } })).toEqual({
         action: mode,
         reason: 'youtube-official-ai-disclosure',
       });
@@ -54,111 +56,112 @@ describe('YouTube card filter policy', () => {
   it.each(['not-detected', 'unknown-or-error'] as const)(
     'does nothing for %s results',
     (disclosureStatus) => {
-      expect(
-        decideYouTubeCardFilter({
-          settings: { enabled: true, mode: 'hide' },
-          identity,
-          allowlist: DEFAULT_ALLOWLIST,
-          disclosureStatus,
-          evidence: confirmedEvidence,
-        }),
-      ).toEqual({ action: 'none' });
+      expect(decide({ disclosureStatus })).toEqual({ action: 'none' });
     },
   );
 
   it('rejects a malformed confirmed result without official evidence', () => {
-    expect(
-      decideYouTubeCardFilter({
-        settings: { enabled: true, mode: 'hide' },
-        identity,
-        allowlist: DEFAULT_ALLOWLIST,
-        disclosureStatus: 'confirmed',
-        evidence: [],
-      }),
-    ).toEqual({ action: 'none' });
+    expect(decide({ evidence: [] })).toEqual({ action: 'none' });
   });
 
   it('fails closed for an invalid media identity', () => {
-    expect(
-      decideYouTubeCardFilter({
-        settings: { enabled: true, mode: 'hide' },
-        identity: { ...identity, videoId: 'invalid' },
-        allowlist: DEFAULT_ALLOWLIST,
-        disclosureStatus: 'confirmed',
-        evidence: confirmedEvidence,
-      }),
-    ).toEqual({ action: 'none' });
+    expect(decide({ identity: { ...identity, videoId: 'invalid' } })).toEqual({
+      action: 'none',
+    });
   });
 
-  it.each([
-    {
-      name: 'track',
-      allowlist: {
-        ...DEFAULT_ALLOWLIST,
-        tracks: [{ videoId: 'AllowedVid1' }],
-      },
+  it.each(['music', 'unknown', 'non-music'] as const)(
+    'filters %s content with a confirmed disclosure in all scope',
+    (contentKind) => {
+      expect(decide({ filterScope: 'all', contentKind })).toEqual({
+        action: 'hide',
+        reason: 'youtube-official-ai-disclosure',
+      });
     },
-    {
-      name: 'artist',
-      allowlist: {
-        ...DEFAULT_ALLOWLIST,
-        artists: [{ artistId: 'UCaaaaaaaaaaaaaaaaaaaaaa' }],
-      },
+  );
+
+  it('filters confirmed Music content in music scope', () => {
+    expect(decide({ filterScope: 'music', contentKind: 'music' })).toEqual({
+      action: 'hide',
+      reason: 'youtube-official-ai-disclosure',
+    });
+  });
+
+  it.each(['unknown', 'non-music'] as const)(
+    'does not filter %s content via disclosure in music scope',
+    (contentKind) => {
+      expect(decide({ filterScope: 'music', contentKind })).toEqual({
+        action: 'none',
+      });
     },
-  ])('gives the $name allowlist priority over confirmed evidence', ({ allowlist }) => {
+  );
+
+  it('applies a direct block in music scope even when content kind is unknown', () => {
     expect(
-      decideYouTubeCardFilter({
-        settings: { enabled: true, mode: 'hide' },
-        identity: {
-          ...identity,
-          artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'],
+      decide({
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          tracks: [{ videoId: 'AllowedVid1' }],
         },
-        allowlist,
-        disclosureStatus: 'confirmed',
-        evidence: confirmedEvidence,
+        filterScope: 'music',
+        contentKind: 'unknown',
+        disclosureStatus: 'not-detected',
+        evidence: [],
       }),
-    ).toEqual({ action: 'none' });
+    ).toEqual({ action: 'hide', reason: 'direct-block-track' });
   });
 
-  it('keeps a not-detected allowlisted item as a no-op', () => {
+  it('gives the allowlist priority over direct block, scope and disclosure', () => {
     expect(
-      decideYouTubeCardFilter({
-        settings: { enabled: true, mode: 'mark' },
-        identity,
+      decide({
         allowlist: {
           ...DEFAULT_ALLOWLIST,
           tracks: [{ videoId: 'AllowedVid1' }],
         },
-        disclosureStatus: 'not-detected',
-        evidence: [],
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          tracks: [{ videoId: 'AllowedVid1' }],
+        },
+        filterScope: 'music',
+        contentKind: 'music',
       }),
     ).toEqual({ action: 'none' });
   });
 
-  it('applies direct track blocks without disclosure and lets allowlist win', () => {
-    const blocked = { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'AllowedVid1' }] };
-    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'blur' }, identity, allowlist: DEFAULT_ALLOWLIST, blocklist: blocked, directBlockKinds: { artist: false, channel: true }, disclosureStatus: 'not-detected', evidence: [] })).toEqual({ action: 'blur', reason: 'direct-block-track' });
-    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'blur' }, identity, allowlist: { ...DEFAULT_ALLOWLIST, tracks: [{ videoId: 'AllowedVid1' }] }, blocklist: blocked, directBlockKinds: { artist: false, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'none' });
-  });
-
   it('prefers direct artist and channel reasons over official disclosure', () => {
-    const identified = { ...identity, artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'], channelId: 'UCbbbbbbbbbbbbbbbbbbbbbb' };
-    expect(decideYouTubeCardFilter({ settings: { enabled: true, mode: 'mark' }, identity: identified, allowlist: DEFAULT_ALLOWLIST, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId: identified.artistIds[0]! }], channels: [{ identityType: 'channel-id', channelId: identified.channelId }] }, directBlockKinds: { artist: true, channel: true }, disclosureStatus: 'confirmed', evidence: confirmedEvidence })).toEqual({ action: 'mark', reason: 'direct-block-artist' });
+    const identified = {
+      ...identity,
+      artistIds: ['UCaaaaaaaaaaaaaaaaaaaaaa'],
+      channelId: 'UCbbbbbbbbbbbbbbbbbbbbbb',
+    };
+    expect(
+      decide({
+        settings: { enabled: true, mode: 'mark' },
+        identity: identified,
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          artists: [{ artistId: identified.artistIds[0]! }],
+          channels: [
+            { identityType: 'channel-id', channelId: identified.channelId },
+          ],
+        },
+        directBlockKinds: { artist: true, channel: true },
+        filterScope: 'music',
+        contentKind: 'unknown',
+      }),
+    ).toEqual({ action: 'mark', reason: 'direct-block-artist' });
   });
 
   it('prefers an exact handle channel rule over confirmed official disclosure', () => {
     expect(
-      decideYouTubeCardFilter({
+      decide({
         settings: { enabled: true, mode: 'blur' },
         identity: { ...identity, channelHandle: '@example' },
-        allowlist: DEFAULT_ALLOWLIST,
         blocklist: {
           ...DEFAULT_BLOCKLIST,
           channels: [{ identityType: 'handle', handle: '@example' }],
         },
         directBlockKinds: { artist: false, channel: true },
-        disclosureStatus: 'confirmed',
-        evidence: confirmedEvidence,
       }),
     ).toEqual({ action: 'blur', reason: 'direct-block-channel' });
   });

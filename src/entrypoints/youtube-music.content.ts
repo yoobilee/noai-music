@@ -1,6 +1,7 @@
 import type { Browser } from 'wxt/browser';
 
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
+import { DEFAULT_FILTER_SCOPE } from '@/filtering/contracts';
 import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import { YOUTUBE_MUSIC_MATCH_PATTERNS } from '@/shared/sites';
 import {
@@ -72,6 +73,7 @@ export default defineContentScript({
       getSettings: () => settings,
       getAllowlist: () => allowlist,
       getBlocklist: () => blocklist,
+      filterScope: DEFAULT_FILTER_SCOPE,
       lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
       clickNext: (videoId) => adapter.clickNext(videoId),
     });
@@ -81,6 +83,7 @@ export default defineContentScript({
       getSettings: () => settings,
       getAllowlist: () => allowlist,
       getBlocklist: () => blocklist,
+      filterScope: DEFAULT_FILTER_SCOPE,
       lookup: (videoId) => requestWatchDisclosure(browser.runtime, videoId),
       getReasonText: (reason) =>
         browser.i18n.getMessage(

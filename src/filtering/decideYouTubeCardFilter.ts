@@ -11,7 +11,9 @@ export function decideYouTubeCardFilter({
   allowlist,
   blocklist,
   directBlockKinds,
+  filterScope,
   disclosureStatus,
+  contentKind,
   evidence,
 }: FilterPolicyInput): FilterDecision {
   if (
@@ -31,6 +33,9 @@ export function decideYouTubeCardFilter({
   if (userRule === 'allow') return { action: 'none' };
   if (userRule !== 'none') {
     return { action: settings.mode, reason: `direct-${userRule}` };
+  }
+  if (filterScope === 'music' && contentKind !== 'music') {
+    return { action: 'none' };
   }
   if (disclosureStatus !== 'confirmed') return { action: 'none' };
 

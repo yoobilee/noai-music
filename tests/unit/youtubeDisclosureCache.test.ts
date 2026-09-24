@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
+import type {
+  ContentKind,
+  WatchDisclosureLookupResult,
+} from '@/shared/youtubeWatchDisclosure';
 import {
   createYouTubeDisclosureCache,
   YOUTUBE_DISCLOSURE_CACHE_SCHEMA_VERSION,
@@ -29,10 +32,12 @@ function result(
   videoId: string,
   status: WatchDisclosureLookupResult['status'],
   checkedAt: number,
+  contentKind: ContentKind = 'unknown',
 ): WatchDisclosureLookupResult {
   return {
     videoId,
     status,
+    contentKind,
     evidence:
       status === 'confirmed'
         ? [
@@ -60,13 +65,61 @@ describe('YouTube disclosure storage.local cache', () => {
     const storage = createMemoryStorage();
     const cache = createYouTubeDisclosureCache(storage, () => currentTime);
 
-    await cache.set(result('CacheHit001', 'confirmed', currentTime));
+    await cache.set(result('CacheHit001', 'confirmed', currentTime, 'music'));
     currentTime += 100;
 
     await expect(cache.get('CacheHit001')).resolves.toMatchObject({
       videoId: 'CacheHit001',
       status: 'confirmed',
+      contentKind: 'music',
       source: 'cache',
+    });
+  });
+
+  it('normalizes a legacy entry without content kind to unknown', async () => {
+    const storage = createMemoryStorage({
+      [YOUTUBE_DISCLOSURE_CACHE_STORAGE_KEY]: {
+        schemaVersion: YOUTUBE_DISCLOSURE_CACHE_SCHEMA_VERSION,
+        entries: {
+          Legacy00001: {
+            videoId: 'Legacy00001',
+            status: 'not-detected',
+            evidence: [],
+            checkedAt: 1,
+            expiresAt: 1 + YOUTUBE_DISCLOSURE_CACHE_TTL_MS['not-detected'],
+          },
+        },
+      },
+    });
+    const cache = createYouTubeDisclosureCache(storage, () => 100);
+
+    await expect(cache.get('Legacy00001')).resolves.toMatchObject({
+      status: 'not-detected',
+      contentKind: 'unknown',
+    });
+  });
+
+  it('normalizes an invalid stored content kind to unknown', async () => {
+    const storage = createMemoryStorage({
+      [YOUTUBE_DISCLOSURE_CACHE_STORAGE_KEY]: {
+        schemaVersion: YOUTUBE_DISCLOSURE_CACHE_SCHEMA_VERSION,
+        entries: {
+          Invalid0001: {
+            videoId: 'Invalid0001',
+            status: 'not-detected',
+            contentKind: 'podcast',
+            evidence: [],
+            checkedAt: 1,
+            expiresAt: 1 + YOUTUBE_DISCLOSURE_CACHE_TTL_MS['not-detected'],
+          },
+        },
+      },
+    });
+    const cache = createYouTubeDisclosureCache(storage, () => 100);
+
+    await expect(cache.get('Invalid0001')).resolves.toMatchObject({
+      status: 'not-detected',
+      contentKind: 'unknown',
     });
   });
 
@@ -189,6 +242,7 @@ describe('YouTube disclosure storage.local cache', () => {
           Minimal0001: {
             videoId: 'Minimal0001',
             status: 'not-detected',
+            contentKind: 'unknown',
             evidence: [],
             checkedAt: 100,
             expiresAt: 100 + YOUTUBE_DISCLOSURE_CACHE_TTL_MS['not-detected'],

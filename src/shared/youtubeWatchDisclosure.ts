@@ -8,6 +8,8 @@ export type WatchDisclosureStatus =
   | 'not-detected'
   | 'unknown-or-error';
 
+export type ContentKind = 'music' | 'non-music' | 'unknown';
+
 export type WatchDisclosureFailureReason =
   | 'timeout'
   | 'network-error'
@@ -22,6 +24,7 @@ export type WatchDisclosureFailureReason =
 export interface WatchDisclosureLookupResult {
   videoId: string;
   status: WatchDisclosureStatus;
+  contentKind: ContentKind;
   evidence: readonly OfficialDisclosureEvidence[];
   checkedAt: number;
   source: 'cache' | 'network';
@@ -60,6 +63,9 @@ export function isWatchDisclosureLookupResult(
     (candidate.status === 'confirmed' ||
       candidate.status === 'not-detected' ||
       candidate.status === 'unknown-or-error') &&
+    (candidate.contentKind === 'music' ||
+      candidate.contentKind === 'non-music' ||
+      candidate.contentKind === 'unknown') &&
     Array.isArray(candidate.evidence) &&
     typeof candidate.checkedAt === 'number' &&
     (candidate.source === 'cache' || candidate.source === 'network')

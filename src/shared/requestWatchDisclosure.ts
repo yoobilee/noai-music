@@ -12,6 +12,7 @@ function createUnavailableResult(videoId: string): WatchDisclosureLookupResult {
   return {
     videoId,
     status: 'unknown-or-error',
+    contentKind: 'unknown',
     evidence: [],
     checkedAt: Date.now(),
     source: 'network',

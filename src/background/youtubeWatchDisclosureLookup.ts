@@ -39,6 +39,7 @@ function createUnknownResult(
   return {
     videoId,
     status: 'unknown-or-error',
+    contentKind: 'unknown',
     evidence: [],
     checkedAt,
     source: 'network',
@@ -76,10 +77,11 @@ export function createYouTubeWatchDisclosureLookupService({
     if (!fetchResult.ok) {
       result = createUnknownResult(videoId, checkedAt, fetchResult.reason);
     } else {
-      const parsed = parseYouTubeWatchPageHtml(fetchResult.html);
+      const parsed = parseYouTubeWatchPageHtml(fetchResult.html, videoId);
       if (parsed.status === 'unknown') {
         result = {
           ...createUnknownResult(videoId, checkedAt, 'invalid-html'),
+          contentKind: parsed.contentKind,
           evidence: parsed.evidence,
         };
       } else {
@@ -87,6 +89,7 @@ export function createYouTubeWatchDisclosureLookupService({
         result = {
           videoId,
           status: detection.detected ? 'confirmed' : 'not-detected',
+          contentKind: parsed.contentKind,
           evidence: detection.evidence,
           checkedAt,
           source: 'network',

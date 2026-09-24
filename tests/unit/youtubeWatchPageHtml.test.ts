@@ -21,9 +21,10 @@ const unknownHtml = await readFile(
 
 describe('YouTube watch-page HTML adapter', () => {
   it('extracts deduplicated official evidence from sanitized initial data', () => {
-    const parsed = parseYouTubeWatchPageHtml(disclosedHtml);
+    const parsed = parseYouTubeWatchPageHtml(disclosedHtml, 'Disclose001');
 
     expect(parsed.status).toBe('parsed');
+    expect(parsed.contentKind).toBe('music');
     expect(parsed.evidence).toEqual([
       {
         source: 'youtube',
@@ -46,9 +47,13 @@ describe('YouTube watch-page HTML adapter', () => {
   });
 
   it('returns a parsed empty result for a recognized ordinary watch page', () => {
-    const parsed = parseYouTubeWatchPageHtml(ordinaryHtml);
+    const parsed = parseYouTubeWatchPageHtml(ordinaryHtml, 'Ordinary001');
 
-    expect(parsed).toEqual({ status: 'parsed', evidence: [] });
+    expect(parsed).toEqual({
+      status: 'parsed',
+      contentKind: 'unknown',
+      evidence: [],
+    });
     expect(detectYouTubeOfficialDisclosure(parsed.evidence).detected).toBe(false);
   });
 
@@ -62,22 +67,27 @@ describe('YouTube watch-page HTML adapter', () => {
         '사운드 또는 영상이 변경되었거나 새롭게 생성되었습니다.',
       );
 
-    const parsed = parseYouTubeWatchPageHtml(koreanHtml);
+    const parsed = parseYouTubeWatchPageHtml(koreanHtml, 'Disclose001');
     expect(parsed.status).toBe('parsed');
     expect(detectYouTubeOfficialDisclosure(parsed.evidence).detected).toBe(true);
   });
 
   it('keeps missing, incomplete and malformed initial data unknown', () => {
-    expect(parseYouTubeWatchPageHtml('<html></html>')).toMatchObject({
+    expect(parseYouTubeWatchPageHtml('<html></html>', 'Disclose001')).toMatchObject({
       status: 'unknown',
+      contentKind: 'unknown',
       reason: 'initial-data-missing',
     });
-    expect(parseYouTubeWatchPageHtml(unknownHtml)).toMatchObject({
+    expect(parseYouTubeWatchPageHtml(unknownHtml, 'Disclose001')).toMatchObject({
       status: 'unknown',
+      contentKind: 'unknown',
       reason: 'watch-page-structure-missing',
     });
     expect(
-      parseYouTubeWatchPageHtml('<script>var ytInitialData = {broken};</script>'),
+      parseYouTubeWatchPageHtml(
+        '<script>var ytInitialData = {broken};</script>',
+        'Disclose001',
+      ),
     ).toMatchObject({ status: 'unknown', reason: 'initial-data-invalid' });
   });
 
@@ -89,8 +99,9 @@ describe('YouTube watch-page HTML adapter', () => {
       }}], "engagementPanels": []`,
     );
 
-    expect(parseYouTubeWatchPageHtml(html)).toEqual({
+    expect(parseYouTubeWatchPageHtml(html, 'Ordinary001')).toEqual({
       status: 'parsed',
+      contentKind: 'unknown',
       evidence: [],
     });
   });
@@ -104,7 +115,7 @@ describe('YouTube watch-page HTML adapter', () => {
       }}]`,
     );
 
-    const parsed = parseYouTubeWatchPageHtml(html);
+    const parsed = parseYouTubeWatchPageHtml(html, 'Ordinary001');
     expect(parsed).toMatchObject({
       status: 'unknown',
       reason: 'unrecognized-disclosure',
@@ -113,4 +124,77 @@ describe('YouTube watch-page HTML adapter', () => {
       { kind: 'unknown', confidence: 'indeterminate' },
     ]);
   });
+
+  it.each([
+    {
+      name: 'a non-Music category',
+      html: disclosedHtml.replace('"category": "Music"', '"category": "Education"'),
+    },
+    {
+      name: 'a missing category',
+      html: disclosedHtml.replace('"category": "Music"', '"uploadDate": "2026-09-24"'),
+    },
+    {
+      name: 'missing microformat data',
+      html: disclosedHtml.replace(
+        /"microformat": \{\s*"playerMicroformatRenderer": \{ "category": "Music" \}\s*\}/,
+        '"trackingParams": "sanitized"',
+      ),
+    },
+    {
+      name: 'a non-OK playability status',
+      html: disclosedHtml.replace('"status": "OK"', '"status": "ERROR"'),
+    },
+    {
+      name: 'a mismatched player video ID',
+      html: disclosedHtml.replace('"videoId": "Disclose001"', '"videoId": "Mismatch001"'),
+    },
+    {
+      name: 'an unsupported assignment marker',
+      html: disclosedHtml.replace(
+        'var ytInitialPlayerResponse =',
+        'window.ytInitialPlayerResponse =',
+      ),
+    },
+    {
+      name: 'an invalid requested and player video ID',
+      html: disclosedHtml.replaceAll('Disclose001', 'invalid'),
+      requestedVideoId: 'invalid',
+    },
+  ])('keeps content kind unknown for $name', ({ html, requestedVideoId }) => {
+    expect(
+      parseYouTubeWatchPageHtml(html, requestedVideoId ?? 'Disclose001'),
+    ).toMatchObject({
+      status: 'parsed',
+      contentKind: 'unknown',
+    });
+  });
+
+  it.each([
+    {
+      name: 'a malformed player response',
+      html: disclosedHtml.replace(
+        /var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n      var ytInitialData/,
+        'var ytInitialPlayerResponse = {broken};\n      var ytInitialData',
+      ),
+    },
+    {
+      name: 'a missing player response',
+      html: disclosedHtml.replace(
+        /      var ytInitialPlayerResponse = \{[\s\S]*?\n      \};\n/,
+        '',
+      ),
+    },
+  ])(
+    'keeps a confirmed disclosure independent from $name',
+    ({ html }) => {
+      const parsed = parseYouTubeWatchPageHtml(html, 'Disclose001');
+
+      expect(parsed).toMatchObject({
+        status: 'parsed',
+        contentKind: 'unknown',
+      });
+      expect(detectYouTubeOfficialDisclosure(parsed.evidence).detected).toBe(true);
+    },
+  );
 });
