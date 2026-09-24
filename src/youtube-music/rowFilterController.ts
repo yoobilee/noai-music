@@ -4,7 +4,11 @@ import type {
 } from '@/adapters/youtube-music';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
 import { evaluateUserRules } from '@/filtering/userRules';
-import type { FilterDecision, FilterReason } from '@/filtering/contracts';
+import type {
+  FilterDecision,
+  FilterReason,
+  FilterScope,
+} from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type { PersistedSettings } from '@/storage/contracts';
 import type { PersistedAllowlist, PersistedBlocklist } from '@/storage/contracts';
@@ -33,6 +37,7 @@ interface YouTubeMusicRowFilterDependencies {
   getSettings(): PersistedSettings;
   getAllowlist(): PersistedAllowlist;
   getBlocklist?(): PersistedBlocklist;
+  filterScope: FilterScope;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   getReasonText?(reason: FilterReason): string;
   reasonText?: string;
@@ -63,6 +68,7 @@ function filterSurface(
 function decisionFingerprint(
   expectedKey: string,
   result: WatchDisclosureLookupResult,
+  filterScope: FilterScope,
   settings: PersistedSettings,
   candidate: YouTubeMusicMediaCandidate,
 ): string {
@@ -70,6 +76,8 @@ function decisionFingerprint(
     expectedKey,
     videoId: result.videoId,
     status: result.status,
+    contentKind: result.contentKind,
+    filterScope,
     evidence: result.evidence,
     enabled: settings.enabled,
     mode: settings.mode,
@@ -117,12 +125,15 @@ export function createYouTubeMusicRowFilterController(
       allowlist: dependencies.getAllowlist(),
       blocklist: dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
       directBlockKinds: { artist: true, channel: false },
+      filterScope: dependencies.filterScope,
       disclosureStatus: result.status,
+      contentKind: result.contentKind,
       evidence: result.evidence,
     });
     const fingerprint = decisionFingerprint(
       expectedKey,
       result,
+      dependencies.filterScope,
       settings,
       candidate,
     );
@@ -339,6 +350,7 @@ export function createYouTubeMusicRowFilterController(
         renderResult(candidate, expectedKey, {
           videoId: candidate.snapshot.identity.videoId!,
           status: 'unknown-or-error',
+          contentKind: 'unknown',
           evidence: [],
           checkedAt: Date.now(),
           source: 'network',

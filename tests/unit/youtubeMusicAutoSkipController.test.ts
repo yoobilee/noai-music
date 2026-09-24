@@ -8,7 +8,18 @@ import {
   DEFAULT_SETTINGS,
   type PersistedAllowlist,
 } from '@/storage/contracts';
-import { createYouTubeMusicAutoSkipController } from '@/youtube-music/autoSkipController';
+import { createYouTubeMusicAutoSkipController as createAutoSkipController } from '@/youtube-music/autoSkipController';
+
+function createYouTubeMusicAutoSkipController(
+  dependencies: Omit<
+    Parameters<typeof createAutoSkipController>[0],
+    'filterScope'
+  > & {
+    filterScope?: Parameters<typeof createAutoSkipController>[0]['filterScope'];
+  },
+) {
+  return createAutoSkipController({ filterScope: 'all', ...dependencies });
+}
 
 function playerIdentity(
   videoId: string | undefined,
@@ -41,6 +52,7 @@ function lookupResult(
   return {
     videoId,
     status,
+    contentKind: 'unknown',
     evidence: status === 'confirmed' ? confirmedEvidence : [],
     checkedAt: 1,
     source: 'network',
@@ -61,6 +73,23 @@ async function flushPromises() {
 }
 
 describe('YouTube Music auto-skip playback lifecycle', () => {
+  it('passes content kind through a music-scoped disclosure decision', async () => {
+    const clickNext = vi.fn(() => true);
+    const controller = createYouTubeMusicAutoSkipController({
+      getCurrentIdentity: () => playerIdentity('PlaybackA01'),
+      getSettings: () => DEFAULT_SETTINGS,
+      getAllowlist: () => DEFAULT_ALLOWLIST,
+      filterScope: 'music',
+      lookup: async () => lookupResult('PlaybackA01'),
+      clickNext,
+    });
+
+    controller.processCurrent();
+    await flushPromises();
+
+    expect(clickNext).not.toHaveBeenCalled();
+  });
+
   it('skips direct blocked tracks without starting disclosure lookup and allowlist wins', () => {
     let allowlist = DEFAULT_ALLOWLIST;
     const lookup = vi.fn(async (videoId: string) => lookupResult(videoId));

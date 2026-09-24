@@ -1,9 +1,16 @@
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import type { MediaIdentity } from '@/detection/contracts';
-import type { WatchDisclosureStatus } from '@/shared/youtubeWatchDisclosure';
+import type {
+  ContentKind,
+  WatchDisclosureStatus,
+} from '@/shared/youtubeWatchDisclosure';
 import type { PersistedAllowlist, PersistedBlocklist } from '@/storage/contracts';
 
 export type FilterMode = 'hide' | 'blur' | 'mark';
+
+export type FilterScope = 'music' | 'all';
+
+export const DEFAULT_FILTER_SCOPE: FilterScope = 'all';
 
 export type FilterReason =
   | 'youtube-official-ai-disclosure'
@@ -22,7 +29,9 @@ export interface FilterPolicyInput {
   allowlist: PersistedAllowlist;
   blocklist?: PersistedBlocklist;
   directBlockKinds?: DirectBlockKinds;
+  filterScope: FilterScope;
   disclosureStatus: WatchDisclosureStatus;
+  contentKind: ContentKind;
   evidence: readonly OfficialDisclosureEvidence[];
 }
 

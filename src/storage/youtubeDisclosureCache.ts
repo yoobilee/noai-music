@@ -2,6 +2,7 @@ import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
 import { isYouTubeVideoId } from '@/adapters/youtube/videoId';
 import type {
+  ContentKind,
   WatchDisclosureFailureReason,
   WatchDisclosureLookupResult,
   WatchDisclosureStatus,
@@ -23,6 +24,7 @@ export const YOUTUBE_DISCLOSURE_CACHE_TTL_MS: Readonly<
 interface StoredDisclosureCacheEntry {
   videoId: string;
   status: WatchDisclosureStatus;
+  contentKind: ContentKind;
   evidence: readonly OfficialDisclosureEvidence[];
   checkedAt: number;
   expiresAt: number;
@@ -54,6 +56,12 @@ function isStoredStatus(value: unknown): value is WatchDisclosureStatus {
     value === 'not-detected' ||
     value === 'unknown-or-error'
   );
+}
+
+function readContentKind(value: unknown): ContentKind {
+  return value === 'music' || value === 'non-music' || value === 'unknown'
+    ? value
+    : 'unknown';
 }
 
 const FAILURE_REASONS = new Set<WatchDisclosureFailureReason>([
@@ -97,7 +105,15 @@ function readStoredEntry(value: unknown): StoredDisclosureCacheEntry | null {
     return null;
   }
 
-  const { checkedAt, evidence, expiresAt, failureReason, status, videoId } = value;
+  const {
+    checkedAt,
+    contentKind,
+    evidence,
+    expiresAt,
+    failureReason,
+    status,
+    videoId,
+  } = value;
   if (
     typeof videoId !== 'string' ||
     !isYouTubeVideoId(videoId) ||
@@ -136,6 +152,7 @@ function readStoredEntry(value: unknown): StoredDisclosureCacheEntry | null {
   return {
     videoId,
     status,
+    contentKind: readContentKind(contentKind),
     evidence: validEvidence,
     checkedAt,
     expiresAt,
@@ -176,6 +193,7 @@ function toLookupResult(
   return {
     videoId: entry.videoId,
     status: entry.status,
+    contentKind: entry.contentKind,
     evidence: entry.evidence,
     checkedAt: entry.checkedAt,
     source: 'cache',
@@ -236,6 +254,7 @@ export function createYouTubeDisclosureCache(
         const entry: StoredDisclosureCacheEntry = {
           videoId: result.videoId,
           status: result.status,
+          contentKind: result.contentKind,
           evidence: result.evidence,
           checkedAt: result.checkedAt,
           expiresAt:

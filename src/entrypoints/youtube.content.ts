@@ -5,7 +5,11 @@ import { createYouTubeAdapter } from '@/adapters/youtube';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
 import { evaluateUserRules } from '@/filtering/userRules';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
-import type { FilterDecision, FilterReason } from '@/filtering/contracts';
+import {
+  DEFAULT_FILTER_SCOPE,
+  type FilterDecision,
+  type FilterReason,
+} from '@/filtering/contracts';
 import { YOUTUBE_MATCH_PATTERNS } from '@/shared/sites';
 import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
@@ -54,13 +58,18 @@ interface CandidateResult {
 
 function decisionFingerprint(
   lookupKey: string,
-  result: Pick<WatchDisclosureLookupResult, 'status' | 'evidence'>,
+  result: Pick<
+    WatchDisclosureLookupResult,
+    'status' | 'contentKind' | 'evidence'
+  >,
   settings: PersistedSettings,
   candidate: DomMediaCandidate,
 ): string {
   return JSON.stringify({
     lookupKey,
     status: result.status,
+    contentKind: result.contentKind,
+    filterScope: DEFAULT_FILTER_SCOPE,
     evidence: result.evidence,
     enabled: settings.enabled,
     mode: settings.mode,
@@ -121,7 +130,10 @@ export default defineContentScript({
     const renderResult = (
       candidate: DomMediaCandidate,
       lookupKey: string,
-      result: Pick<WatchDisclosureLookupResult, 'status' | 'evidence'>,
+      result: Pick<
+        WatchDisclosureLookupResult,
+        'status' | 'contentKind' | 'evidence'
+      >,
     ) => {
       const decision: FilterDecision = decideYouTubeCardFilter({
         settings,
@@ -129,7 +141,9 @@ export default defineContentScript({
         allowlist,
         blocklist,
         directBlockKinds: { artist: false, channel: true },
+        filterScope: DEFAULT_FILTER_SCOPE,
         disclosureStatus: result.status,
+        contentKind: result.contentKind,
         evidence: result.evidence,
       });
       const fingerprint = decisionFingerprint(
@@ -227,6 +241,7 @@ export default defineContentScript({
       expectedLookupKeys.set(candidate.element, lookupKey);
       renderResult(candidate, lookupKey, {
         status: 'unknown-or-error',
+        contentKind: 'unknown',
         evidence: [],
       });
 
@@ -313,6 +328,7 @@ export default defineContentScript({
           candidateResults.delete(candidate.element);
           renderResult(candidate, lookupKey, {
             status: 'unknown-or-error',
+            contentKind: 'unknown',
             evidence: [],
           });
           continue;
@@ -326,6 +342,7 @@ export default defineContentScript({
           candidateResults.delete(candidate.element);
           renderResult(candidate, lookupKey, {
             status: 'confirmed',
+            contentKind: 'unknown',
             evidence: detection.evidence,
           });
           continue;

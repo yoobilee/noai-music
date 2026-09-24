@@ -5,8 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
 import { syncYouTubeMusicQueueIdentities } from '@/adapters/youtube-music/queueIdentityBridge';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
-import type { FilterMode } from '@/filtering/contracts';
-import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
+import type { FilterMode, FilterScope } from '@/filtering/contracts';
+import type {
+  ContentKind,
+  WatchDisclosureLookupResult,
+} from '@/shared/youtubeWatchDisclosure';
 import {
   DEFAULT_ALLOWLIST,
   DEFAULT_BLOCKLIST,
@@ -36,10 +39,12 @@ function lookupResult(
   videoId: string,
   status: WatchDisclosureLookupResult['status'] = 'confirmed',
   evidence: readonly OfficialDisclosureEvidence[] = confirmedEvidence,
+  contentKind: ContentKind = 'unknown',
 ): WatchDisclosureLookupResult {
   return {
     videoId,
     status,
+    contentKind,
     evidence,
     checkedAt: 1,
     source: 'network',
@@ -66,6 +71,7 @@ interface SetupOptions {
   settings?: PersistedSettings;
   allowlist?: PersistedAllowlist;
   blocklist?: PersistedBlocklist;
+  filterScope?: FilterScope;
   lookup?: (videoId: string) => Promise<WatchDisclosureLookupResult>;
 }
 
@@ -97,6 +103,7 @@ function setup(options: SetupOptions = {}) {
     getSettings: () => settings,
     getAllowlist: () => allowlist,
     getBlocklist: () => blocklist,
+    filterScope: options.filterScope ?? 'all',
     lookup,
     reasonText: 'NoAI · YouTube AI disclosure',
     getReasonText: (reason) => reason,
@@ -129,6 +136,27 @@ describe('YouTube Music row filter lifecycle', () => {
   beforeEach(() => {
     document.head.innerHTML = '';
     document.body.innerHTML = '';
+  });
+
+  it('passes lookup content kind through the music-scoped row policy', async () => {
+    const unknownState = setup({ filterScope: 'music' });
+    unknownState.controller.processRoots([document]);
+    await flushPromises();
+    expect(
+      unknownState.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
+    ).toBe(false);
+    unknownState.controller.dispose();
+
+    const musicState = setup({
+      filterScope: 'music',
+      lookup: async (videoId) =>
+        lookupResult(videoId, 'confirmed', confirmedEvidence, 'music'),
+    });
+    musicState.controller.processRoots([document]);
+    await flushPromises();
+    expect(
+      musicState.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
+    ).toBe('hide');
   });
 
   it('filters direct blocked tracks without lookup and restores on removal', () => {

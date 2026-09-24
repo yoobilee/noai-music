@@ -3,6 +3,7 @@ import type { MediaIdentity } from '@/detection/contracts';
 import { evaluateUserRules } from '@/filtering/userRules';
 import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
+import type { FilterScope } from '@/filtering/contracts';
 import type {
   PersistedAllowlist,
   PersistedBlocklist,
@@ -17,6 +18,7 @@ interface YouTubeMusicAutoSkipInput {
   currentIdentity: MediaIdentity | undefined;
   allowlist: PersistedAllowlist;
   blocklist?: PersistedBlocklist;
+  filterScope: FilterScope;
   result: WatchDisclosureLookupResult;
 }
 
@@ -27,6 +29,7 @@ export function decideYouTubeMusicAutoSkip({
   currentIdentity,
   allowlist,
   blocklist,
+  filterScope,
   result,
 }: YouTubeMusicAutoSkipInput): boolean {
   if (
@@ -43,6 +46,7 @@ export function decideYouTubeMusicAutoSkip({
   const userRule = evaluateUserRules(currentIdentity, allowlist, blocklist ?? DEFAULT_BLOCKLIST, { artist: true, channel: false });
   if (userRule === 'allow') return false;
   if (userRule === 'block-track' || userRule === 'block-artist') return true;
+  if (filterScope === 'music' && result.contentKind !== 'music') return false;
   if (
     result.videoId !== expectedVideoId ||
     result.status !== 'confirmed' ||

@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
-import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
+import type {
+  ContentKind,
+  WatchDisclosureLookupResult,
+} from '@/shared/youtubeWatchDisclosure';
 import { DEFAULT_ALLOWLIST, DEFAULT_BLOCKLIST } from '@/storage/contracts';
 
 const confirmedEvidence: OfficialDisclosureEvidence[] = [
@@ -19,10 +22,12 @@ const confirmedEvidence: OfficialDisclosureEvidence[] = [
 function result(
   status: WatchDisclosureLookupResult['status'],
   evidence: readonly OfficialDisclosureEvidence[] = confirmedEvidence,
+  contentKind: ContentKind = 'unknown',
 ): WatchDisclosureLookupResult {
   return {
     videoId: 'PlaybackA01',
     status,
+    contentKind,
     evidence,
     checkedAt: 1,
     source: 'network',
@@ -42,6 +47,7 @@ function decide(
       artistIds: [],
     },
     allowlist: DEFAULT_ALLOWLIST,
+    filterScope: 'all',
     result: result('confirmed'),
     ...overrides,
   });
@@ -50,6 +56,27 @@ function decide(
 describe('YouTube Music auto-skip policy', () => {
   it('allows only a confirmed result with revalidated official evidence', () => {
     expect(decide()).toBe(true);
+  });
+
+  it('applies music scope only to confirmed disclosure decisions', () => {
+    expect(
+      decide({
+        filterScope: 'music',
+        result: result('confirmed', confirmedEvidence, 'music'),
+      }),
+    ).toBe(true);
+    expect(
+      decide({
+        filterScope: 'music',
+        result: result('confirmed', confirmedEvidence, 'unknown'),
+      }),
+    ).toBe(false);
+    expect(
+      decide({
+        filterScope: 'music',
+        result: result('confirmed', confirmedEvidence, 'non-music'),
+      }),
+    ).toBe(false);
   });
 
   it.each([
@@ -122,5 +149,18 @@ describe('YouTube Music auto-skip policy', () => {
     const artistId = 'UCaaaaaaaaaaaaaaaaaaaaaa';
     expect(decide({ currentIdentity: { site: 'youtube-music', videoId: 'PlaybackA01', artistIds: [artistId] }, blocklist: { ...DEFAULT_BLOCKLIST, artists: [{ artistId }] }, result: failed })).toBe(true);
     expect(decide({ allowlist: { ...DEFAULT_ALLOWLIST, tracks: [{ videoId: 'PlaybackA01' }] }, blocklist: { ...DEFAULT_BLOCKLIST, tracks: [{ videoId: 'PlaybackA01' }] }, result: failed })).toBe(false);
+  });
+
+  it('keeps direct blocks ahead of music scope', () => {
+    expect(
+      decide({
+        blocklist: {
+          ...DEFAULT_BLOCKLIST,
+          tracks: [{ videoId: 'PlaybackA01' }],
+        },
+        filterScope: 'music',
+        result: result('confirmed', confirmedEvidence, 'unknown'),
+      }),
+    ).toBe(true);
   });
 });

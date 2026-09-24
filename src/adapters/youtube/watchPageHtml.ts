@@ -1,4 +1,6 @@
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
+import type { ContentKind } from '@/shared/youtubeWatchDisclosure';
+import { isYouTubeVideoId } from '@/shared/youtubeVideoId';
 
 import {
   createDescriptionDisclosureEvidence,
@@ -13,16 +15,23 @@ const INITIAL_DATA_MARKERS = [
   'window["ytInitialData"] =',
   "window['ytInitialData'] =",
 ] as const;
+const INITIAL_PLAYER_RESPONSE_MARKERS = [
+  'var ytInitialPlayerResponse =',
+  'window["ytInitialPlayerResponse"] =',
+  "window['ytInitialPlayerResponse'] =",
+] as const;
 
 type JsonObject = Record<string, unknown>;
 
 export type YouTubeWatchPageParseResult =
   | {
       status: 'parsed';
+      contentKind: ContentKind;
       evidence: readonly OfficialDisclosureEvidence[];
     }
   | {
       status: 'unknown';
+      contentKind: ContentKind;
       reason:
         | 'html-too-large'
         | 'initial-data-missing'
@@ -78,8 +87,11 @@ function extractJsonObject(html: string, start: number): string | null {
   return null;
 }
 
-function readInitialData(html: string): JsonObject | null {
-  for (const marker of INITIAL_DATA_MARKERS) {
+function readAssignedJsonObject(
+  html: string,
+  markers: readonly string[],
+): JsonObject | null {
+  for (const marker of markers) {
     let markerIndex = html.indexOf(marker);
 
     while (markerIndex !== -1) {
@@ -100,6 +112,37 @@ function readInitialData(html: string): JsonObject | null {
   }
 
   return null;
+}
+
+function readContentKind(html: string, requestedVideoId: string): ContentKind {
+  const playerResponse = readAssignedJsonObject(
+    html,
+    INITIAL_PLAYER_RESPONSE_MARKERS,
+  );
+  if (playerResponse === null) {
+    return 'unknown';
+  }
+
+  const playabilityStatus = readNestedString(playerResponse, [
+    'playabilityStatus',
+    'status',
+  ]);
+  const playerVideoId = readNestedString(playerResponse, [
+    'videoDetails',
+    'videoId',
+  ]);
+  const category = readNestedString(playerResponse, [
+    'microformat',
+    'playerMicroformatRenderer',
+    'category',
+  ]);
+
+  return isYouTubeVideoId(requestedVideoId) &&
+    playabilityStatus === 'OK' &&
+    playerVideoId === requestedVideoId &&
+    category === 'Music'
+    ? 'music'
+    : 'unknown';
 }
 
 function findObjectsByKey(root: unknown, targetKey: string): JsonObject[] {
@@ -255,18 +298,27 @@ function readDescriptionEvidence(initialData: JsonObject): OfficialDisclosureEvi
 
 export function parseYouTubeWatchPageHtml(
   html: string,
+  requestedVideoId: string,
 ): YouTubeWatchPageParseResult {
   if (html.length > MAX_WATCH_PAGE_HTML_LENGTH) {
-    return { status: 'unknown', reason: 'html-too-large', evidence: [] };
+    return {
+      status: 'unknown',
+      reason: 'html-too-large',
+      contentKind: 'unknown',
+      evidence: [],
+    };
   }
+
+  const contentKind = readContentKind(html, requestedVideoId);
 
   const hasInitialDataMarker = INITIAL_DATA_MARKERS.some((marker) =>
     html.includes(marker),
   );
-  const initialData = readInitialData(html);
+  const initialData = readAssignedJsonObject(html, INITIAL_DATA_MARKERS);
   if (initialData === null) {
     return {
       status: 'unknown',
+      contentKind,
       reason: hasInitialDataMarker
         ? 'initial-data-invalid'
         : 'initial-data-missing',
@@ -293,6 +345,7 @@ export function parseYouTubeWatchPageHtml(
   if (primaryInfo === undefined) {
     return {
       status: 'unknown',
+      contentKind,
       reason: 'watch-page-structure-missing',
       evidence: [],
     };
@@ -306,10 +359,11 @@ export function parseYouTubeWatchPageHtml(
   if (evidence.some(({ confidence }) => confidence === 'indeterminate')) {
     return {
       status: 'unknown',
+      contentKind,
       reason: 'unrecognized-disclosure',
       evidence,
     };
   }
 
-  return { status: 'parsed', evidence };
+  return { status: 'parsed', contentKind, evidence };
 }
