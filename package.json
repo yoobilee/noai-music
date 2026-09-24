@@ -2,7 +2,7 @@
   "name": "noai-music",
   "description": "A local-first browser extension for filtering officially labeled AI or altered music content on YouTube and YouTube Music.",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "type": "module",
   "engines": {

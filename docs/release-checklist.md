@@ -1,6 +1,71 @@
-# NoAI 1.0.0 공개 기록 및 후속 검증 체크리스트
+# NoAI 1.0.0 공개 기록 및 1.1.0 릴리스 준비 체크리스트
 
-1.0.0은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 이 문서는 1.0.0 배포 완료 상태와 공개 후에도 남아 있는 사람의 실제 환경 검증 항목을 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+1.0.0은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 1.1.0은 filter scope 기능을 포함한 출시 후보 준비 단계이며 아직 tag, GitHub Release 또는 Chrome Web Store 제출을 진행하지 않았다. 이 문서는 1.0.0 배포 완료 기록과 1.1.0 RC 검증 및 남은 사람의 실제 환경 확인 항목을 함께 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+
+## 1.1.0 출시 후보 수동 검증
+
+### Filter scope
+
+- [ ] 신규 설치 기본값 Music only
+- [ ] 기존 1.0.0 설정 migration → All
+- [ ] popup Music only 선택
+- [ ] popup All 선택
+- [ ] options Music only 선택
+- [ ] options All 선택
+- [ ] popup/options 실시간 동기화
+- [ ] popup 재열기 후 선택 유지
+- [ ] all → music 전환 시 unknown confirmed 콘텐츠 즉시 복구
+- [ ] music → all 전환 시 unknown confirmed 콘텐츠 즉시 다시 필터
+- [ ] direct block은 scope와 무관하게 유지
+- [ ] allowlist 우선순위 유지
+- [ ] YouTube Music row 필터 반영
+- [ ] YouTube Music auto-skip 반영
+
+### Migration
+
+- [ ] 신규 저장소 → music
+- [ ] schema version 1 → all
+- [ ] 기존 enabled/mode/auto-skip/uiLocale 유지
+
+### UI와 접근성
+
+- [ ] 한국어/영어 문구 확인
+- [ ] keyboard radio 조작
+- [ ] focus-visible
+- [ ] 200% zoom
+- [ ] popup 380px overflow 없음
+
+위 항목은 자동 테스트가 있어도 사람의 실제 Chrome 확인 전에는 완료로 표시하지 않는다.
+
+## 1.1.0 출시 후보 자동 검증과 artifact
+
+- [x] `npm ci`
+- [x] `npm audit --audit-level=low`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm test`
+- [x] `npm run test:automation-policy`
+- [x] `npm run build`
+- [x] `npm run test:e2e`
+- [x] `npm run verify:all`
+- [x] `npm run zip`
+- [x] `git diff --check`
+- [x] `package.json`과 `package-lock.json`의 project version이 `1.1.0`
+- [x] `.output/chrome-mv3/manifest.json`의 version이 `1.1.0`
+- [x] `.output/noai-music-1.1.0-chrome.zip` 생성 — 119,738 bytes
+- [x] ZIP 내용과 제외 항목 검사 — manifest, runtime, popup/options, locale, icon 포함; source map, tests, docs, `node_modules`, `.git`, 환경 파일, 로컬 경로와 secret pattern 없음
+- [x] ZIP SHA-256 `b86a04d4ece09791c8a7f372428f181d2ea0974f30fd7c2ee942afd3a1ac2dad`
+- [x] PR 최신 head의 CI `Verify`
+
+## 1.1.0 배포 보류 항목
+
+- [ ] `v1.1.0` tag 생성 및 push
+- [ ] GitHub Release v1.1.0 생성 및 검증된 ZIP 첨부
+- [ ] Chrome Web Store 1.1.0 package upload
+- [ ] Chrome Web Store 1.1.0 listing 반영 및 제출
+- [ ] Chrome Web Store 1.1.0 승인 및 공개
+
+이 섹션은 RC 검증 완료만으로 체크하지 않는다. 별도의 배포 승인과 실제 외부 상태 확인 후에만 완료 처리한다.
 
 ## 1.0.0 공개 상태와 후속 수동 검증
 
