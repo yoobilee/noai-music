@@ -1,8 +1,18 @@
 # Chrome Web Store listing
 
 - 현재 공개 버전: 1.0.0
-- 상태: Chrome Web Store 공개 / 설치 가능
+- 다음 업데이트 대상 버전: 1.1.0
+- 상태: 1.0.0 공개 / 설치 가능, 1.1.0 제출 준비 중
 - 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
+
+## 1.1.0 제출 시 상세 설명 변경안
+
+현재 공개 중인 아래 1.0.0 listing 본문은 그대로 유지한다. 1.1.0을 실제 제출할 때 다음 기능 설명을 해당 언어의 주요 기능에 추가하고, Dashboard 반영 여부를 별도로 확인한다.
+
+- 한국어: 필터 대상을 음악만 또는 모든 AI 표시 콘텐츠 중 선택할 수 있습니다.
+- English: Choose whether filtering applies only to content confirmed as music or to all supported AI-labeled content.
+
+여기서 **음악만** 또는 **Music only**는 YouTube watch-page 구조화 데이터의 category가 정확히 `Music`인 경우에만 음악으로 확인한다는 뜻이다. 다른 category나 판별 불가 항목을 음악 또는 비음악으로 추측하지 않는다.
 
 ## 공통 제품 정보
 

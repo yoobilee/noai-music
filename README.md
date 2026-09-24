@@ -91,6 +91,7 @@ See the [privacy policy](docs/privacy.md) for the complete data-handling details
 ## Browser support and current status
 
 - Current published version: **1.0.0**
+- Next release candidate: **1.1.0**
 - Latest GitHub Release: [v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)
 - Chrome Web Store: **[1.0.0 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - Primary validation target: current desktop Chrome
@@ -118,6 +119,7 @@ Build artifacts:
 
 - Unpacked Chrome extension: `.output/chrome-mv3`
 - Official 1.0.0 release ZIP: [`.output/noai-music-1.0.0-chrome.zip`](https://github.com/yoobilee/noai-music/releases/download/v1.0.0/noai-music-1.0.0-chrome.zip)
+- Prepared 1.1.0 release candidate ZIP: `.output/noai-music-1.1.0-chrome.zip`
 
 ## Documentation
 
@@ -131,7 +133,7 @@ Build artifacts:
 - [Direct blocklist](docs/blocklist.md)
 - [Privacy policy](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [1.0.0 release record and follow-up validation checklist](docs/release-checklist.md)
+- [1.0.0 release record and 1.1.0 release candidate checklist](docs/release-checklist.md)
 
 ## Support NoAI
 

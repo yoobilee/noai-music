@@ -4,6 +4,32 @@
 
 ## Unreleased
 
+## [1.1.0] - 준비 중
+
+### Added
+
+- 사용자가 필터 대상을 **Music only** 또는 **All AI-labeled content** 중에서 선택할 수 있습니다.
+- popup과 options에 같은 `filterScope` 설정을 사용하는 필터 범위 선택 UI를 추가했습니다.
+
+### Changed
+
+- 신규 설치의 기본 filter scope는 음악 중심 사용 목적에 맞게 `music`입니다.
+- 기존 1.0.0의 schema version 1 설정은 기존 동작을 유지하도록 `all`로 migration하며 `enabled`, mode, YouTube Music auto-skip과 UI locale을 보존합니다.
+- YouTube와 YouTube Music은 기존 watch-page 응답의 구조화된 `Music` category로 music scope를 적용합니다.
+- `Music` 이외 category이거나 판별할 수 없는 항목은 music scope의 공식 표시 경로에서 필터링하지 않습니다. 직접 차단과 허용 목록의 기존 우선순위는 유지합니다.
+
+### Validation
+
+- 신규 설치와 기존 schema version 1 설정의 storage migration을 검증했습니다.
+- popup/options의 선택 저장, 재열기와 실시간 동기화를 검증했습니다.
+- YouTube와 YouTube Music의 live scope 재평가 및 YouTube Music auto-skip 반영을 검증했습니다.
+- direct block과 allowlist 우선순위가 scope 전환과 관계없이 유지되는지 검증했습니다.
+- 전체 unit, automation-policy, build와 Chromium E2E 검증을 통과했습니다.
+
+### Privacy and permissions
+
+- 새 permission, host permission, network endpoint, analytics, telemetry 또는 remote code를 추가하지 않았습니다.
+
 ## [1.0.0] - 2026-09-24
 
 ### Changed

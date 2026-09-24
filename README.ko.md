@@ -91,6 +91,7 @@ NoAI 1.0.0은 [Chrome Web Store](https://chromewebstore.google.com/detail/noai/e
 ## 브라우저 지원과 현재 상태
 
 - 현재 공개 버전: **1.0.0**
+- 다음 출시 후보 버전: **1.1.0**
 - 최신 GitHub Release: [v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)
 - Chrome Web Store: **[1.0.0 공개 / 설치 가능](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
 - 우선 검증 대상: desktop Chrome 현재 안정 버전
@@ -118,6 +119,7 @@ npm run verify:all
 
 - unpacked Chrome extension: `.output/chrome-mv3`
 - 1.0.0 정식 릴리스 ZIP: [`.output/noai-music-1.0.0-chrome.zip`](https://github.com/yoobilee/noai-music/releases/download/v1.0.0/noai-music-1.0.0-chrome.zip)
+- 준비된 1.1.0 출시 후보 ZIP: `.output/noai-music-1.1.0-chrome.zip`
 
 ## 문서
 
@@ -131,7 +133,7 @@ npm run verify:all
 - [직접 차단 목록](docs/blocklist.md)
 - [개인정보 처리방침](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [1.0.0 공개 기록 및 후속 검증 체크리스트](docs/release-checklist.md)
+- [1.0.0 공개 기록 및 1.1.0 출시 후보 체크리스트](docs/release-checklist.md)
 
 ## NoAI 후원하기
 
