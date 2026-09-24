@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 import type { BrowserContext } from '@playwright/test';
 
+import type { FilterScope } from '@/filtering/contracts';
+
 import { setAllowlist } from './allowlistStorage';
 import { setBlocklist } from './blocklistStorage';
 import { expect, test } from './fixtures';
@@ -29,10 +31,11 @@ const playerHtml = await readFile(
 async function setAutoSkip(
   context: BrowserContext,
   youtubeMusicAutoSkip: boolean,
+  filterScope: FilterScope = 'all',
 ): Promise<void> {
   const worker =
     context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-  await worker.evaluate(async (autoSkip) => {
+  await worker.evaluate(async ({ autoSkip, nextFilterScope }) => {
     const extensionGlobal = globalThis as typeof globalThis & {
       chrome: {
         storage: {
@@ -42,13 +45,15 @@ async function setAutoSkip(
     };
     await extensionGlobal.chrome.storage.local.set({
       settingsV1: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         enabled: true,
         mode: 'blur',
+        filterScope: nextFilterScope,
         youtubeMusicAutoSkip: autoSkip,
+        uiLocale: 'auto',
       },
     });
-  }, youtubeMusicAutoSkip);
+  }, { autoSkip: youtubeMusicAutoSkip, nextFilterScope: filterScope });
 }
 
 async function transitionCurrentTrack(
@@ -213,6 +218,26 @@ test('applies the auto-skip setting without reloading YouTube Music', async ({
   await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '0');
 
   await setAutoSkip(context, true);
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '1');
+});
+
+test('re-evaluates a confirmed unknown track when scope changes to all', async ({
+  context,
+  page,
+}) => {
+  await setAutoSkip(context, true, 'music');
+  await context.route('https://music.youtube.com/**', (route) =>
+    route.fulfill({ body: playerHtml, contentType: 'text/html' }),
+  );
+  await context.route('https://www.youtube.com/**', (route) =>
+    route.fulfill({ body: disclosedHtml, contentType: 'text/html' }),
+  );
+
+  await page.goto('https://music.youtube.com/watch?v=PlaybackA01');
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '0');
+
+  await setAutoSkip(context, true, 'all');
   await expect(page.locator('body')).toHaveAttribute('data-next-click-count', '1');
 });
 

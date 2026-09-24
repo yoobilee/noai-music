@@ -218,7 +218,7 @@ filtering은 DOM과 무관한 순수 정책으로 구현한다. 기본 우선순
 
 지속 데이터는 `storage.local`만 사용한다. `storage.sync`는 Google 계정 기반 동기화를 만들 수 있으므로 1.0에서 사용하지 않는다.
 
-- `settingsV1`: schema version, 전체 활성화와 `hide | blur | mark` mode
+- `settingsV1`: schema version, 전체 활성화, `hide | blur | mark` mode, `music | all` filter scope, YouTube Music auto-skip과 UI locale
 - `allowlistV1`: 사용자가 추가한 곡 video ID와 아티스트 UC ID, 선택적인 최소 표시 metadata
 - `blocklistV1`: 사용자가 추가한 곡 video ID, 아티스트·채널 UC ID와 exact channel `@handle`, 선택적인 최소 표시 metadata
 
@@ -313,6 +313,8 @@ YouTube Music content script는 player bar의 strict video ID를 기존 backgrou
 runtime 상태는 메모리에만 두고 같은 video ID에서는 next click을 한 번 시도한 뒤 다른 유효 ID가 나타날 때까지 latch한다. 이로써 stale callback, 동일 element 재사용, 전환 중 href 누락, observer 폭주와 click 실패가 반복 skip으로 이어지지 않는다. 다음 ID가 나타나면 새 generation을 만들어 연속 confirmed 항목을 각각 판단할 수 있다.
 
 `settingsV1`에는 version bump 없이 default-true additive `youtubeMusicAutoSkip` field를 추가했다. 구버전 version-1 설정은 기존 `enabled`와 `mode`를 보존하면서 field를 보정한다. 전역 `enabled=false`도 auto-skip을 중지한다.
+
+1.1의 filter scope 설정은 settings schema version 2를 사용한다. 저장값이 없는 신규 설치는 `music`을 기본값으로 기록하고, version-1 설정은 기존 `enabled`, `mode`, `youtubeMusicAutoSkip`, `uiLocale`을 보존하면서 `all`로 migration한다. 현재 schema에서 filter scope가 없거나 손상된 값도 기존 필터 범위를 갑자기 줄이지 않도록 `all`로 보정한다. popup과 options는 같은 `storage.local` 값을 사용하며, YouTube와 YouTube Music content script는 `storage.onChanged`에서 현재 항목을 즉시 다시 평가한다.
 
 YTM 전용 player/next selector는 adapter에만 있고 비공개 player API는 사용하지 않는다. 상세 조건, 자동·수동 검증과 한계는 [`youtube-music-auto-skip.md`](youtube-music-auto-skip.md)에 기록한다.
 

@@ -1,7 +1,7 @@
-import type { FilterMode } from '@/filtering/contracts';
+import type { FilterMode, FilterScope } from '@/filtering/contracts';
 import type { SupportedSite } from '@/shared/sites';
 
-export const STORAGE_SCHEMA_VERSION = 1;
+export const STORAGE_SCHEMA_VERSION = 2;
 export const SETTINGS_STORAGE_KEY = 'settingsV1';
 export const ALLOWLIST_SCHEMA_VERSION = 1;
 export const ALLOWLIST_STORAGE_KEY = 'allowlistV1';
@@ -26,6 +26,7 @@ export interface PersistedSettings {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION;
   enabled: boolean;
   mode: FilterMode;
+  filterScope: FilterScope;
   youtubeMusicAutoSkip: boolean;
   uiLocale: UiLocalePreference;
 }
@@ -34,6 +35,7 @@ export const DEFAULT_SETTINGS: PersistedSettings = {
   schemaVersion: STORAGE_SCHEMA_VERSION,
   enabled: true,
   mode: 'hide',
+  filterScope: 'music',
   youtubeMusicAutoSkip: true,
   uiLocale: 'auto',
 };

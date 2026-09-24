@@ -64,7 +64,7 @@ lookup 완료 시 다음을 다시 확인한다.
 
 ## 설정 반영과 auto-skip 관계
 
-`storage.onChanged`에서 기존 `enabled`와 `mode` snapshot을 갱신한 뒤 현재 문서를 다시 처리한다. hide → blur, blur → mark, mark → hide와 enabled OFF/ON 전환은 이전 attribute와 badge를 모두 제거한 뒤 새 상태만 남긴다. 처음부터 disabled이면 row lookup을 시작하지 않으며, 이미 받은 동일 identity 결과는 OFF 동안 표시하지 않고 다시 ON이 되면 재사용할 수 있다.
+`storage.onChanged`에서 `enabled`, `mode`, `filterScope` snapshot을 갱신한 뒤 현재 문서를 다시 처리한다. hide → blur, blur → mark, mark → hide, `music` ↔ `all`과 enabled OFF/ON 전환은 이전 attribute와 badge를 모두 제거한 뒤 새 상태만 남긴다. 처음부터 disabled이면 row lookup을 시작하지 않으며, 이미 받은 동일 identity 결과는 OFF 동안 표시하지 않고 다시 ON이 되면 재사용할 수 있다.
 
 목록·queue 필터 controller는 `youtubeMusicAutoSkip`을 읽어 판단하지 않는다. 따라서 auto-skip이 꺼져 있어도 `enabled`가 켜져 있으면 필터는 동작한다. 현재 재생 auto-skip은 별도 player observer와 controller를 유지한다. queue filter는 CSS attribute와 badge만 바꾸며 DOM node, Polymer queue data, `clickNext`, playback generation이나 latch를 변경하지 않는다. 두 기능이 같은 ID를 동시에 요청해도 기존 background in-flight dedupe/cache만 공유한다.
 

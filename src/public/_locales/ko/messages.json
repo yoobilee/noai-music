@@ -47,6 +47,21 @@
   "filterScopeDescription": {
     "message": "YouTube의 AI 표시 콘텐츠를 원하는 방식으로 관리합니다."
   },
+  "filterScopeLabel": {
+    "message": "필터 대상"
+  },
+  "filterScopeMusic": {
+    "message": "음악만"
+  },
+  "filterScopeMusicDescription": {
+    "message": "YouTube에서 음악으로 확인된 콘텐츠에만 AI 표시 필터를 적용합니다."
+  },
+  "filterScopeAll": {
+    "message": "AI 표시 콘텐츠 전체"
+  },
+  "filterScopeAllDescription": {
+    "message": "YouTube가 AI 또는 변경 콘텐츠로 표시한 모든 지원 항목에 필터를 적용합니다."
+  },
   "filterStateEnabled": {
     "message": "켜짐"
   },

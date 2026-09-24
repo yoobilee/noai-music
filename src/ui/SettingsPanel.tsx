@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { browser, type Browser } from 'wxt/browser';
 
-import type { FilterMode } from '@/filtering/contracts';
+import type { FilterMode, FilterScope } from '@/filtering/contracts';
 import {
   DEFAULT_SETTINGS,
   type PersistedSettings,
@@ -27,7 +27,12 @@ type MessageKey =
   | 'filterModeLabel'
   | 'filterModeMark'
   | 'filterModeMarkDescription'
+  | 'filterScopeAll'
+  | 'filterScopeAllDescription'
   | 'filterScopeDescription'
+  | 'filterScopeLabel'
+  | 'filterScopeMusic'
+  | 'filterScopeMusicDescription'
   | 'filterStateDisabled'
   | 'filterStateEnabled'
   | 'languageAuto'
@@ -57,6 +62,20 @@ const MODE_MESSAGE_KEYS = {
   },
 } as const satisfies Record<
   FilterMode,
+  { description: MessageKey; label: MessageKey }
+>;
+
+const SCOPE_MESSAGE_KEYS = {
+  music: {
+    description: 'filterScopeMusicDescription',
+    label: 'filterScopeMusic',
+  },
+  all: {
+    description: 'filterScopeAllDescription',
+    label: 'filterScopeAll',
+  },
+} as const satisfies Record<
+  FilterScope,
   { description: MessageKey; label: MessageKey }
 >;
 
@@ -213,6 +232,45 @@ function SettingsPanelContent({
                       <strong>{message(MODE_MESSAGE_KEYS[mode].label)}</strong>
                       <span>
                         {message(MODE_MESSAGE_KEYS[mode].description)}
+                      </span>
+                    </span>
+                  </span>
+                </label>
+              ),
+            )}
+          </div>
+        </fieldset>
+
+        <fieldset
+          className="settings-panel__section settings-panel__scope-section"
+          data-disabled={secondaryDisabled}
+          disabled={secondaryDisabled}
+        >
+          <legend>{message('filterScopeLabel')}</legend>
+          <div className="settings-panel__scopes">
+            {(['music', 'all'] satisfies readonly FilterScope[]).map(
+              (filterScope) => (
+                <label className="mode-option scope-option" key={filterScope}>
+                  <input
+                    checked={settings.filterScope === filterScope}
+                    name="filter-scope"
+                    onChange={() =>
+                      updateSettings({ ...settings, filterScope })
+                    }
+                    type="radio"
+                    value={filterScope}
+                  />
+                  <span className="mode-option__surface">
+                    <span
+                      aria-hidden="true"
+                      className="mode-option__indicator"
+                    />
+                    <span className="mode-option__copy">
+                      <strong>
+                        {message(SCOPE_MESSAGE_KEYS[filterScope].label)}
+                      </strong>
+                      <span>
+                        {message(SCOPE_MESSAGE_KEYS[filterScope].description)}
                       </span>
                     </span>
                   </span>

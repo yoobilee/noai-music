@@ -5,11 +5,7 @@ import { createYouTubeAdapter } from '@/adapters/youtube';
 import { detectYouTubeOfficialDisclosure } from '@/detection/detectOfficialDisclosure';
 import { evaluateUserRules } from '@/filtering/userRules';
 import { decideYouTubeCardFilter } from '@/filtering/decideYouTubeCardFilter';
-import {
-  DEFAULT_FILTER_SCOPE,
-  type FilterDecision,
-  type FilterReason,
-} from '@/filtering/contracts';
+import type { FilterDecision, FilterReason } from '@/filtering/contracts';
 import { YOUTUBE_MATCH_PATTERNS } from '@/shared/sites';
 import { requestWatchDisclosure } from '@/shared/requestWatchDisclosure';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
@@ -69,7 +65,7 @@ function decisionFingerprint(
     lookupKey,
     status: result.status,
     contentKind: result.contentKind,
-    filterScope: DEFAULT_FILTER_SCOPE,
+    filterScope: settings.filterScope,
     evidence: result.evidence,
     enabled: settings.enabled,
     mode: settings.mode,
@@ -141,7 +137,7 @@ export default defineContentScript({
         allowlist,
         blocklist,
         directBlockKinds: { artist: false, channel: true },
-        filterScope: DEFAULT_FILTER_SCOPE,
+        filterScope: settings.filterScope,
         disclosureStatus: result.status,
         contentKind: result.contentKind,
         evidence: result.evidence,
@@ -228,7 +224,11 @@ export default defineContentScript({
       appliedFingerprints.set(candidate.element, fingerprint);
     };
 
-    const lookupCard = (candidate: DomMediaCandidate, lookupKey: string) => {
+    const lookupCard = (
+      candidate: DomMediaCandidate,
+      lookupKey: string,
+      confirmedEvidence?: WatchDisclosureLookupResult['evidence'],
+    ) => {
       const videoId = candidate.snapshot.identity.videoId;
       if (videoId === undefined) {
         clearYouTubeCardFilter(candidate.element);
@@ -236,13 +236,18 @@ export default defineContentScript({
       }
 
       if (expectedLookupKeys.get(candidate.element) === lookupKey) {
+        const previousResult = candidateResults.get(candidate.element);
+        if (previousResult?.lookupKey === lookupKey) {
+          renderResult(candidate, lookupKey, previousResult.result);
+        }
         return;
       }
       expectedLookupKeys.set(candidate.element, lookupKey);
       renderResult(candidate, lookupKey, {
-        status: 'unknown-or-error',
+        status:
+          confirmedEvidence === undefined ? 'unknown-or-error' : 'confirmed',
         contentKind: 'unknown',
-        evidence: [],
+        evidence: confirmedEvidence ?? [],
       });
 
       let lookup = routeLookups.get(videoId);
@@ -261,8 +266,22 @@ export default defineContentScript({
           expectedLookupKeys.get(candidate.element) === lookupKey &&
           candidate.element.isConnected
         ) {
-          candidateResults.set(candidate.element, { lookupKey, result });
-          renderResult(candidate, lookupKey, result);
+          const effectiveResult: WatchDisclosureLookupResult =
+            confirmedEvidence === undefined
+              ? result
+              : {
+                  videoId: result.videoId,
+                  status: 'confirmed',
+                  contentKind: result.contentKind,
+                  evidence: confirmedEvidence,
+                  checkedAt: result.checkedAt,
+                  source: result.source,
+                };
+          candidateResults.set(candidate.element, {
+            lookupKey,
+            result: effectiveResult,
+          });
+          renderResult(candidate, lookupKey, effectiveResult);
         }
       });
     };
@@ -337,7 +356,7 @@ export default defineContentScript({
         const detection = detectYouTubeOfficialDisclosure(
           adapter.readOfficialDisclosures(candidate),
         );
-        if (detection.detected) {
+        if (detection.detected && settings.filterScope === 'all') {
           expectedLookupKeys.delete(candidate.element);
           candidateResults.delete(candidate.element);
           renderResult(candidate, lookupKey, {
@@ -345,6 +364,11 @@ export default defineContentScript({
             contentKind: 'unknown',
             evidence: detection.evidence,
           });
+          continue;
+        }
+
+        if (detection.detected) {
+          lookupCard(candidate, lookupKey, detection.evidence);
           continue;
         }
 

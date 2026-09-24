@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { BrowserContext } from '@playwright/test';
 
-import type { FilterMode } from '@/filtering/contracts';
+import type { FilterMode, FilterScope } from '@/filtering/contracts';
 
 import { readAllowlist, setAllowlist } from './allowlistStorage';
 import { setBlocklist } from './blocklistStorage';
@@ -140,7 +140,7 @@ const reasonBadge = '[data-noai-filter-reason-badge]';
 
 test('direct track blocks ordinary YouTube cards without disclosure and allowlist wins', async ({ context, page }) => {
   const requested: string[] = [];
-  await setSettings(context, true, 'mark');
+  await setSettings(context, true, 'mark', 'music');
   await setBlocklist(context, { tracks: [{ videoId: 'Ordinary001' }] });
   await context.route('https://www.youtube.com/**', async (route) => {
     if (route.request().isNavigationRequest()) return route.fulfill({ body: cardPageHtml, contentType: 'text/html' });
@@ -153,6 +153,8 @@ test('direct track blocks ordinary YouTube cards without disclosure and allowlis
   await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
   await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked track|직접 차단한 곡/);
   expect(requested).not.toContain('Ordinary001');
+  await setSettings(context, true, 'mark', 'all');
+  await expect(card).toHaveAttribute(filterAttribute, 'mark');
   await setAllowlist(context, { tracks: [{ videoId: 'Ordinary001' }] });
   await expect(card).not.toHaveAttribute(filterAttribute);
 });
@@ -324,11 +326,12 @@ async function setSettings(
   context: BrowserContext,
   enabled: boolean,
   mode: FilterMode,
+  filterScope: FilterScope = 'all',
 ): Promise<void> {
   const worker =
     context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
   await worker.evaluate(
-    async ({ nextEnabled, nextMode }) => {
+    async ({ nextEnabled, nextMode, nextFilterScope }) => {
       const extensionGlobal = globalThis as typeof globalThis & {
         chrome: {
           storage: {
@@ -338,13 +341,16 @@ async function setSettings(
       };
       await extensionGlobal.chrome.storage.local.set({
         settingsV1: {
-          schemaVersion: 1,
+          schemaVersion: 2,
           enabled: nextEnabled,
           mode: nextMode,
+          filterScope: nextFilterScope,
+          youtubeMusicAutoSkip: true,
+          uiLocale: 'auto',
         },
       });
     },
-    { nextEnabled: enabled, nextMode: mode },
+    { nextEnabled: enabled, nextMode: mode, nextFilterScope: filterScope },
   );
 }
 
@@ -533,6 +539,39 @@ test('filters only confirmed cards and switches modes without reloading', async 
       ['Ordinary001', 1],
     ]),
   );
+});
+
+test('re-evaluates confirmed unknown content on live scope changes', async ({
+  context,
+  page,
+}) => {
+  const disclosedUnknownHtml = disclosedHtml.replace(
+    '"category": "Music"',
+    '"category": "Education"',
+  );
+  await setSettings(context, true, 'hide', 'all');
+  await context.route('https://www.youtube.com/**', async (route) => {
+    const request = route.request();
+    if (request.isNavigationRequest()) {
+      await route.fulfill({ body: cardPageHtml, contentType: 'text/html' });
+      return;
+    }
+    const videoId = new URL(request.url()).searchParams.get('v');
+    await route.fulfill({
+      body: videoId === 'Disclose001' ? disclosedUnknownHtml : ordinaryHtml,
+      contentType: 'text/html',
+    });
+  });
+
+  await page.goto('https://www.youtube.com/results?search_query=scope');
+  const card = page.getByTestId('disclosed-card-one');
+  await expect(card).toHaveAttribute(filterAttribute, 'hide');
+
+  await setSettings(context, true, 'hide', 'music');
+  await expect(card).not.toHaveAttribute(filterAttribute);
+
+  await setSettings(context, true, 'hide', 'all');
+  await expect(card).toHaveAttribute(filterAttribute, 'hide');
 });
 
 test('reuses cache and clears a reused card before a stale result arrives', async ({

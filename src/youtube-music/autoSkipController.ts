@@ -1,7 +1,6 @@
 import { decideYouTubeMusicAutoSkip } from '@/filtering/decideYouTubeMusicAutoSkip';
 import type { MediaIdentity } from '@/detection/contracts';
 import { evaluateUserRules } from '@/filtering/userRules';
-import type { FilterScope } from '@/filtering/contracts';
 import type { WatchDisclosureLookupResult } from '@/shared/youtubeWatchDisclosure';
 import type {
   PersistedAllowlist,
@@ -15,7 +14,7 @@ interface PlaybackState {
   videoId: string;
   lookupStarted: boolean;
   result?: WatchDisclosureLookupResult;
-  resultEvaluated: boolean;
+  evaluatedFilterScope?: PersistedSettings['filterScope'];
   suppressedByAllowlist: boolean;
 }
 
@@ -24,7 +23,6 @@ interface YouTubeMusicAutoSkipDependencies {
   getSettings(): PersistedSettings;
   getAllowlist(): PersistedAllowlist;
   getBlocklist?(): PersistedBlocklist;
-  filterScope: FilterScope;
   lookup(videoId: string): Promise<WatchDisclosureLookupResult>;
   clickNext(expectedVideoId: string): boolean;
 }
@@ -70,7 +68,6 @@ export function createYouTubeMusicAutoSkipController(
         generation,
         videoId: currentVideoId,
         lookupStarted: false,
-        resultEvaluated: false,
         suppressedByAllowlist: false,
       };
     }
@@ -96,10 +93,10 @@ export function createYouTubeMusicAutoSkipController(
     if (currentPlayback.suppressedByAllowlist) return;
 
     if (currentPlayback.result !== undefined) {
-      if (currentPlayback.resultEvaluated) {
+      if (currentPlayback.evaluatedFilterScope === settings.filterScope) {
         return;
       }
-      currentPlayback.resultEvaluated = true;
+      currentPlayback.evaluatedFilterScope = settings.filterScope;
 
       if (
         !decideYouTubeMusicAutoSkip({
@@ -109,7 +106,7 @@ export function createYouTubeMusicAutoSkipController(
           currentIdentity,
           allowlist: dependencies.getAllowlist(),
           blocklist: dependencies.getBlocklist?.() ?? DEFAULT_BLOCKLIST,
-          filterScope: dependencies.filterScope,
+          filterScope: settings.filterScope,
           result: currentPlayback.result,
         })
       ) {

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createYouTubeMusicAdapter } from '@/adapters/youtube-music';
 import { syncYouTubeMusicQueueIdentities } from '@/adapters/youtube-music/queueIdentityBridge';
 import type { OfficialDisclosureEvidence } from '@/detection/contracts';
-import type { FilterMode, FilterScope } from '@/filtering/contracts';
+import type { FilterMode } from '@/filtering/contracts';
 import type {
   ContentKind,
   WatchDisclosureLookupResult,
@@ -39,7 +39,7 @@ function lookupResult(
   videoId: string,
   status: WatchDisclosureLookupResult['status'] = 'confirmed',
   evidence: readonly OfficialDisclosureEvidence[] = confirmedEvidence,
-  contentKind: ContentKind = 'unknown',
+  contentKind: ContentKind = 'music',
 ): WatchDisclosureLookupResult {
   return {
     videoId,
@@ -71,7 +71,6 @@ interface SetupOptions {
   settings?: PersistedSettings;
   allowlist?: PersistedAllowlist;
   blocklist?: PersistedBlocklist;
-  filterScope?: FilterScope;
   lookup?: (videoId: string) => Promise<WatchDisclosureLookupResult>;
 }
 
@@ -103,7 +102,6 @@ function setup(options: SetupOptions = {}) {
     getSettings: () => settings,
     getAllowlist: () => allowlist,
     getBlocklist: () => blocklist,
-    filterScope: options.filterScope ?? 'all',
     lookup,
     reasonText: 'NoAI · YouTube AI disclosure',
     getReasonText: (reason) => reason,
@@ -139,7 +137,11 @@ describe('YouTube Music row filter lifecycle', () => {
   });
 
   it('passes lookup content kind through the music-scoped row policy', async () => {
-    const unknownState = setup({ filterScope: 'music' });
+    const unknownState = setup({
+      settings: { ...DEFAULT_SETTINGS, filterScope: 'music' },
+      lookup: async (videoId) =>
+        lookupResult(videoId, 'confirmed', confirmedEvidence, 'unknown'),
+    });
     unknownState.controller.processRoots([document]);
     await flushPromises();
     expect(
@@ -148,7 +150,7 @@ describe('YouTube Music row filter lifecycle', () => {
     unknownState.controller.dispose();
 
     const musicState = setup({
-      filterScope: 'music',
+      settings: { ...DEFAULT_SETTINGS, filterScope: 'music' },
       lookup: async (videoId) =>
         lookupResult(videoId, 'confirmed', confirmedEvidence, 'music'),
     });
@@ -156,6 +158,31 @@ describe('YouTube Music row filter lifecycle', () => {
     await flushPromises();
     expect(
       musicState.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
+    ).toBe('hide');
+  });
+
+  it('re-evaluates a cached unknown result on live scope changes', async () => {
+    const state = setup({
+      settings: { ...DEFAULT_SETTINGS, filterScope: 'all' },
+      lookup: async (videoId) =>
+        lookupResult(videoId, 'confirmed', confirmedEvidence, 'unknown'),
+    });
+    state.controller.processRoots([document]);
+    await flushPromises();
+    expect(
+      state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
+    ).toBe('hide');
+
+    state.setSettings({ ...DEFAULT_SETTINGS, filterScope: 'music' });
+    state.controller.processRoots([document]);
+    expect(
+      state.row.hasAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
+    ).toBe(false);
+
+    state.setSettings({ ...DEFAULT_SETTINGS, filterScope: 'all' });
+    state.controller.processRoots([document]);
+    expect(
+      state.row.getAttribute(YOUTUBE_MUSIC_FILTER_ACTION_ATTRIBUTE),
     ).toBe('hide');
   });
 

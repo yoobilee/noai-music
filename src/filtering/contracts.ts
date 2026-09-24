@@ -10,8 +10,6 @@ export type FilterMode = 'hide' | 'blur' | 'mark';
 
 export type FilterScope = 'music' | 'all';
 
-export const DEFAULT_FILTER_SCOPE: FilterScope = 'all';
-
 export type FilterReason =
   | 'youtube-official-ai-disclosure'
   | 'direct-block-track'

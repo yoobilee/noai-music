@@ -270,10 +270,29 @@ button {
   padding: 0;
 }
 
-.settings-panel__mode-section legend {
+.settings-panel__mode-section legend,
+.settings-panel__scope-section legend {
   font-size: 15px;
   font-weight: 750;
   padding: 0;
+}
+
+.settings-panel__scope-section {
+  border: 0;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.settings-panel__scopes {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.scope-option .mode-option__surface {
+  min-block-size: 112px;
 }
 
 .settings-panel__modes {
@@ -350,11 +369,13 @@ button {
 }
 
 .settings-panel__mode-section[data-disabled='true'],
+.settings-panel__scope-section[data-disabled='true'],
 .settings-panel__music-section[data-disabled='true'] {
   opacity: 0.52;
 }
 
-.settings-panel__mode-section[data-disabled='true'] .mode-option {
+.settings-panel__mode-section[data-disabled='true'] .mode-option,
+.settings-panel__scope-section[data-disabled='true'] .mode-option {
   cursor: not-allowed;
 }
 
@@ -743,6 +764,10 @@ button {
   }
 
   .settings-panel--full .settings-panel__modes {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-panel--full .settings-panel__scopes {
     grid-template-columns: 1fr;
   }
 
