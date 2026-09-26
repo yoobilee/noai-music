@@ -1,150 +1,164 @@
 # NoAI
 
-> Block AI music on YouTube. Skip it on YouTube Music.
+> YouTube의 AI 음악을 차단하고 YouTube Music에서 자동으로 건너뜁니다.
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
+[![GitHub Release](https://img.shields.io/github/v/release/yoobilee/noai-music?display_name=release&label=GitHub%20Release)](https://github.com/yoobilee/noai-music/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [English](README.md)
 
-NoAI는 YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음악을 사용자가 원하는 방식으로 관리할 수 있게 돕는 오픈소스 브라우저 확장 프로그램입니다.
+NoAI는 YouTube가 공식적으로 AI 또는 변경된 콘텐츠라고 표시한 항목을 필터링하는 오픈소스 브라우저 확장 프로그램입니다.
 
-제품 브랜드는 계속 **NoAI**입니다. 0.9.1부터 확장 프로그램의 외부 표시 이름은 영어에서 **NoAI — AI-Labeled Music Filter**, 한국어에서 **NoAI — AI 표시 음악 필터**를 사용합니다.
+**음악만**을 선택하면 YouTube가 Music 카테고리로 분류한 콘텐츠에 집중하고, **AI 표시 콘텐츠 전체**를 선택하면 지원되는 모든 공식 표시 콘텐츠를 필터링합니다. YouTube Music에서는 정책에 해당하는 콘텐츠를 재생 중 자동으로 건너뛸 수도 있습니다.
 
-NoAI는 음악이 AI로 생성됐는지 추측하지 않습니다. 확인된 YouTube 공식 표시와 사용자가 직접 지정한 정확한 식별 정보만 사용하며, 필요한 근거나 식별 정보를 확인할 수 없으면 아무 항목도 추측해서 처리하지 않습니다.
+NoAI는 자체 AI 탐지기를 사용하지 않으며 제목, 채널명, 썸네일 또는 오디오 특성으로 AI 여부를 추측하지 않습니다.
 
-## 핵심 기능
+## NoAI를 만든 이유
 
-- YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 항목을 숨기기, 흐리기 또는 표시만 처리
-- 공식 표시 필터를 YouTube에서 음악으로 확인된 콘텐츠에만 적용하거나 모든 지원 AI 표시 콘텐츠에 적용하도록 선택
-- YouTube Music에서 해당 곡 자동 건너뛰기
-- 지원되는 YouTube Music 목록과 재생 대기열 항목 필터링
-- 곡·아티스트 허용 목록
-- 곡·아티스트·채널 직접 차단
-- 브라우저 언어 자동 감지 또는 직접 선택이 가능한 한국어·영어 UI
-- 광고, 사용 분석, 사용 통계 수집 없음
+일반적인 YouTube와 YouTube Music 탐색 화면에 AI 생성 음악이 점점 더 많이 섞이고 있습니다.
 
-## 동작 및 판정 원칙
+NoAI는 AI 생성 여부를 추측하는 대신 YouTube의 공식 표시와 구조화된 메타데이터만 사용하는 보수적인 방식을 택합니다.
 
-NoAI는 YouTube가 제공하는 공식 AI·변경 콘텐츠 표시를 주요 판정 근거로 사용합니다.
+필요한 근거를 확인할 수 없으면 해당 콘텐츠를 변경하지 않습니다.
 
-- 자체 AI 판별기를 사용하지 않습니다.
-- 제목, 채널명이나 음원 특징으로 AI 사용 여부를 추측하지 않습니다.
-- 공식 표시가 있다는 사실만으로 음악 자체가 AI 생성됐다고 단정하지 않습니다. NoAI는 실제로 확인한 표시 이상의 의미를 주장하지 않습니다.
-- 페이지 구조, 식별 정보 또는 공식 표시 근거를 확인할 수 없으면 추측하지 않고 해당 항목을 그대로 둡니다.
-- 직접 차단은 AI 판정이 아니라 사용자가 만든 규칙입니다.
+## 기능
 
-## 지원 범위
+- **음악만 또는 AI 표시 콘텐츠 전체**
 
-### YouTube
+  YouTube가 Music 카테고리로 분류한 콘텐츠에만 필터를 적용할지, 지원되는 모든 AI 표시 콘텐츠에 적용할지 선택합니다.
 
-- 홈, 검색, 관련 영상과 재생목록의 지원되는 영상 카드
-- 카드에 채널 정보가 없는 경우 현재 경로의 정확한 식별 정보를 보조 근거로 사용하는 채널 `Videos` 카드
-- exact video ID 규칙
-- UC channel ID 규칙
-- exact YouTube `@handle` 직접 차단 규칙
+- **숨김, 흐림 또는 표시**
 
-### YouTube Music
+  하나의 고정된 방식 대신 정책에 해당하는 콘텐츠를 어떻게 보여줄지 선택합니다.
 
-- 검색, 앨범, 플레이리스트와 아티스트 화면의 지원되는 곡 목록
-- 정확한 영상 ID가 확인된 재생 대기열 항목
-- 현재 재생곡 식별 정보와 자동 건너뛰기
-- 곡 허용·차단 규칙
-- 안정적인 아티스트 식별 정보를 확인할 수 있는 경우의 아티스트 허용·차단 규칙
+- **YouTube Music 자동 건너뛰기**
 
-재생 대기열의 아티스트 식별 정보는 추측하지 않습니다. 지원되는 화면 요소에서 확인된 식별 정보를 제공하지 않으면 해당 항목을 변경하지 않습니다.
+  재생 중 정책에 해당하는 콘텐츠를 다음 항목으로 자동으로 넘깁니다.
 
-## 사용자 규칙
+- **허용 및 차단 규칙**
 
-사용자 규칙의 우선순위는 다음과 같습니다.
+  원하는 콘텐츠와 아티스트는 유지하고, 특정 콘텐츠·아티스트·채널은 직접 차단할 수 있습니다. 허용 규칙은 직접 차단보다 우선합니다.
 
-```text
-allowlist > direct blocklist > official disclosure
-```
+- **추측하지 않는 판정**
 
-- 허용된 곡이나 아티스트는 직접 차단 또는 공식 표시와 동시에 일치해도 필터링하거나 건너뛰지 않습니다.
-- 직접 차단은 disclosure lookup 결과와 관계없이 exact 곡·아티스트·채널 identity가 일치할 때 적용됩니다.
-- 더 높은 우선순위의 사용자 규칙이 없을 때만 공식 disclosure 정책을 적용합니다.
+  자체 AI 탐지기 대신 YouTube의 공식 표시와 구조화된 메타데이터를 사용합니다.
+
+- **개인정보 보호를 고려한 설계**
+
+  광고, 분석 도구, 원격 측정 또는 NoAI 계정이 없습니다.
+
+## 작동 방식
+
+NoAI는 YouTube의 공식 AI 또는 변경 콘텐츠 표시를 주된 판정 근거로 사용합니다.
+
+**음악만**을 선택하면 YouTube가 Music 카테고리로 분류한 콘텐츠에만 필터를 적용합니다. **AI 표시 콘텐츠 전체**를 선택하면 지원되는 모든 콘텐츠에 같은 공식 표시 정책을 적용합니다.
+
+NoAI는 의도적으로 보수적인 원칙을 따릅니다.
+
+- 자체 AI 모델을 사용하지 않음
+- 제목이나 채널명 기반 휴리스틱을 사용하지 않음
+- 오디오 특성으로 추측하지 않음
+- 확인할 수 없거나 판정이 불가능한 항목은 변경하지 않음
+
+공식 표시는 YouTube가 해당 콘텐츠를 AI 또는 변경 콘텐츠로 표시했다는 뜻입니다. 음악 자체가 전부 AI로 생성되었다는 의미는 아닐 수 있습니다.
 
 ## 설치
 
 ### Chrome Web Store
 
-NoAI 1.0.0은 [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)에서 공개되어 설치할 수 있습니다.
+[Chrome Web Store에서 NoAI 설치](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 
-### GitHub Release
+스토어에서 설치하면 브라우저를 통해 업데이트를 받을 수 있습니다.
 
-[NoAI v1.0.0 Release](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)에서 Chrome 확장 프로그램 ZIP을 받을 수 있습니다. 스토어 설치 대신 ZIP을 압축 해제한 뒤 Chrome 개발자 모드에서 압축 해제된 확장 프로그램을 불러올 수도 있습니다.
+### GitHub Releases
 
-개발용 빌드를 사용하려면 아래 개발 절차를 실행하고 `.output/chrome-mv3`를 unpacked extension으로 불러오세요.
+[GitHub Releases에서 최신 패키지 빌드 다운로드](https://github.com/yoobilee/noai-music/releases)
 
-## 개인정보와 권한
+ZIP의 압축을 풀고 `chrome://extensions`에서 개발자 모드를 켠 다음 **압축해제된 확장 프로그램을 로드합니다**를 선택해 해당 디렉터리를 불러옵니다.
 
-- 별도 NoAI 사용자 계정 없음
-- NoAI 개발자 데이터 수집 서버 없음
-- 광고, 사용 분석, 사용 통계 수집 없음
-- 설정, 허용·차단 규칙과 공식 표시 확인용 최소 캐시는 `storage.local`에 저장
-- Chrome Sync 사용 안 함
-- 로컬 설정, 규칙과 캐시를 NoAI 개발자 서버로 전송하지 않음
-- 공식 표시 확인을 위해 해당 영상 ID의 공개 YouTube 영상 페이지를 `credentials: omit`, `referrerPolicy: no-referrer`로 요청할 수 있음
-- `tabs`, `activeTab`, `history`, `cookies`, `identity`, `<all_urls>` 권한 사용 안 함
+### 개발용 빌드
 
-전체 데이터 처리 내용은 [개인정보 처리방침](docs/privacy.md)을 참고하세요.
+소스에서 NoAI를 실행하거나 패키징하려면 [개발](#개발)을 참고하세요.
 
-## 브라우저 지원과 현재 상태
+## 개인정보 보호
 
-- 현재 공개 버전: **1.0.0**
-- 다음 출시 후보 버전: **1.1.0**
-- 최신 GitHub Release: [v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)
-- Chrome Web Store: **[1.0.0 공개 / 설치 가능](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
-- 우선 검증 대상: desktop Chrome 현재 안정 버전
-- Edge와 Whale: Chromium 호환 대상이며 브라우저별 최종 수동 검증 필요
-- Firefox: 1.0 범위에 포함하지 않으며 이후 검토 가능
+NoAI에는 계정 시스템이나 개발자가 운영하는 서버가 없으며 광고, 분석 도구 또는 원격 측정 기능도 포함하지 않습니다.
 
-자동 회귀 검증은 비식별 fixture와 bundled Chromium을 사용합니다. 실제 브라우저와 YouTube Music Premium 검증 항목은 [릴리스 체크리스트](docs/release-checklist.md)에서 관리합니다.
+설정, 사용자 규칙과 최소한의 공식 표시 캐시는 `storage.local`에 저장됩니다. Chrome Sync를 사용하지 않으며 이 데이터를 개발자 서버로 보내지 않습니다.
+
+YouTube의 공식 표시를 확인하기 위해 Google 계정 인증 정보 없이 공개 YouTube 시청 페이지를 요청할 수 있습니다. `tabs`, `activeTab`, `history`, `cookies`, `identity`, `<all_urls>` 권한은 요청하지 않습니다.
+
+자세한 내용은 [개인정보 처리방침](docs/privacy.md)을 참고하세요.
 
 ## 개발
 
-필요 환경:
+### 필요 환경
 
-- Node.js 22.13.0 이상
+- Node.js 22.13+
 - npm
 
+### 설정
+
 ```sh
+git clone https://github.com/yoobilee/noai-music.git
+cd noai-music
 npm install
 npm run dev
-npm run build
-npm run zip
+```
+
+### 검증
+
+```sh
 npm run verify:all
 ```
 
-빌드 결과:
+### 프로덕션 빌드
 
-- unpacked Chrome extension: `.output/chrome-mv3`
-- 1.0.0 정식 릴리스 ZIP: [`.output/noai-music-1.0.0-chrome.zip`](https://github.com/yoobilee/noai-music/releases/download/v1.0.0/noai-music-1.0.0-chrome.zip)
-- 준비된 1.1.0 출시 후보 ZIP: `.output/noai-music-1.1.0-chrome.zip`
+```sh
+npm run build
+npm run zip
+```
+
+압축되지 않은 확장 프로그램은 `.output/chrome-mv3`에 생성됩니다.
 
 ## 문서
 
 - [기술 설계](docs/technical-design.md)
-- [YouTube disclosure 감지](docs/youtube-disclosure-detection.md)
+- [YouTube 공식 표시 감지](docs/youtube-disclosure-detection.md)
 - [YouTube 카드 필터링](docs/youtube-card-filtering.md)
-- [YouTube Music identity](docs/youtube-music-identity.md)
+- [YouTube Music 콘텐츠 식별](docs/youtube-music-identity.md)
 - [YouTube Music 카드 필터링](docs/youtube-music-card-filtering.md)
 - [YouTube Music 자동 건너뛰기](docs/youtube-music-auto-skip.md)
 - [허용 목록](docs/allowlist.md)
 - [직접 차단 목록](docs/blocklist.md)
 - [개인정보 처리방침](docs/privacy.md)
-- [Chrome Web Store listing](docs/store-listing.md)
-- [1.0.0 공개 기록 및 1.1.0 출시 후보 체크리스트](docs/release-checklist.md)
+- [Chrome Web Store 등록 정보](docs/store-listing.md)
+- [릴리스 체크리스트](docs/release-checklist.md)
+- [음악 판별 신호 후속 조사](docs/music-signal-followup.md)
+- [YouTube 필터 지연 조사](docs/youtube-filter-latency-investigation.md)
 
-## NoAI 후원하기
+그 밖의 문서는 [`docs/`](docs/)에서 확인할 수 있습니다.
+
+## 기여하기
+
+이슈와 풀 리퀘스트를 환영합니다.
+
+변경을 제안할 때는 NoAI의 핵심 원칙을 지켜 주세요.
+
+- 추측으로 AI 콘텐츠를 분류하지 않음
+- 구조화되고 검증 가능한 신호를 우선함
+- 콘텐츠의 식별 정보나 근거를 확인할 수 없으면 변경하지 않음
+- 불필요한 권한, 추적 또는 외부 서비스를 지양함
+
+버그 제보와 기능 제안은 [GitHub Issues](https://github.com/yoobilee/noai-music/issues)를 이용해 주세요.
+
+## 후원
 
 NoAI는 무료 오픈소스 프로젝트입니다.
 
-프로젝트가 유용했다면 GitHub Sponsors를 통해 개발과 유지보수를 가볍게 후원할 수 있습니다.
-
-후원은 완전히 선택 사항이며, 후원 여부에 따라 추가 기능이 제공되거나 기능이 제한되지 않습니다.
-
-GitHub Sponsors: [https://github.com/sponsors/yoobilee](https://github.com/sponsors/yoobilee)
+NoAI가 유용하다면 [GitHub Sponsors](https://github.com/sponsors/yoobilee)를 통해 지속적인 개발을 후원할 수 있습니다. 후원은 선택 사항이며 추가 기능을 제공하지 않습니다.
 
 ## 라이선스
 
-[MIT License](LICENSE)
+NoAI는 [MIT License](LICENSE)로 배포됩니다.
