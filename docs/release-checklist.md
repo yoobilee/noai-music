@@ -52,9 +52,9 @@
 - [x] `git diff --check`
 - [x] `package.json`과 `package-lock.json`의 project version이 `1.1.0`
 - [x] `.output/chrome-mv3/manifest.json`의 version이 `1.1.0`
-- [x] `.output/noai-music-1.1.0-chrome.zip` 생성 — 119,738 bytes
+- [x] `.output/noai-music-1.1.0-chrome.zip` 생성 — 119,755 bytes
 - [x] ZIP 내용과 제외 항목 검사 — manifest, runtime, popup/options, locale, icon 포함; source map, tests, docs, `node_modules`, `.git`, 환경 파일, 로컬 경로와 secret pattern 없음
-- [x] ZIP SHA-256 `b86a04d4ece09791c8a7f372428f181d2ea0974f30fd7c2ee942afd3a1ac2dad`
+- [x] ZIP SHA-256 `5bb54a48421b3712664949654f78c1e534e7da4e8fa0e4ff215c7cd6c6f4905d`
 - [x] PR 최신 head의 CI `Verify`
 
 ## 1.1.0 배포 보류 항목
