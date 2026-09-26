@@ -151,7 +151,9 @@ test('direct track blocks ordinary YouTube cards without disclosure and allowlis
   const card = page.getByTestId('ordinary-card');
   await expect(card).toHaveAttribute(filterAttribute, 'mark');
   await expect(card).toHaveAttribute('data-noai-filter-reason', 'direct-block-track');
-  await expect(card.locator(`${reasonBadge} > span`)).toContainText(/Blocked track|직접 차단한 곡/);
+  await expect(card.locator(`${reasonBadge} > span`)).toContainText(
+    /Directly blocked content|직접 차단한 콘텐츠/,
+  );
   expect(requested).not.toContain('Ordinary001');
   await setSettings(context, true, 'mark', 'all');
   await expect(card).toHaveAttribute(filterAttribute, 'mark');
@@ -649,7 +651,7 @@ test('restores an allowed YouTube card and refilters it after removal', async ({
   await expect(second).toHaveAttribute(filterAttribute, 'mark');
 
   await first
-    .getByRole('button', { name: /Allow this track|이 곡 허용/ })
+    .getByRole('button', { name: /Allow this content|이 콘텐츠 허용/ })
     .click();
   await expect(first).not.toHaveAttribute(filterAttribute, /.+/);
   await expect(second).not.toHaveAttribute(filterAttribute, /.+/);

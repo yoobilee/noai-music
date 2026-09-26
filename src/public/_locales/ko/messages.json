@@ -6,7 +6,7 @@
     "message": "NoAI"
   },
   "extDescription": {
-    "message": "YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 음악 콘텐츠를 필터링합니다."
+    "message": "YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 콘텐츠를 필터링합니다."
   },
   "enabledLabel": {
     "message": "필터 사용"
@@ -21,7 +21,7 @@
     "message": "YouTube Music"
   },
   "youtubeMusicAutoSkipDescription": {
-    "message": "재생 중 정책에 해당하는 곡을 다음 곡으로 넘깁니다."
+    "message": "재생 중 정책에 해당하는 콘텐츠를 다음 항목으로 넘깁니다."
   },
   "filterModeLabel": {
     "message": "필터 방식"
@@ -54,7 +54,7 @@
     "message": "음악만"
   },
   "filterScopeMusicDescription": {
-    "message": "YouTube에서 음악으로 확인된 콘텐츠에만 AI 표시 필터를 적용합니다."
+    "message": "YouTube가 Music 카테고리로 분류한 콘텐츠에만 AI 표시 필터를 적용합니다."
   },
   "filterScopeAll": {
     "message": "AI 표시 콘텐츠 전체"
@@ -101,7 +101,7 @@
     "message": "필터링과 건너뛰기에서 제외합니다."
   },
   "allowedTrackCount": {
-    "message": "허용된 곡 $COUNT$개",
+    "message": "허용된 콘텐츠 $COUNT$개",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -117,16 +117,16 @@
     }
   },
   "allowlistDescription": {
-    "message": "허용한 곡과 아티스트는 YouTube 공식 AI 표시가 확인되어도 필터링하거나 건너뛰지 않습니다. 사용자가 추가한 ID만 저장합니다."
+    "message": "허용한 콘텐츠와 아티스트는 YouTube 공식 AI 표시가 확인되어도 필터링하거나 건너뛰지 않습니다. 사용자가 추가한 ID만 저장합니다."
   },
   "allowedTracksHeading": {
-    "message": "허용된 곡"
+    "message": "허용된 콘텐츠"
   },
   "allowedArtistsHeading": {
     "message": "허용된 아티스트"
   },
   "trackAllowlistInputLabel": {
-    "message": "곡 video ID 또는 watch URL"
+    "message": "YouTube video ID 또는 watch URL"
   },
   "trackAllowlistInputPlaceholder": {
     "message": "Video ID 또는 YouTube watch URL"
@@ -138,13 +138,13 @@
     "message": "UC… ID 또는 YouTube channel URL"
   },
   "addTrackAllowlist": {
-    "message": "곡 허용"
+    "message": "콘텐츠 허용"
   },
   "addArtistAllowlist": {
     "message": "아티스트 허용"
   },
   "allowThisTrack": {
-    "message": "이 곡 허용"
+    "message": "이 콘텐츠 허용"
   },
   "allowThisArtist": {
     "message": "이 아티스트 허용"
@@ -164,24 +164,24 @@
   "allowlistSaveError": {
     "message": "허용 목록을 저장하지 못했습니다. 다시 시도해 주세요."
   },
-  "directBlockTrackReason": { "message": "NoAI · 직접 차단한 곡" },
+  "directBlockTrackReason": { "message": "NoAI · 직접 차단한 콘텐츠" },
   "directBlockArtistReason": { "message": "NoAI · 직접 차단한 아티스트" },
   "directBlockChannelReason": { "message": "NoAI · 직접 차단한 채널" },
   "blocklistHeading": { "message": "차단 목록" },
   "blocklistDescription": { "message": "AI 판정이 아닌 사용자가 직접 지정한 규칙입니다." },
   "blocklistSummaryCount": { "message": "$COUNT$개 저장됨", "placeholders": { "count": { "content": "$1" } } },
   "blocklistSummaryDescription": { "message": "직접 지정한 항목을 필터링합니다." },
-  "blockedTrackCount": { "message": "차단된 곡 $COUNT$개", "placeholders": { "count": { "content": "$1" } } },
+  "blockedTrackCount": { "message": "차단된 콘텐츠 $COUNT$개", "placeholders": { "count": { "content": "$1" } } },
   "blockedArtistCount": { "message": "차단된 아티스트 $COUNT$명", "placeholders": { "count": { "content": "$1" } } },
   "blockedChannelCount": { "message": "차단된 채널 $COUNT$개", "placeholders": { "count": { "content": "$1" } } },
-  "blockedTracksHeading": { "message": "차단된 곡" },
+  "blockedTracksHeading": { "message": "차단된 콘텐츠" },
   "blockedArtistsHeading": { "message": "차단된 아티스트" },
   "blockedChannelsHeading": { "message": "차단된 채널" },
-  "trackBlocklistInputLabel": { "message": "곡 video ID 또는 watch URL" },
+  "trackBlocklistInputLabel": { "message": "YouTube video ID 또는 watch URL" },
   "artistBlocklistInputLabel": { "message": "아티스트 channel ID 또는 URL" },
   "channelBlocklistInputLabel": { "message": "채널 ID, @handle 또는 URL" },
   "channelBlocklistInputPlaceholder": { "message": "UC 채널 ID, @handle 또는 YouTube 채널 URL" },
-  "addTrackBlocklist": { "message": "곡 차단" },
+  "addTrackBlocklist": { "message": "콘텐츠 차단" },
   "addArtistBlocklist": { "message": "아티스트 차단" },
   "addChannelBlocklist": { "message": "채널 차단" },
   "removeBlocklistItem": { "message": "삭제" },

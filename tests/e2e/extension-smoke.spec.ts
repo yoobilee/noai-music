@@ -313,7 +313,7 @@ test('popup and options share an accessible persisted filter scope', async ({
   });
   await expect(popupMusic).toBeChecked();
   await expect(popupGroup).toContainText(
-    'Apply AI-label filtering only to content confirmed as music on YouTube.',
+    'Apply AI-label filtering only to content categorized as Music by YouTube.',
   );
   await expect(popupGroup).toContainText(
     'Apply filtering to all supported content that YouTube labels as AI or altered.',
@@ -328,6 +328,9 @@ test('popup and options share an accessible persisted filter scope', async ({
     name: /All AI-labeled content/,
   });
   await expect(optionsMusic).toBeChecked();
+  await expect(optionsGroup).toContainText(
+    'Apply AI-label filtering only to content categorized as Music by YouTube.',
+  );
 
   await popupAll.check();
   await expect(optionsAll).toBeChecked();
@@ -381,7 +384,25 @@ test('popup and options share a persisted manual UI language', async ({
   await expect(
     page.getByRole('group', { name: '필터 대상' }),
   ).toContainText('AI 표시 콘텐츠 전체');
+  await expect(
+    page.getByRole('group', { name: '필터 대상' }),
+  ).toContainText(
+    'YouTube가 Music 카테고리로 분류한 콘텐츠에만 AI 표시 필터를 적용합니다.',
+  );
+  await expect(
+    page.getByText(
+      '재생 중 정책에 해당하는 콘텐츠를 다음 항목으로 넘깁니다.',
+      { exact: true },
+    ),
+  ).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
+  const koreanPopupOverflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(koreanPopupOverflow.scrollWidth).toBeLessThanOrEqual(
+    koreanPopupOverflow.clientWidth,
+  );
 
   const options = await context.newPage();
   await options.setViewportSize({ height: 800, width: 900 });
@@ -390,6 +411,18 @@ test('popup and options share a persisted manual UI language', async ({
   await expect(optionsLocale).toHaveAccessibleName('언어');
   await expect(optionsLocale).toHaveValue('ko');
   await expect(options.getByText('필터 사용', { exact: true })).toBeVisible();
+  await expect(
+    options.getByRole('group', { name: '필터 대상' }),
+  ).toContainText(
+    'YouTube가 Music 카테고리로 분류한 콘텐츠에만 AI 표시 필터를 적용합니다.',
+  );
+  const koreanOptionsOverflow = await options.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(koreanOptionsOverflow.scrollWidth).toBeLessThanOrEqual(
+    koreanOptionsOverflow.clientWidth,
+  );
 
   await optionsLocale.selectOption('en');
   await expect(optionsLocale).toHaveAccessibleName('Language');
@@ -400,6 +433,14 @@ test('popup and options share a persisted manual UI language', async ({
   await expect(
     options.getByRole('group', { name: 'Filter scope' }),
   ).toContainText('All AI-labeled content');
+  await expect(
+    options.getByRole('group', { name: 'Filter scope' }),
+  ).toContainText(
+    'Apply AI-label filtering only to content categorized as Music by YouTube.',
+  );
+  await expect(
+    options.getByText('Skip matching content during playback.', { exact: true }),
+  ).toBeVisible();
   await expect(options.locator('html')).toHaveAttribute('lang', 'en');
   await expect(popupLocale).toHaveValue('en');
   await expect(popupLocale).toHaveAccessibleName('Language');

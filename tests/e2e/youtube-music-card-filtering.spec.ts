@@ -296,7 +296,7 @@ test('restores a confirmed row when a track or stable artist is allowed', async 
   const row = page.getByTestId('confirmed-row');
   await expect(row).toHaveAttribute(filterAttribute, 'mark');
 
-  await row.getByRole('button', { name: /Allow this track|이 곡 허용/ }).click();
+  await row.getByRole('button', { name: /Allow this content|이 콘텐츠 허용/ }).click();
   await expect(row).not.toHaveAttribute(filterAttribute, /.+/);
   await expect.poll(() => readAllowlist(context)).toMatchObject({
     tracks: [{ videoId: 'SearchAI001' }],

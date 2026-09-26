@@ -6,7 +6,7 @@
     "message": "NoAI"
   },
   "extDescription": {
-    "message": "Filter officially labeled AI or altered music content on YouTube and YouTube Music."
+    "message": "Filter officially labeled AI or altered content on YouTube and YouTube Music."
   },
   "enabledLabel": {
     "message": "Enable filtering"
@@ -21,7 +21,7 @@
     "message": "YouTube Music"
   },
   "youtubeMusicAutoSkipDescription": {
-    "message": "Skip matching tracks during playback."
+    "message": "Skip matching content during playback."
   },
   "filterModeLabel": {
     "message": "Filter mode"
@@ -54,7 +54,7 @@
     "message": "Music only"
   },
   "filterScopeMusicDescription": {
-    "message": "Apply AI-label filtering only to content confirmed as music on YouTube."
+    "message": "Apply AI-label filtering only to content categorized as Music by YouTube."
   },
   "filterScopeAll": {
     "message": "All AI-labeled content"
@@ -101,7 +101,7 @@
     "message": "Never filter or skip these items."
   },
   "allowedTrackCount": {
-    "message": "Allowed tracks: $COUNT$",
+    "message": "Allowed content: $COUNT$",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -117,16 +117,16 @@
     }
   },
   "allowlistDescription": {
-    "message": "Allowed tracks and artists are not filtered or skipped, even when an official YouTube AI disclosure is confirmed. IDs are stored only when you add them."
+    "message": "Allowed content and artists are not filtered or skipped, even when an official YouTube AI disclosure is confirmed. IDs are stored only when you add them."
   },
   "allowedTracksHeading": {
-    "message": "Allowed tracks"
+    "message": "Allowed content"
   },
   "allowedArtistsHeading": {
     "message": "Allowed artists"
   },
   "trackAllowlistInputLabel": {
-    "message": "Track video ID or watch URL"
+    "message": "YouTube video ID or watch URL"
   },
   "trackAllowlistInputPlaceholder": {
     "message": "Video ID or YouTube watch URL"
@@ -138,13 +138,13 @@
     "message": "UC… ID or YouTube channel URL"
   },
   "addTrackAllowlist": {
-    "message": "Allow track"
+    "message": "Allow content"
   },
   "addArtistAllowlist": {
     "message": "Allow artist"
   },
   "allowThisTrack": {
-    "message": "Allow this track"
+    "message": "Allow this content"
   },
   "allowThisArtist": {
     "message": "Allow this artist"
@@ -164,24 +164,24 @@
   "allowlistSaveError": {
     "message": "The allowed list could not be saved. Try again."
   },
-  "directBlockTrackReason": { "message": "NoAI · Blocked track" },
+  "directBlockTrackReason": { "message": "NoAI · Directly blocked content" },
   "directBlockArtistReason": { "message": "NoAI · Blocked artist" },
   "directBlockChannelReason": { "message": "NoAI · Blocked channel" },
   "blocklistHeading": { "message": "Blocklist" },
   "blocklistDescription": { "message": "These are direct rules you chose, not AI detections." },
   "blocklistSummaryCount": { "message": "$COUNT$ saved", "placeholders": { "count": { "content": "$1" } } },
   "blocklistSummaryDescription": { "message": "Filter or skip items you choose." },
-  "blockedTrackCount": { "message": "Blocked tracks: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
+  "blockedTrackCount": { "message": "Blocked content: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
   "blockedArtistCount": { "message": "Blocked artists: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
   "blockedChannelCount": { "message": "Blocked channels: $COUNT$", "placeholders": { "count": { "content": "$1" } } },
-  "blockedTracksHeading": { "message": "Blocked tracks" },
+  "blockedTracksHeading": { "message": "Blocked content" },
   "blockedArtistsHeading": { "message": "Blocked artists" },
   "blockedChannelsHeading": { "message": "Blocked channels" },
-  "trackBlocklistInputLabel": { "message": "Track video ID or watch URL" },
+  "trackBlocklistInputLabel": { "message": "YouTube video ID or watch URL" },
   "artistBlocklistInputLabel": { "message": "Artist channel ID or URL" },
   "channelBlocklistInputLabel": { "message": "Channel ID, @handle, or URL" },
   "channelBlocklistInputPlaceholder": { "message": "UC channel ID, @handle, or YouTube channel URL" },
-  "addTrackBlocklist": { "message": "Block track" },
+  "addTrackBlocklist": { "message": "Block content" },
   "addArtistBlocklist": { "message": "Block artist" },
   "addChannelBlocklist": { "message": "Block channel" },
   "removeBlocklistItem": { "message": "Remove" },

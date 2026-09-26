@@ -53,7 +53,7 @@ ID 기준으로 중복을 제거하고 ASCII ID 순서로 안정적으로 정렬
 
 popup의 compact “허용 목록” 영역은 저장된 곡·아티스트 수를 항상 표시하고, 펼치면 곡 video ID·watch URL과 아티스트 UC channel ID·URL의 추가·조회·개별 삭제를 현재 popup 안에서 처리한다. 목록이 길어지면 popup 내부를 scroll한다. options에는 같은 `AllowlistManager`의 전체 presentation을 유지한다. 잘못된 identity는 저장하지 않고 연결된 오류 설명과 `aria-invalid`로 안내한다. popup에서 options page를 열거나 현재 탭 identity를 읽지 않으므로 `tabs`나 `activeTab` permission이 필요하지 않다.
 
-Blur와 Mark 상태의 사유 badge에는 “이 곡 허용” 버튼을 표시한다. 단일 안정적 아티스트 ID가 있으면 “이 아티스트 허용”도 표시한다. 버튼은 실제 `button` 요소, 접근 가능한 이름과 키보드 focus 표시를 사용한다. Hide 상태는 row가 보이지 않으므로 options에서 URL 또는 ID로 추가한다.
+Blur와 Mark 상태의 사유 badge에는 “이 콘텐츠 허용” 버튼을 표시한다. 단일 안정적 아티스트 ID가 있으면 “이 아티스트 허용”도 표시한다. 버튼은 실제 `button` 요소, 접근 가능한 이름과 키보드 focus 표시를 사용한다. Hide 상태는 row가 보이지 않으므로 options에서 URL 또는 ID로 추가한다.
 
 YouTube 카드 badge는 adapter가 확인한 `ytd-thumbnail` 또는 `yt-thumbnail-view-model`에 absolute overlay로 mount한다. 카드 root의 일반 flow에 높이를 추가하지 않는다. YouTube element에 `position: relative !important`를 강제하거나 card→thumbnail 조상마다 path attribute를 삽입하지 않는다. Blur는 adapter에 격리한 안정적인 thumbnail child와 metadata wrapper selector에만 적용하므로 hover preview subtree가 바뀌어도 filter 대상 경계가 흔들리지 않는다. badge wrapper는 pointer event를 통과시키고 실제 버튼만 클릭·keyboard interaction을 받는다.
 

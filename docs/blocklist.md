@@ -39,7 +39,7 @@ PR 개발 중 사용한 legacy `{ "channelId": "UC…" }` 항목은 같은 schem
 
 ## 카드와 auto-skip
 
-YouTube와 지원 YTM row의 직접 차단 항목은 현재 Hide/Blur/Mark 모드를 그대로 사용한다. reason은 각각 “직접 차단한 곡/아티스트/채널”이며 공식 disclosure 문구를 사용하지 않는다. `storage.onChanged` 시 현재 DOM을 재평가하므로 추가는 즉시 필터를 적용하고 삭제는 즉시 복원하거나 기존 official 결과에 따라 다시 적용한다. 기존 row reuse, expected key, stale lookup과 badge 중복 방어는 유지한다.
+YouTube와 지원 YTM row의 직접 차단 항목은 현재 Hide/Blur/Mark 모드를 그대로 사용한다. reason은 각각 “직접 차단한 콘텐츠/아티스트/채널”이며 공식 disclosure 문구를 사용하지 않는다. `storage.onChanged` 시 현재 DOM을 재평가하므로 추가는 즉시 필터를 적용하고 삭제는 즉시 복원하거나 기존 official 결과에 따라 다시 적용한다. 기존 row reuse, expected key, stale lookup과 badge 중복 방어는 유지한다.
 
 YTM auto-skip은 `enabled`와 `youtubeMusicAutoSkip`이 모두 켜진 경우 allowlist를 먼저 검사한다. 직접 차단 track 또는 확실한 artist이면 disclosure lookup을 시작하지 않고 현재 playback generation에서 한 번만 다음 버튼을 누른다. 전환 실패에도 같은 generation에서 재클릭하지 않는다. 재생 중 새 direct block은 최신 storage snapshot 평가에서 한 번 skip할 수 있다. allowlist로 이미 보호된 generation은 block 규칙이 없으면 기존처럼 끝까지 보호되며, 새 block 규칙은 최신 allowlist가 아니라는 조건에서 즉시 적용된다.
 
