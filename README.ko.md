@@ -1,6 +1,6 @@
 # NoAI
 
-> YouTube의 AI 음악을 차단하고 YouTube Music에서 자동으로 건너뜁니다.
+> YouTube의 AI 표시 음악을 필터링하고 YouTube Music에서 자동으로 건너뜁니다.
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 [![GitHub Release](https://img.shields.io/github/v/release/yoobilee/noai-music?display_name=release&label=GitHub%20Release)](https://github.com/yoobilee/noai-music/releases)
@@ -16,7 +16,7 @@ NoAI는 자체 AI 탐지기를 사용하지 않으며 제목, 채널명, 썸네�
 
 ## NoAI를 만든 이유
 
-일반적인 YouTube와 YouTube Music 탐색 화면에 AI 생성 음악이 점점 더 많이 섞이고 있습니다.
+YouTube와 YouTube Music을 이용하다 보면 AI 생성 음악이 다른 콘텐츠와 함께 노출될 수 있습니다.
 
 NoAI는 AI 생성 여부를 추측하는 대신 YouTube의 공식 표시와 구조화된 메타데이터만 사용하는 보수적인 방식을 택합니다.
 

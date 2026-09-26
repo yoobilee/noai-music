@@ -16,7 +16,7 @@ NoAI does not use its own AI detector and does not guess from titles, channel na
 
 ## Why NoAI
 
-AI-generated music is increasingly mixed into ordinary YouTube and YouTube Music browsing.
+AI-generated music can appear alongside other content while browsing YouTube and YouTube Music.
 
 NoAI takes a conservative approach: it uses YouTube's own disclosure and structured metadata instead of trying to guess whether something is AI-generated.
 
