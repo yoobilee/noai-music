@@ -2,124 +2,125 @@
 
 > Block AI music on YouTube. Skip it on YouTube Music.
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
+[![GitHub Release](https://img.shields.io/github/v/release/yoobilee/noai-music?display_name=release&label=GitHub%20Release)](https://github.com/yoobilee/noai-music/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [한국어](README.ko.md)
 
-NoAI is an open-source browser extension that helps users manage music content that YouTube officially labels as AI or altered content.
+NoAI is an open-source browser extension for filtering content that YouTube officially labels as AI or altered.
 
-The product brand remains **NoAI**. From 0.9.1, the localized extension display name is **NoAI — AI-Labeled Music Filter** in English and **NoAI — AI 표시 음악 필터** in Korean.
+Choose **Music only** to focus on content categorized as Music by YouTube, or **All AI-labeled content** to filter all supported disclosed content. On YouTube Music, matching content can also be skipped automatically.
 
-NoAI does not guess whether music is AI-generated. It uses confirmed YouTube disclosures and exact user-defined identities, and does nothing when it cannot verify the required evidence or identity.
+NoAI does not use its own AI detector and does not guess from titles, channel names, thumbnails, or audio characteristics.
 
-## Key features
+## Why NoAI
 
-- Hide, blur, or mark officially AI/altered-labeled content on YouTube
-- Choose whether official-disclosure filtering applies only to content YouTube confirms as music or to all supported AI-labeled content
-- Automatically skip matching tracks on YouTube Music
-- Filter supported YouTube Music track rows and queue items
-- Track and artist allowlists
-- Direct blocking for tracks, artists, and channels
-- Korean and English UI with automatic browser-language detection or manual language selection
-- No ads, analytics, or telemetry
+AI-generated music can appear alongside other content while browsing YouTube and YouTube Music.
+
+NoAI takes a conservative approach: it uses YouTube's own disclosure and structured metadata instead of trying to guess whether something is AI-generated.
+
+If the required evidence cannot be confirmed, NoAI leaves the content unchanged.
+
+## Features
+
+- **Music only or all AI-labeled content**
+
+  Choose whether filtering applies only to content categorized as Music by YouTube or to all supported AI-labeled content.
+
+- **Hide, blur, or mark**
+
+  Control how matching content appears instead of using one fixed filtering behavior.
+
+- **YouTube Music auto-skip**
+
+  Automatically move past matching content during playback.
+
+- **Allow and block rules**
+
+  Keep content or artists you want, or directly block specific content, artists, and channels. Allow rules take priority over direct blocks.
+
+- **No guessing**
+
+  Use YouTube's official disclosure and structured metadata instead of a custom AI detector.
+
+- **Private by design**
+
+  No ads, analytics, telemetry, or NoAI account.
 
 ## How it works
 
-NoAI uses YouTube's official AI or altered-content disclosure as its primary detection signal.
+NoAI uses YouTube's official AI or altered-content disclosure as its primary signal.
 
-- It does not use an AI detector of its own.
-- It does not infer AI use from titles, channel names, or audio characteristics.
-- An official disclosure does not by itself prove that the music was AI-generated. NoAI reports only the disclosure it confirmed.
-- If NoAI cannot verify the page structure, identity, or disclosure evidence, it leaves the item unchanged rather than guessing.
-- A direct block is a user rule, not an AI classification.
+When **Music only** is selected, filtering is limited to content categorized as Music by YouTube. When **All AI-labeled content** is selected, the same disclosure policy applies to all supported content.
 
-## Supported surfaces
+NoAI intentionally takes a conservative approach:
 
-### YouTube
+- no AI model of its own
+- no title or channel-name heuristics
+- no audio-based guessing
+- unknown or unverifiable items are left unchanged
 
-- Supported video cards on Home, Search, Related, and Playlist surfaces
-- Supported channel `Videos` cards, including exact route identity fallback when card metadata is absent
-- Exact video ID rules
-- UC channel ID rules
-- Exact YouTube `@handle` direct-block rules
-
-### YouTube Music
-
-- Supported track rows in Search, Album, Playlist, and Artist surfaces
-- Queue items with a confirmed exact video ID
-- Current playback identity and auto-skip
-- Track allow and block rules
-- Artist allow and block rules where a stable artist identity is available
-
-Queue artist identity is not inferred. If a supported renderer does not provide a confirmed identity, NoAI leaves it unchanged.
-
-## User rules
-
-User rules follow this priority:
-
-```text
-allowlist > direct blocklist > official disclosure
-```
-
-- An allowed track or artist is not filtered or skipped, even if it also matches a direct block or official disclosure.
-- A direct block applies when its exact track, artist, or channel identity matches, regardless of disclosure lookup results.
-- The official disclosure policy applies only when no higher-priority user rule matches.
+An official disclosure means that YouTube has labeled the content as AI or altered. It does not necessarily mean the music itself was fully AI-generated.
 
 ## Installation
 
 ### Chrome Web Store
 
-NoAI 1.0.0 is available to install from the [Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf).
+[Install NoAI from the Chrome Web Store](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 
-### GitHub Release
+Install the extension from the store to receive updates through your browser.
 
-The [NoAI v1.0.0 release](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0) includes the Chrome extension ZIP. You can extract the ZIP and load the extracted extension through Chrome's developer mode as an alternative to the store installation.
+### GitHub Releases
 
-For a development build instead, follow the instructions below and load `.output/chrome-mv3` as an unpacked extension.
+[Download the latest packaged build from GitHub Releases](https://github.com/yoobilee/noai-music/releases)
+
+Extract the ZIP, enable Developer mode on `chrome://extensions`, and choose **Load unpacked** to select the extracted directory.
+
+### Development build
+
+To run or package NoAI from source, see [Development](#development).
 
 ## Privacy
 
-- No separate NoAI account
-- No NoAI data collection server
-- No ads, analytics, or telemetry
-- Settings, allow/block rules, and the minimal disclosure cache are stored in `storage.local`
-- Chrome Sync is not used
-- Local settings, rules, and cache are not sent to a NoAI developer server
-- To verify an official disclosure, NoAI may request the public YouTube watch page for a video using `credentials: omit` and `referrerPolicy: no-referrer`
-- No `tabs`, `activeTab`, `history`, `cookies`, `identity`, or `<all_urls>` permission
+NoAI has no account system or developer-operated server, and it includes no ads, analytics, or telemetry.
 
-See the [privacy policy](docs/privacy.md) for the complete data-handling details.
+Settings, user rules, and a minimal disclosure cache are stored in `storage.local`. NoAI does not use Chrome Sync or send this data to a developer server.
 
-## Browser support and current status
+To verify YouTube's official disclosure, NoAI may request a public YouTube watch page without Google account credentials. It does not request the `tabs`, `activeTab`, `history`, `cookies`, `identity`, or `<all_urls>` permissions.
 
-- Current published version: **1.0.0**
-- Next release candidate: **1.1.0**
-- Latest GitHub Release: [v1.0.0](https://github.com/yoobilee/noai-music/releases/tag/v1.0.0)
-- Chrome Web Store: **[1.0.0 available to install](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)**
-- Primary validation target: current desktop Chrome
-- Edge and Whale: Chromium compatibility targets; final browser-specific manual validation remains
-- Firefox: not in the 1.0 scope and may be considered later
-
-Automated regression coverage uses non-identifying fixtures and bundled Chromium. Live browser and YouTube Music Premium checks are tracked in the [release checklist](docs/release-checklist.md).
+See the [privacy policy](docs/privacy.md) for details.
 
 ## Development
 
-Requirements:
+### Requirements
 
-- Node.js 22.13.0 or later
+- Node.js 22.13+
 - npm
 
+### Setup
+
 ```sh
+git clone https://github.com/yoobilee/noai-music.git
+cd noai-music
 npm install
 npm run dev
-npm run build
-npm run zip
+```
+
+### Validation
+
+```sh
 npm run verify:all
 ```
 
-Build artifacts:
+### Production build
 
-- Unpacked Chrome extension: `.output/chrome-mv3`
-- Official 1.0.0 release ZIP: [`.output/noai-music-1.0.0-chrome.zip`](https://github.com/yoobilee/noai-music/releases/download/v1.0.0/noai-music-1.0.0-chrome.zip)
-- Prepared 1.1.0 release candidate ZIP: `.output/noai-music-1.1.0-chrome.zip`
+```sh
+npm run build
+npm run zip
+```
+
+The unpacked extension is written to `.output/chrome-mv3`.
 
 ## Documentation
 
@@ -133,18 +134,31 @@ Build artifacts:
 - [Direct blocklist](docs/blocklist.md)
 - [Privacy policy](docs/privacy.md)
 - [Chrome Web Store listing](docs/store-listing.md)
-- [1.0.0 release record and 1.1.0 release candidate checklist](docs/release-checklist.md)
+- [Release checklist](docs/release-checklist.md)
+- [Music signal follow-up](docs/music-signal-followup.md)
+- [YouTube filter latency investigation](docs/youtube-filter-latency-investigation.md)
 
-## Support NoAI
+More documentation is available in [`docs/`](docs/).
+
+## Contributing
+
+Issues and pull requests are welcome.
+
+Before submitting a change, please keep NoAI's core principles in mind:
+
+- do not classify AI content by guessing
+- prefer structured, verifiable signals
+- leave content unchanged when identity or evidence cannot be confirmed
+- avoid unnecessary permissions, tracking, or external services
+
+Use [GitHub Issues](https://github.com/yoobilee/noai-music/issues) for bug reports and feature requests.
+
+## Support
 
 NoAI is free and open source.
 
-If you find it useful and would like to support continued development and maintenance, you can sponsor the project on GitHub.
-
-Sponsorship is completely optional and does not unlock any additional features.
-
-GitHub Sponsors: [https://github.com/sponsors/yoobilee](https://github.com/sponsors/yoobilee)
+If NoAI is useful to you, you can support continued development through [GitHub Sponsors](https://github.com/sponsors/yoobilee). Sponsorship is optional and does not unlock additional features.
 
 ## License
 
-[MIT License](LICENSE)
+NoAI is available under the [MIT License](LICENSE).
