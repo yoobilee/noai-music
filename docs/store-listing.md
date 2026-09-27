@@ -1,18 +1,17 @@
 # Chrome Web Store listing
 
-- 현재 공개 버전: 1.0.0
-- 다음 업데이트 대상 버전: 1.1.0
-- 상태: 1.0.0 공개 / 설치 가능, 1.1.0 제출 준비 중
+- 현재 공개 버전: 1.1.0
+- 상태: 1.1.0 공개 / 설치 가능
 - 공개 URL: https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf
 
-## 1.1.0 제출 시 상세 설명 변경안
+## 1.1.0 공개 listing
 
-현재 공개 중인 아래 1.0.0 listing 본문은 그대로 유지한다. 1.1.0을 실제 제출할 때 다음 기능 설명을 해당 언어의 주요 기능에 추가하고, Dashboard 반영 여부를 별도로 확인한다.
+아래 짧은 설명과 상세 설명은 Chrome Web Store에 공개된 1.1.0 listing 기준이다.
 
-- 한국어: 필터 대상을 음악만 또는 모든 AI 표시 콘텐츠 중 선택할 수 있습니다.
-- English: Choose whether filtering applies only to content categorized as Music by YouTube or to all supported AI-labeled content.
+확장 프로그램 패키지 요약은 Store Dashboard에서 직접 수정하는 listing 필드가 아니며 locale과 manifest에서 관리한다.
 
-여기서 **음악만** 또는 **Music only**는 YouTube watch-page 구조화 데이터의 category가 정확히 `Music`인 경우에만 음악으로 확인한다는 뜻이다. 다른 category나 판별 불가 항목을 음악 또는 비음악으로 추측하지 않는다.
+- 한국어 패키지 요약: YouTube와 YouTube Music에서 공식 AI·변경 표시가 있는 콘텐츠를 필터링합니다.
+- English package summary: Filter officially labeled AI or altered content on YouTube and YouTube Music.
 
 ## 공통 제품 정보
 
@@ -20,7 +19,7 @@
 - English display name: **NoAI — AI-Labeled Music Filter**
 - Korean display name: **NoAI — AI 표시 음악 필터**
 - Tagline: **Block AI music on YouTube. Skip it on YouTube Music.**
-- 단일 목적: YouTube가 공식적으로 AI 또는 변경 콘텐츠로 표시한 음악 콘텐츠와 사용자가 직접 지정한 정확한 식별 정보에 사용자의 필터 설정을 적용한다.
+- 단일 목적: YouTube가 공식적으로 AI 또는 변경 콘텐츠라고 표시한 콘텐츠와 사용자가 직접 지정한 정확한 식별 정보에 사용자의 필터 설정을 적용한다.
 - 지원 사이트: `https://www.youtube.com/*`, `https://music.youtube.com/*`
 - 카테고리: Chrome Web Store 공개 등록정보에서 관리
 - Privacy policy URL: https://github.com/yoobilee/noai-music/blob/main/docs/privacy.md
@@ -30,27 +29,34 @@
 
 ### 짧은 설명
 
-YouTube에서 공식적으로 AI 또는 변경 콘텐츠로 표시된 음악을 숨기거나 흐리고, YouTube Music에서는 자동으로 건너뜁니다.
+YouTube에서 공식적으로 AI 또는 변경 콘텐츠로 표시된 콘텐츠를 숨기거나 흐리고, YouTube Music에서는 자동으로 건너뜁니다.
 
 ### 상세 설명
 
-NoAI는 YouTube가 공식적으로 AI 또는 변경 콘텐츠라고 표시한 음악을 사용자가 원하는 방식으로 관리하도록 돕는 브라우저 확장 프로그램입니다.
+NoAI는 YouTube가 공식적으로 AI 또는 변경 콘텐츠라고 표시한 콘텐츠를 사용자가 원하는 방식으로 관리하도록 돕는 브라우저 확장 프로그램입니다.
 
 주요 기능:
 
+- 필터 대상을 음악만 또는 모든 AI 표시 콘텐츠 중 선택
 - 지원되는 YouTube와 YouTube Music 목록에서 숨기기, 흐리기 또는 표시만 하기
-- YouTube Music에서 대상 곡 자동 건너뛰기
-- 곡·아티스트 허용 목록
-- 원하는 곡·아티스트·채널 직접 차단
+- YouTube Music에서 대상 콘텐츠 자동 건너뛰기
+- 콘텐츠 및 아티스트 허용 목록
+- 원하는 콘텐츠, 아티스트, 채널 직접 차단
 - 한국어와 영어 지원(브라우저 언어에 맞춰 자동 선택하거나 직접 변경)
 
-NoAI는 자체 AI 판별기를 사용하지 않으며 제목, 채널명이나 음원 특징만으로 AI 사용 여부를 추측하지 않습니다. YouTube의 공식 표시가 있다는 사실만으로 음악 자체가 AI 생성됐다고 단정하지 않습니다.
+'음악만'을 선택하면 YouTube가 Music 카테고리로 분류한 콘텐츠에만 AI 표시 필터를 적용합니다. 다른 카테고리이거나 확인할 수 없는 항목을 음악이라고 추측해서 필터링하지 않습니다.
 
-직접 차단은 AI 판정이 아니라 사용자가 만든 규칙입니다. 허용 목록에 추가한 곡이나 아티스트는 직접 차단 및 공식 표시보다 우선하여 그대로 이용할 수 있습니다. 페이지 구조, 공식 표시 근거나 정확한 식별 정보를 확인할 수 없으면 추측해서 차단하지 않습니다.
+'AI 표시 콘텐츠 전체'를 선택하면 NoAI가 지원하는 영역에서 YouTube가 공식적으로 AI 또는 변경 콘텐츠라고 표시한 콘텐츠 전체에 필터를 적용합니다.
 
-별도 NoAI 사용자 계정이 없으며 광고를 표시하거나 사용 분석 및 사용 통계를 수집하지 않습니다. 설정과 사용자 규칙은 브라우저에 저장됩니다. 자세한 내용은 [개인정보 처리방침](privacy.md)에서 확인할 수 있습니다.
+NoAI는 자체 AI 판별기를 사용하지 않으며 제목, 채널명이나 음원 특징만으로 AI 사용 여부를 추측하지 않습니다. 또한 YouTube의 공식 표시가 있다는 사실만으로 해당 음악이나 콘텐츠 자체가 AI로 생성됐다고 단정하지 않습니다.
 
-YouTube와 YouTube Music의 화면 구조가 바뀌면 일부 지원 영역이 일시적으로 동작하지 않을 수 있습니다.
+직접 차단은 AI 판정이 아니라 사용자가 만든 규칙입니다. 허용 목록에 추가한 콘텐츠나 아티스트는 직접 차단 및 공식 표시보다 우선하여 그대로 이용할 수 있습니다. 페이지 구조, 공식 표시 근거나 정확한 식별 정보를 확인할 수 없으면 추측해서 차단하지 않습니다.
+
+별도 NoAI 사용자 계정이 없으며 광고를 표시하거나 사용 분석 및 사용 통계를 수집하지 않습니다. 설정, 사용자 규칙과 공식 표시 확인에 필요한 최소 정보는 사용자의 브라우저에 저장됩니다.
+
+카드에서 공식 표시를 직접 확인할 수 없는 경우, NoAI는 해당 영상 ID의 공개 YouTube 영상 페이지를 추가로 확인할 수 있습니다. 이 요청에는 Google 계정 인증 정보를 포함하지 않습니다.
+
+YouTube와 YouTube Music의 화면 구조나 공식 표시 형식이 바뀌면 일부 지원 영역이 일시적으로 동작하지 않을 수 있습니다.
 
 ## English
 
@@ -60,20 +66,30 @@ Hide, blur, or mark officially AI/altered-labeled YouTube content and auto-skip 
 
 ### Detailed description
 
-NoAI lets you manage music content that YouTube officially labels as AI or altered content, using the filtering mode you choose.
+NoAI helps you manage content that YouTube officially labels as AI or altered, using the filtering mode you choose.
 
 Key features:
 
+- Choose whether filtering applies only to content categorized as Music by YouTube or to all supported AI-labeled content
 - Hide, blur, or mark supported YouTube and YouTube Music list items
-- Auto-skip matching tracks during YouTube Music playback
-- Track and artist allowlists
-- Direct block rules using exact video IDs, UC channel IDs, or YouTube `@handles`
-- Local browser storage for settings and user rules
+- Auto-skip matching content during YouTube Music playback
+- Content and artist allowlists
+- Direct block rules for content, artists, and channels
 - Korean and English UI with automatic browser-language detection or manual language selection
 
-NoAI does not use its own AI model and does not infer AI use from titles, channel names, or audio characteristics. An official disclosure does not by itself prove that the music was AI-generated. Direct blocks are user-defined rules, not AI detections. Allowlist rules take priority over direct blocks and official disclosures.
+With Music only selected, NoAI applies AI-label filtering only to content categorized as Music by YouTube. It does not guess that content is music when the category is different or cannot be confirmed.
 
-If NoAI cannot confirm the page structure or identity, it does not guess and block the item. YouTube UI changes may temporarily make a supported surface unavailable.
+With All AI-labeled content selected, NoAI applies filtering to supported content that YouTube officially labels as AI or altered.
+
+NoAI does not use its own AI model and does not infer AI use from titles, channel names, or audio characteristics. An official YouTube disclosure does not by itself prove that the music or content was AI-generated.
+
+Direct blocks are user-defined rules, not AI detections. Allowed content and artists take priority over direct blocks and official disclosures. If NoAI cannot confirm the page structure, official disclosure, or exact identity, it does not guess and block the item.
+
+NoAI does not require an account and does not display ads or collect analytics or usage telemetry. Settings, user-defined rules, and the minimum information needed to cache disclosure checks are stored locally in your browser.
+
+When an official disclosure is not directly available on a supported card, NoAI may check the public YouTube watch page for that video ID. These requests do not include Google account credentials.
+
+YouTube and YouTube Music UI or disclosure-format changes may temporarily make some supported surfaces unavailable.
 
 ## 개인정보 요약 / Privacy summary
 
@@ -108,7 +124,7 @@ YouTube와 YouTube Music의 지원되는 카드·목록 항목과 재생 영역�
 - YouTube Music Premium이 필요한 실시간 자동 건너뛰기 재생 검증은 해당 환경에서 별도로 수행해야 한다.
 - YouTube/YTM DOM 또는 공식 표시 형식이 바뀌면 확인할 수 없는 항목은 추측해서 처리하지 않는다.
 - 채널 `@handle`은 UC ID보다 변경 가능성이 높으며 핸들이 바뀌면 기존 규칙이 더 이상 일치하지 않을 수 있다.
-- Firefox는 1.0 범위가 아니다.
+- Firefox는 현재 지원하지 않는다.
 
 ## 이미지와 스크린샷 준비
 

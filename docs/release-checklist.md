@@ -1,8 +1,8 @@
-# NoAI 1.0.0 공개 기록 및 1.1.0 릴리스 준비 체크리스트
+# NoAI 1.0.0 공개 기록 및 1.1.0 릴리스 기록
 
-1.0.0은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 1.1.0은 filter scope 기능을 포함한 출시 후보 준비 단계이며 아직 tag, GitHub Release 또는 Chrome Web Store 제출을 진행하지 않았다. 이 문서는 1.0.0 배포 완료 기록과 1.1.0 RC 검증 및 남은 사람의 실제 환경 확인 항목을 함께 기록한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
+1.0.0과 1.1.0은 GitHub Release와 Chrome Web Store에서 공개되어 설치할 수 있다. 이 문서는 각 버전의 실제 검증, artifact와 배포 상태를 기록하며, 자동 fixture 검증과 사람의 실제 환경 검증을 구분한다. 자동 fixture 통과를 live 검증으로 간주하지 않는다.
 
-## 1.1.0 출시 후보 수동 검증
+## 1.1.0 수동 검증
 
 ### Filter scope
 
@@ -37,7 +37,7 @@
 
 위 항목은 자동 테스트가 있어도 사람의 실제 Chrome 확인 전에는 완료로 표시하지 않는다.
 
-## 1.1.0 출시 후보 자동 검증과 artifact
+## 1.1.0 자동 검증과 릴리스 artifact
 
 - [x] `npm ci`
 - [x] `npm audit --audit-level=low`
@@ -52,20 +52,20 @@
 - [x] `git diff --check`
 - [x] `package.json`과 `package-lock.json`의 project version이 `1.1.0`
 - [x] `.output/chrome-mv3/manifest.json`의 version이 `1.1.0`
-- [x] `.output/noai-music-1.1.0-chrome.zip` 생성 — 119,755 bytes
+- [x] GitHub Release에 첨부된 `noai-music-1.1.0-chrome.zip` 생성 — 119,755 bytes
 - [x] ZIP 내용과 제외 항목 검사 — manifest, runtime, popup/options, locale, icon 포함; source map, tests, docs, `node_modules`, `.git`, 환경 파일, 로컬 경로와 secret pattern 없음
 - [x] ZIP SHA-256 `5bb54a48421b3712664949654f78c1e534e7da4e8fa0e4ff215c7cd6c6f4905d`
 - [x] PR 최신 head의 CI `Verify`
 
-## 1.1.0 배포 보류 항목
+## 1.1.0 배포 완료
 
-- [ ] `v1.1.0` tag 생성 및 push
-- [ ] GitHub Release v1.1.0 생성 및 검증된 ZIP 첨부
-- [ ] Chrome Web Store 1.1.0 package upload
-- [ ] Chrome Web Store 1.1.0 listing 반영 및 제출
-- [ ] Chrome Web Store 1.1.0 승인 및 공개
+- [x] `v1.1.0` tag 생성 및 push
+- [x] [GitHub Release v1.1.0](https://github.com/yoobilee/noai-music/releases/tag/v1.1.0) 생성 및 검증된 ZIP 첨부
+- [x] Chrome Web Store 1.1.0 package upload
+- [x] Chrome Web Store 1.1.0 listing 반영 및 제출
+- [x] [Chrome Web Store 1.1.0 승인 및 공개](https://chromewebstore.google.com/detail/noai/eiddibmnpcdbgdmeoipniomddiboikkf)
 
-이 섹션은 RC 검증 완료만으로 체크하지 않는다. 별도의 배포 승인과 실제 외부 상태 확인 후에만 완료 처리한다.
+위 항목은 별도의 배포 승인과 실제 외부 공개 상태를 확인한 2026-09-27에 완료 처리했다. 완료되지 않은 수동 검증 항목은 자동 검증이나 배포 완료를 근거로 변경하지 않는다.
 
 ## 1.0.0 공개 상태와 후속 수동 검증
 
